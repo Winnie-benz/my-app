@@ -32,15 +32,6 @@ function apiErrorMessage(payload: any, status: number): string {
   return `API error ${status}`
 }
 
-function proxyUnavailableMessage(res: Response, text: string): string | null {
-  const contentType = res.headers.get('content-type') ?? ''
-  const isTextLike = contentType.includes('text/plain') || contentType.includes('text/html') || contentType === ''
-  if (res.status >= 500 && isTextLike && text.trim() === '') {
-    return 'Backend server is not responding. Start both frontend and backend with npm run dev.'
-  }
-  return null
-}
-
 async function req<T = unknown>(path: string, options: RequestInit = {}): Promise<T> {
   useAuthStore.getState().refreshIfNeeded()   // silent background refresh, no await
   const token = useAuthStore.getState().token
@@ -54,14 +45,6 @@ async function req<T = unknown>(path: string, options: RequestInit = {}): Promis
   })
   const text = await res.text()
   let json: any = null
-
-  const proxyMessage = proxyUnavailableMessage(res, text)
-  if (proxyMessage) {
-    throw new ApiError(proxyMessage, res.status, {
-      success: false,
-      error: proxyMessage,
-    })
-  }
 
   if (text) {
     try {
@@ -141,10 +124,7 @@ export const api = {
 
   admin: {
     listBackups:    () =>
-      req<{
-        data: { filename: string; size: number; created_at: string }[]
-        backup: { enabled: boolean; mode: 'local' | 'turso'; message: string }
-      }>('/admin/backups'),
+      req<{ data: { filename: string; size: number; created_at: string }[] }>('/admin/backups'),
     createBackup:   () =>
       req<{ filename: string }>('/admin/backups', { method: 'POST' }),
     restoreBackup:  (filename: string) =>

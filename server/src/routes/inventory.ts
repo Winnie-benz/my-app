@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express'
 import { z } from 'zod'
 import db from '../db/database'
 import { requireAuth } from '../middleware/requireAuth'
+import { nowTH } from '../utils/time'
 
 const router = Router()
 router.use(requireAuth)
@@ -38,9 +39,9 @@ router.post('/sessions', (req: Request, res: Response) => {
 
   const tx = db.transaction(() => {
     const result = db.prepare(`
-      INSERT INTO inventory_sessions (created_by, session_type, total_items, total_missing, total_over, total_ok)
-      VALUES (@created_by, @session_type, @total_items, @total_missing, @total_over, @total_ok)
-    `).run({ created_by: d.created_by, session_type: d.session_type ?? 'products', total_items, total_missing, total_over, total_ok })
+      INSERT INTO inventory_sessions (created_by, session_type, total_items, total_missing, total_over, total_ok, created_at)
+      VALUES (@created_by, @session_type, @total_items, @total_missing, @total_over, @total_ok, @created_at)
+    `).run({ created_by: d.created_by, session_type: d.session_type ?? 'products', total_items, total_missing, total_over, total_ok, created_at: nowTH() })
 
     const session_id = result.lastInsertRowid as number
 

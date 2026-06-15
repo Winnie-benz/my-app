@@ -11,12 +11,6 @@ interface BackupEntry {
   created_at: string
 }
 
-interface BackupStatus {
-  enabled: boolean
-  mode: 'local' | 'turso'
-  message: string
-}
-
 function fmtSize(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
@@ -42,11 +36,6 @@ export default function SettingsPage() {
   const [restoreCandidate, setRestoreCandidate] = useState<BackupEntry | null>(null)
   const [restoreConfirmed, setRestoreConfirmed] = useState(false)
   const [loadError, setLoadError] = useState('')
-  const [backupStatus, setBackupStatus] = useState<BackupStatus>({
-    enabled: true,
-    mode: 'local',
-    message: '',
-  })
 
   async function load() {
     setLoading(true)
@@ -54,7 +43,6 @@ export default function SettingsPage() {
     try {
       const res = await api.admin.listBackups()
       setBackups(res.data)
-      setBackupStatus(res.backup)
     } catch (e: any) {
       setLoadError(e?.message || 'โหลดรายการ backup ไม่สำเร็จ')
     } finally {
@@ -69,8 +57,6 @@ export default function SettingsPage() {
     try {
       await api.admin.createBackup()
       await load()
-    } catch (e: any) {
-      notify('error', e?.message || 'สร้าง backup ไม่สำเร็จ')
     } finally {
       setCreating(false)
     }
@@ -81,8 +67,6 @@ export default function SettingsPage() {
     try {
       await api.admin.deleteBackup(filename)
       setBackups(prev => prev.filter(b => b.filename !== filename))
-    } catch (e: any) {
-      notify('error', e?.message || 'ลบ backup ไม่สำเร็จ')
     } finally {
       setDeleting(null)
     }
@@ -156,7 +140,7 @@ export default function SettingsPage() {
           <button
             type="button"
             onClick={handleCreate}
-            disabled={!backupStatus.enabled || creating || !!restoring}
+            disabled={creating || !!restoring}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-medium bg-slate-900 text-white hover:bg-slate-800 disabled:opacity-40 transition-colors"
           >
             <Plus size={14} />
@@ -164,9 +148,7 @@ export default function SettingsPage() {
           </button>
         </div>
         <p className="text-xs text-slate-400 mb-5">
-          {backupStatus.enabled
-            ? 'ระบบ backup อัตโนมัติทุกวันและทุกสัปดาห์ การ restore จะย้อนข้อมูลกลับไปตามเวลาของ backup และระบบจะรีสตาร์ตอัตโนมัติ'
-            : backupStatus.message}
+          ระบบ backup อัตโนมัติทุกวันและทุกสัปดาห์ การ restore จะย้อนข้อมูลกลับไปตามเวลาของ backup และระบบจะรีสตาร์ตอัตโนมัติ
         </p>
 
         {loading ? (
@@ -181,10 +163,6 @@ export default function SettingsPage() {
             >
               ลองโหลดใหม่
             </button>
-          </div>
-        ) : !backupStatus.enabled ? (
-          <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-4 text-sm text-amber-900">
-            ใช้งานโหมด Turso อยู่ จึงปิด backup/restore แบบไฟล์ในเครื่องไว้ก่อนเพื่อให้ข้อมูลจากหลายเครื่องไม่ย้อนคนละทาง
           </div>
         ) : backups.length === 0 ? (
           <p className="text-sm text-slate-400 text-center py-6">ยังไม่มี backup</p>

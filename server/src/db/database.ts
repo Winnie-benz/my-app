@@ -11,7 +11,19 @@ export const DB_PATH = process.env.DB_PATH || path.join(DATA_DIR, 'shop.db')
 const RESTORE_REQUEST_PATH = path.join(DATA_DIR, 'restore-request.json')
 const FAILED_RESTORE_REQUEST_PATH = path.join(DATA_DIR, `restore-request.failed.json`)
 
+const TURSO_URL   = process.env.TURSO_DATABASE_URL
+const TURSO_TOKEN = process.env.TURSO_AUTH_TOKEN
+
 function applyPendingRestore() {
+  // Skip restore when using Turso — copying plain .db file would corrupt sync metadata
+  if (TURSO_URL && TURSO_TOKEN) {
+    if (fs.existsSync(RESTORE_REQUEST_PATH)) {
+      fs.renameSync(RESTORE_REQUEST_PATH, FAILED_RESTORE_REQUEST_PATH)
+      console.warn('⚠️  Restore skipped: not supported when using Turso cloud sync')
+    }
+    return
+  }
+
   if (!fs.existsSync(RESTORE_REQUEST_PATH)) return
 
   const request = JSON.parse(fs.readFileSync(RESTORE_REQUEST_PATH, 'utf8')) as {
@@ -37,16 +49,20 @@ function applyPendingRestore() {
 
 applyPendingRestore()
 
-const TURSO_URL   = process.env.TURSO_DATABASE_URL
-const TURSO_TOKEN = process.env.TURSO_AUTH_TOKEN
-export const USE_REMOTE = !!(TURSO_URL && TURSO_TOKEN)
+// Turso present  →  connect DIRECTLY to the cloud primary (reads + writes hit
+// the cloud, so every machine sees the same data instantly). The previous
+// embedded-replica mode (syncUrl) read from a stale local cache while writes
+// went to the cloud, which silently dropped every edit.
+const USE_REMOTE = !!(TURSO_URL && TURSO_TOKEN)
 
-const db = new Database(DB_PATH, {
-  ...(USE_REMOTE ? { syncUrl: TURSO_URL, authToken: TURSO_TOKEN } : {}),
-})
+const db = USE_REMOTE
+  ? new Database(TURSO_URL as string, { authToken: TURSO_TOKEN as string })
+  : new Database(DB_PATH)
 
-db.pragma('journal_mode = WAL')
-db.pragma('foreign_keys = ON')
+if (!USE_REMOTE) {
+  db.pragma('journal_mode = WAL')
+  db.pragma('foreign_keys = ON')
+}
 
 db.exec(`
   CREATE TABLE IF NOT EXISTS products (
@@ -60,7 +76,7 @@ db.exec(`
     stock_current INTEGER NOT NULL DEFAULT 0,
     avg_cost     REAL    NOT NULL DEFAULT 0,
     note         TEXT    NOT NULL DEFAULT '',
-    created_at   TEXT    NOT NULL DEFAULT (datetime('now','localtime'))
+    created_at   TEXT    NOT NULL DEFAULT (datetime('now','+7 hours'))
   );
 
   CREATE TABLE IF NOT EXISTS customers (
@@ -73,7 +89,7 @@ db.exec(`
     gender       TEXT NOT NULL DEFAULT 'unspecified',
     address      TEXT NOT NULL DEFAULT '',
     note         TEXT NOT NULL DEFAULT '',
-    created_at   TEXT NOT NULL DEFAULT (datetime('now','localtime'))
+    created_at   TEXT NOT NULL DEFAULT (datetime('now','+7 hours'))
   );
 
   CREATE TABLE IF NOT EXISTS purchases (
@@ -90,7 +106,7 @@ db.exec(`
     total            REAL NOT NULL DEFAULT 0,
     pickup_date      TEXT NOT NULL DEFAULT '',
     pickup_time      TEXT NOT NULL DEFAULT '',
-    created_at       TEXT NOT NULL DEFAULT (datetime('now','localtime'))
+    created_at       TEXT NOT NULL DEFAULT (datetime('now','+7 hours'))
   );
 `)
 
@@ -103,7 +119,7 @@ db.exec(`
     cost        REAL,
     reference   TEXT,
     note        TEXT    NOT NULL DEFAULT '',
-    created_at  TEXT    NOT NULL DEFAULT (datetime('now','localtime'))
+    created_at  TEXT    NOT NULL DEFAULT (datetime('now','+7 hours'))
   );
 `)
 
@@ -132,7 +148,7 @@ try { db.exec(`ALTER TABLE customers ADD COLUMN source TEXT NOT NULL DEFAULT 'wa
 db.exec(`
   CREATE TABLE IF NOT EXISTS inventory_sessions (
     id            INTEGER PRIMARY KEY AUTOINCREMENT,
-    created_at    TEXT    NOT NULL DEFAULT (datetime('now','localtime')),
+    created_at    TEXT    NOT NULL DEFAULT (datetime('now','+7 hours')),
     created_by    TEXT    NOT NULL DEFAULT '',
     total_items   INTEGER NOT NULL DEFAULT 0,
     total_missing INTEGER NOT NULL DEFAULT 0,
@@ -163,7 +179,7 @@ db.exec(`
     lens_index   TEXT    NOT NULL DEFAULT '',
     coating      TEXT    NOT NULL DEFAULT '',
     note         TEXT    NOT NULL DEFAULT '',
-    created_at   TEXT    NOT NULL DEFAULT (datetime('now','localtime'))
+    created_at   TEXT    NOT NULL DEFAULT (datetime('now','+7 hours'))
   );
 
   CREATE TABLE IF NOT EXISTS lens_variants (
@@ -177,7 +193,7 @@ db.exec(`
     add_power   TEXT    NOT NULL DEFAULT '',
     stock_qty   INTEGER NOT NULL DEFAULT 0,
     cost        REAL    NOT NULL DEFAULT 0,
-    created_at  TEXT    NOT NULL DEFAULT (datetime('now','localtime'))
+    created_at  TEXT    NOT NULL DEFAULT (datetime('now','+7 hours'))
   );
 `)
 
@@ -189,7 +205,7 @@ db.exec(`
     method      TEXT NOT NULL DEFAULT 'cash',
     note        TEXT NOT NULL DEFAULT '',
     paid_at     TEXT NOT NULL,
-    created_at  TEXT NOT NULL DEFAULT (datetime('now','localtime'))
+    created_at  TEXT NOT NULL DEFAULT (datetime('now','+7 hours'))
   );
 `)
 
@@ -228,7 +244,7 @@ db.exec(`
     cost           REAL    NOT NULL DEFAULT 0,
     avg_cost_after REAL    NOT NULL DEFAULT 0,
     note           TEXT    NOT NULL DEFAULT '',
-    created_at     TEXT    NOT NULL DEFAULT (datetime('now','localtime'))
+    created_at     TEXT    NOT NULL DEFAULT (datetime('now','+7 hours'))
   );
 `)
 
@@ -266,8 +282,8 @@ db.exec(`
     paid_amount    REAL NOT NULL DEFAULT 0,
     pickup_date    TEXT NOT NULL DEFAULT '',
     resolved_at    TEXT NOT NULL DEFAULT '',
-    created_at     TEXT NOT NULL DEFAULT (datetime('now','localtime')),
-    updated_at     TEXT NOT NULL DEFAULT (datetime('now','localtime'))
+    created_at     TEXT NOT NULL DEFAULT (datetime('now','+7 hours')),
+    updated_at     TEXT NOT NULL DEFAULT (datetime('now','+7 hours'))
   );
 
   CREATE TABLE IF NOT EXISTS claim_payments (
@@ -277,7 +293,7 @@ db.exec(`
     method     TEXT NOT NULL DEFAULT 'cash',
     note       TEXT NOT NULL DEFAULT '',
     paid_at    TEXT NOT NULL,
-    created_at TEXT NOT NULL DEFAULT (datetime('now','localtime'))
+    created_at TEXT NOT NULL DEFAULT (datetime('now','+7 hours'))
   );
 `)
 
@@ -289,7 +305,7 @@ db.exec(`
     from_status  TEXT NOT NULL DEFAULT '',
     to_status    TEXT NOT NULL,
     changed_by   TEXT NOT NULL DEFAULT '',
-    changed_at   TEXT NOT NULL DEFAULT (datetime('now','localtime'))
+    changed_at   TEXT NOT NULL DEFAULT (datetime('now','+7 hours'))
   );
 `)
 
@@ -302,7 +318,7 @@ db.exec(`
     barcode      TEXT    NOT NULL DEFAULT '',
     qty          INTEGER NOT NULL DEFAULT 1,
     cost         REAL    NOT NULL DEFAULT 0,
-    created_at   TEXT    NOT NULL DEFAULT (datetime('now','localtime'))
+    created_at   TEXT    NOT NULL DEFAULT (datetime('now','+7 hours'))
   );
 `)
 
@@ -332,16 +348,23 @@ db.exec(`
   CREATE INDEX IF NOT EXISTS idx_status_logs_order    ON order_status_logs(order_kind, order_id);
 `)
 
-// libsql + Turso compatibility shim:
-// 1) rewrite named params (@foo) to positional binds for Turso compatibility
-// 2) rewrite 'localtime' to fixed Thai offset when using remote sync
-// 3) strip libsql metadata fields from returned rows
+// libsql shim. Two incompatibilities with better-sqlite3 are patched here so the
+// rest of the codebase needs no changes:
+//   1. On the remote (Hrana) connection, @named bind parameters are silently
+//      bound to NULL — only positional '?' works. We rewrite @name → ? at
+//      prepare time and remap the existing { name: value } call objects to a
+//      positional array, preserving parameter order (and repeats).
+//   2. libsql adds a `_metadata` field to .get() rows that better-sqlite3 never
+//      had; we strip it.
 const _prepare = db.prepare.bind(db)
 ;(db as any).prepare = (sql: string) => {
   const names: string[] = []
+  // Turso servers run in UTC, so SQLite's 'localtime' modifier yields UTC, not
+  // Thai time. Rewrite it to a fixed +7h offset (Thailand has no DST) so all
+  // query-time date math (report ranges, age calc) stays in Thai local time.
   const tzSql = USE_REMOTE ? sql.replace(/'localtime'/g, "'+7 hours'") : sql
-  const positionalSql = tzSql.replace(/@([a-zA-Z_][a-zA-Z0-9_]*)/g, (_m, name) => {
-    names.push(name)
+  const positionalSql = tzSql.replace(/@([a-zA-Z_][a-zA-Z0-9_]*)/g, (_m, n) => {
+    names.push(n)
     return '?'
   })
   const stmt = _prepare(positionalSql)
@@ -355,14 +378,13 @@ const _prepare = db.prepare.bind(db)
       !Array.isArray(args[0])
     ) {
       const obj = args[0] as Record<string, any>
-      return [names.map(name => obj[name])]
+      return [names.map(n => obj[n])]
     }
     return args
   }
-
   const stripMeta = (row: any) => {
     if (row && typeof row === 'object' && '_metadata' in row) {
-      const { _metadata: _ignored, ...rest } = row
+      const { _metadata: _, ...rest } = row
       return rest
     }
     return row
@@ -371,27 +393,16 @@ const _prepare = db.prepare.bind(db)
   const _run = stmt.run.bind(stmt)
   const _get = stmt.get.bind(stmt)
   const _all = stmt.all.bind(stmt)
-
   stmt.run = (...args: any[]) => _run(...toArgs(args))
   stmt.get = (...args: any[]) => stripMeta(_get(...toArgs(args)))
-  stmt.all = (...args: any[]) => _all(...toArgs(args)).map(stripMeta)
+  stmt.all = (...args: any[]) => _all(...toArgs(args))
   return stmt
 }
 
 if (USE_REMOTE) {
-  console.log(`✅  SQLite (embedded replica + Turso sync)  →  ${DB_PATH}  →  ${TURSO_URL}`)
+  console.log(`✅  Turso (direct cloud)  →  ${TURSO_URL}`)
 } else {
-  console.log(`✅  SQLite (local only)  →  ${DB_PATH}`)
-}
-
-export async function syncFromTurso() {
-  if (!USE_REMOTE) return
-  try {
-    await (db as any).sync()
-    console.log('✅  Turso sync complete')
-  } catch (err) {
-    console.error('⚠️  Turso sync failed:', err)
-  }
+  console.log(`✅  SQLite (local)  →  ${DB_PATH}`)
 }
 
 export default db

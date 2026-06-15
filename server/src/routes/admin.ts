@@ -1,7 +1,7 @@
 import { Router, Request, Response } from 'express'
 import { spawn } from 'child_process'
 import { requireAuth, requireAdmin } from '../middleware/requireAuth'
-import { createBackup, listBackups, getBackupPath, deleteBackup, queueRestore, getBackupStatus } from '../services/backup'
+import { createBackup, listBackups, getBackupPath, deleteBackup, queueRestore } from '../services/backup'
 
 const router = Router()
 router.use(requireAuth, requireAdmin)
@@ -32,11 +32,7 @@ function scheduleRestartAfterRestore() {
 }
 
 router.get('/backups', (_req: Request, res: Response) => {
-  try {
-    res.json({ success: true, data: listBackups(), backup: getBackupStatus() })
-  } catch (e: any) {
-    res.status(500).json({ success: false, error: e.message || 'Cannot load backups' })
-  }
+  res.json({ success: true, data: listBackups() })
 })
 
 router.post('/backups', (_req: Request, res: Response) => {
@@ -49,18 +45,9 @@ router.post('/backups', (_req: Request, res: Response) => {
 })
 
 router.get('/backups/:filename', (req: Request, res: Response) => {
-  try {
-    const backup = getBackupStatus()
-    if (!backup.enabled) {
-      res.status(409).json({ success: false, error: backup.message })
-      return
-    }
-    const p = getBackupPath(req.params.filename)
-    if (!p) { res.status(404).json({ success: false, error: 'Backup not found' }); return }
-    res.download(p)
-  } catch (e: any) {
-    res.status(500).json({ success: false, error: e.message || 'Cannot download backup' })
-  }
+  const p = getBackupPath(req.params.filename)
+  if (!p) { res.status(404).json({ success: false, error: 'Backup not found' }); return }
+  res.download(p)
 })
 
 router.post('/backups/:filename/restore', (req: Request, res: Response) => {
@@ -78,13 +65,9 @@ router.post('/backups/:filename/restore', (req: Request, res: Response) => {
 })
 
 router.delete('/backups/:filename', (req: Request, res: Response) => {
-  try {
-    const ok = deleteBackup(req.params.filename)
-    if (!ok) { res.status(404).json({ success: false, error: 'Backup not found' }); return }
-    res.json({ success: true })
-  } catch (e: any) {
-    res.status(500).json({ success: false, error: e.message || 'Cannot delete backup' })
-  }
+  const ok = deleteBackup(req.params.filename)
+  if (!ok) { res.status(404).json({ success: false, error: 'Backup not found' }); return }
+  res.json({ success: true })
 })
 
 export default router

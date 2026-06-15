@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express'
 import { z } from 'zod'
 import db from '../db/database'
 import { requireAuth } from '../middleware/requireAuth'
+import { nowTH } from '../utils/time'
 
 const router = Router()
 router.use(requireAuth)
@@ -54,9 +55,9 @@ router.post('/', (req: Request, res: Response) => {
   const d = parsed.data
   try {
     const result = db.prepare(`
-      INSERT INTO lens_products (brand, series, lens_type, lens_index, coating, note, default_cost, sell_price, sph_min, sph_max, cyl_min, cyl_max, sph_step, cyl_step)
-      VALUES (@brand, @series, @lens_type, @lens_index, @coating, @note, @default_cost, @sell_price, @sph_min, @sph_max, @cyl_min, @cyl_max, @sph_step, @cyl_step)
-    `).run(d)
+      INSERT INTO lens_products (brand, series, lens_type, lens_index, coating, note, default_cost, sell_price, sph_min, sph_max, cyl_min, cyl_max, sph_step, cyl_step, created_at)
+      VALUES (@brand, @series, @lens_type, @lens_index, @coating, @note, @default_cost, @sell_price, @sph_min, @sph_max, @cyl_min, @cyl_max, @sph_step, @cyl_step, @created_at)
+    `).run({ ...d, created_at: nowTH() })
     const row = db.prepare('SELECT * FROM lens_products WHERE id = ?').get(result.lastInsertRowid)
     res.status(201).json({ success: true, data: withCounts(row) })
   } catch (err: any) {
@@ -155,8 +156,8 @@ router.patch('/:id/cell', (req: Request, res: Response) => {
     const costVal = typeof cost === 'number' ? cost : 0
     const sku = autoSKU(product, sph, cyl)
     const result = db.prepare(
-      'INSERT INTO lens_variants (product_id, sku, barcode, sph, cyl, axis, add_power, stock_qty, cost) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)'
-    ).run(id, sku, '', sph, cyl, '', '', qty, costVal)
+      'INSERT INTO lens_variants (product_id, sku, barcode, sph, cyl, axis, add_power, stock_qty, cost, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+    ).run(id, sku, '', sph, cyl, '', '', qty, costVal, nowTH())
     variant = db.prepare('SELECT * FROM lens_variants WHERE id = ?').get(result.lastInsertRowid)
   }
   res.json({ success: true, data: variant })
@@ -171,8 +172,8 @@ router.post('/:id/variants', (req: Request, res: Response) => {
   if (!product) { res.status(404).json({ success: false, error: 'Not found' }); return }
   const finalSku = sku || autoSKU(product, sph ?? '0.00', cyl ?? '0.00')
   const result = db.prepare(
-    'INSERT INTO lens_variants (product_id, sku, barcode, sph, cyl, axis, add_power, stock_qty, cost) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)'
-  ).run(id, finalSku, barcode ?? '', sph ?? '', cyl ?? '', axis ?? '', add_power ?? '', stock_qty ?? 0, cost ?? 0)
+    'INSERT INTO lens_variants (product_id, sku, barcode, sph, cyl, axis, add_power, stock_qty, cost, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+  ).run(id, finalSku, barcode ?? '', sph ?? '', cyl ?? '', axis ?? '', add_power ?? '', stock_qty ?? 0, cost ?? 0, nowTH())
   const row = db.prepare('SELECT * FROM lens_variants WHERE id = ?').get(result.lastInsertRowid)
   res.status(201).json({ success: true, data: row })
 })
@@ -232,9 +233,9 @@ router.post('/:id/variants/:vid/stock-in', (req: Request, res: Response) => {
   const tx = db.transaction(() => {
     db.prepare('UPDATE lens_variants SET stock_qty = ?, cost = ? WHERE id = ?').run(newStock, newAvgCost, vid)
     db.prepare(`
-      INSERT INTO lens_variant_movements (variant_id, product_id, type, qty, cost, avg_cost_after, note)
-      VALUES (?, ?, 'stock_in', ?, ?, ?, ?)
-    `).run(vid, id, qty, cost, newAvgCost, note ?? '')
+      INSERT INTO lens_variant_movements (variant_id, product_id, type, qty, cost, avg_cost_after, note, created_at)
+      VALUES (?, ?, 'stock_in', ?, ?, ?, ?, ?)
+    `).run(vid, id, qty, cost, newAvgCost, note ?? '', nowTH())
   })
   tx()
 
@@ -259,9 +260,9 @@ router.post('/:id/variants/:vid/stock-out', (req: Request, res: Response) => {
   const tx = db.transaction(() => {
     db.prepare('UPDATE lens_variants SET stock_qty = ? WHERE id = ?').run(newStock, vid)
     db.prepare(`
-      INSERT INTO lens_variant_movements (variant_id, product_id, type, qty, cost, avg_cost_after, note)
-      VALUES (?, ?, 'stock_out', ?, ?, ?, ?)
-    `).run(vid, id, -qty, variant.cost, variant.cost, note ?? '')
+      INSERT INTO lens_variant_movements (variant_id, product_id, type, qty, cost, avg_cost_after, note, created_at)
+      VALUES (?, ?, 'stock_out', ?, ?, ?, ?, ?)
+    `).run(vid, id, -qty, variant.cost, variant.cost, note ?? '', nowTH())
   })
   tx()
 

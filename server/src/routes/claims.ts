@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express'
 import db from '../db/database'
 import { requireAuth } from '../middleware/requireAuth'
+import { nowTH } from '../utils/time'
 
 const router = Router()
 router.use(requireAuth)
@@ -32,9 +33,9 @@ function actorName(req: Request): string {
 function insertStatusLog(kind: string, id: string, fromStatus: string, toStatus: string, changedBy: string) {
   if (fromStatus === toStatus) return
   db.prepare(`
-    INSERT INTO order_status_logs (order_kind, order_id, from_status, to_status, changed_by)
-    VALUES (?, ?, ?, ?, ?)
-  `).run(kind, id, fromStatus, toStatus, changedBy)
+    INSERT INTO order_status_logs (order_kind, order_id, from_status, to_status, changed_by, changed_at)
+    VALUES (?, ?, ?, ?, ?, ?)
+  `).run(kind, id, fromStatus, toStatus, changedBy, nowTH())
 }
 
 // GET /claims/outstanding — claims with fee > 0 that are unpaid
@@ -103,9 +104,9 @@ router.post('/', (req: Request, res: Response) => {
 
   const createTx = db.transaction(() => {
     db.prepare(`
-      INSERT INTO claims (id, purchase_id, customer_id, claim_type, description, fee, payment_status, pickup_date)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-    `).run(id, purchase_id, customer_id, claim_type ?? '', description ?? '', feeNum, payment_status, pickup_date ?? '')
+      INSERT INTO claims (id, purchase_id, customer_id, claim_type, description, fee, payment_status, pickup_date, created_at, updated_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `).run(id, purchase_id, customer_id, claim_type ?? '', description ?? '', feeNum, payment_status, pickup_date ?? '', nowTH(), nowTH())
 
     for (const item of stockItems) {
       const product = db.prepare('SELECT id, name, barcode, stock_current, avg_cost FROM products WHERE id = ?').get(item.product_id) as any
@@ -116,12 +117,12 @@ router.post('/', (req: Request, res: Response) => {
       }
       const cost = item.cost ?? product.avg_cost ?? 0
       db.prepare(`
-        INSERT INTO claim_items (claim_id, product_id, product_name, barcode, qty, cost)
-        VALUES (?, ?, ?, ?, ?, ?)
-      `).run(id, product.id, product.name, product.barcode, qty, cost)
+        INSERT INTO claim_items (claim_id, product_id, product_name, barcode, qty, cost, created_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+      `).run(id, product.id, product.name, product.barcode, qty, cost, nowTH())
       db.prepare('UPDATE products SET stock_current = stock_current - ? WHERE id = ?').run(qty, product.id)
-      db.prepare(`INSERT INTO stock_movements (product_id, type, qty, cost, reference) VALUES (?, 'warranty', ?, ?, ?)`)
-        .run(product.id, -qty, cost, id)
+      db.prepare(`INSERT INTO stock_movements (product_id, type, qty, cost, reference, created_at) VALUES (?, 'warranty', ?, ?, ?, ?)`)
+        .run(product.id, -qty, cost, id, nowTH())
     }
   })
 

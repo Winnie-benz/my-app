@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express'
 import db from '../db/database'
 import { requireAuth } from '../middleware/requireAuth'
+import { nowTH } from '../utils/time'
 
 const router = Router()
 router.use(requireAuth)
@@ -50,9 +51,9 @@ function actorName(req: Request): string {
 function insertStatusLog(kind: string, id: string, fromStatus: string, toStatus: string, changedBy: string) {
   if (fromStatus === toStatus) return
   db.prepare(`
-    INSERT INTO order_status_logs (order_kind, order_id, from_status, to_status, changed_by)
-    VALUES (?, ?, ?, ?, ?)
-  `).run(kind, id, fromStatus, toStatus, changedBy)
+    INSERT INTO order_status_logs (order_kind, order_id, from_status, to_status, changed_by, changed_at)
+    VALUES (?, ?, ?, ?, ?, ?)
+  `).run(kind, id, fromStatus, toStatus, changedBy, nowTH())
 }
 
 router.get('/', (_req: Request, res: Response) => {

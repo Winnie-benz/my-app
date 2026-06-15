@@ -1,27 +1,13 @@
 import fs from 'fs'
 import path from 'path'
-import db, { DATA_DIR, DB_PATH, USE_REMOTE } from '../db/database'
+import db, { DATA_DIR, DB_PATH } from '../db/database'
 
 const BACKUP_DIR  = path.join(DATA_DIR, 'backups')
 const RESTORE_REQUEST_PATH = path.join(DATA_DIR, 'restore-request.json')
 const MAX_DAILY_BACKUPS   = 30  // keep 30 days of daily backups
 const MAX_WEEKLY_BACKUPS  = 12  // keep 12 weeks of weekly backups
 
-function ensureBackupDir() {
-  if (!fs.existsSync(BACKUP_DIR)) fs.mkdirSync(BACKUP_DIR, { recursive: true })
-}
-
-ensureBackupDir()
-
-const TURSO_BACKUP_MESSAGE = 'เปิดใช้งาน Turso อยู่ ระบบจึงปิด backup/restore แบบไฟล์ในเครื่องเพื่อป้องกันข้อมูลคนละเครื่องไม่ตรงกัน'
-
-export function getBackupStatus() {
-  return {
-    enabled: !USE_REMOTE,
-    mode: USE_REMOTE ? 'turso' : 'local',
-    message: USE_REMOTE ? TURSO_BACKUP_MESSAGE : 'ระบบสำรองไฟล์ SQLite ในเครื่อง',
-  } as const
-}
+if (!fs.existsSync(BACKUP_DIR)) fs.mkdirSync(BACKUP_DIR, { recursive: true })
 
 function timestamp(): string {
   const d = new Date()
@@ -30,12 +16,17 @@ function timestamp(): string {
   return `${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}_${pad(d.getHours())}${pad(d.getMinutes())}${pad(d.getSeconds())}${ms}`
 }
 
+const USE_REMOTE = !!(process.env.TURSO_DATABASE_URL && process.env.TURSO_AUTH_TOKEN)
+
 export function createBackup(
   tag: 'daily' | 'weekly' | 'manual' = 'manual',
   options?: { skipPrune?: boolean },
 ): string {
-  if (USE_REMOTE) throw new Error(TURSO_BACKUP_MESSAGE)
-  ensureBackupDir()
+  if (USE_REMOTE) {
+    // On Turso cloud, durability + point-in-time recovery is handled by Turso
+    // itself; VACUUM INTO a local file is not supported over the remote connection.
+    throw new Error('ใช้ Turso cloud อยู่ — สำรองข้อมูลผ่าน Turso (ไม่ต้องสำรองไฟล์ในเครื่อง)')
+  }
   const filename = `shop_${tag}_${timestamp()}.db`
   const dest     = path.join(BACKUP_DIR, filename)
   db.prepare('VACUUM INTO ?').run(dest)
@@ -55,30 +46,21 @@ function alreadyBackedUpToday(tag: 'daily' | 'weekly'): boolean {
 }
 
 export function listBackups(): { filename: string; size: number; created_at: string }[] {
-  if (USE_REMOTE) return []
-  ensureBackupDir()
   return fs.readdirSync(BACKUP_DIR)
     .filter(f => f.endsWith('.db'))
-    .flatMap(f => {
-      try {
-        const stat = fs.statSync(path.join(BACKUP_DIR, f))
-        return [{ filename: f, size: stat.size, created_at: stat.mtime.toISOString() }]
-      } catch (error: any) {
-        if (error?.code !== 'ENOENT') throw error
-        return []
-      }
+    .map(f => {
+      const stat = fs.statSync(path.join(BACKUP_DIR, f))
+      return { filename: f, size: stat.size, created_at: stat.mtime.toISOString() }
     })
     .sort((a, b) => b.created_at.localeCompare(a.created_at))
 }
 
 export function getBackupPath(filename: string): string | null {
-  if (USE_REMOTE) return null
   const p = path.join(BACKUP_DIR, path.basename(filename))
   return fs.existsSync(p) ? p : null
 }
 
 export function deleteBackup(filename: string): boolean {
-  if (USE_REMOTE) throw new Error(TURSO_BACKUP_MESSAGE)
   const p = path.join(BACKUP_DIR, path.basename(filename))
   if (!fs.existsSync(p)) return false
   fs.unlinkSync(p)
@@ -86,7 +68,6 @@ export function deleteBackup(filename: string): boolean {
 }
 
 export function queueRestore(filename: string): { filename: string; safety_backup: string } {
-  if (USE_REMOTE) throw new Error(TURSO_BACKUP_MESSAGE)
   const backupPath = getBackupPath(filename)
   if (!backupPath) throw new Error('Backup not found')
 
@@ -122,10 +103,6 @@ function pruneOldBackups(preserve: string[] = []) {
 }
 
 export function scheduleAutoBackup() {
-  if (USE_REMOTE) {
-    console.log('✅  Auto-backup  →  disabled in app while Turso sync is active')
-    return
-  }
   // Don't backup immediately on startup to avoid restart spam
   // Instead, check every hour and backup once per day at 02:00
   console.log('✅  Auto-backup  →  scheduler active (daily at 02:00, weekly on Sunday)')

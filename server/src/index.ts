@@ -19,7 +19,7 @@ import claimsRouter          from './routes/claims'
 import claimPaymentsRouter   from './routes/claimPayments'
 import analyticsRouter       from './routes/analytics'
 import { scheduleAutoBackup } from './services/backup'
-import { syncFromTurso, USE_REMOTE } from './db/database'
+import './db/database'
 
 const app  = express()
 const PORT = Number(process.env.PORT) || 3001
@@ -71,9 +71,4 @@ app.listen(PORT, () => {
   console.log(`✅  Server  →  http://localhost:${PORT}`)
   console.log(`   Env     →  ${process.env.NODE_ENV ?? 'development'}`)
   scheduleAutoBackup()
-
-  if (USE_REMOTE) {
-    void syncFromTurso()
-    setInterval(() => { void syncFromTurso() }, 30_000)
-  }
 })
