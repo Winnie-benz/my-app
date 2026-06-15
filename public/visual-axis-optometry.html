@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Visual Axis — สื่อการเรียนรู้สำหรับ Optometrist</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #0f1117;
+      color: #e2e8f0;
+      line-height: 1.7;
+    }
+    .hero {
+      background: linear-gradient(135deg, #1a1f35 0%, #0d2137 60%, #0a1628 100%);
+      padding: 48px 24px 32px;
+      text-align: center;
+      border-bottom: 1px solid #2d3748;
+    }
+    .hero h1 { font-size: 2.2rem; color: #63b3ed; letter-spacing: 1px; }
+    .hero p  { color: #a0aec0; margin-top: 8px; font-size: 1rem; }
+    .tag {
+      display: inline-block;
+      background: #2b4a6f;
+      color: #90cdf4;
+      border-radius: 20px;
+      padding: 4px 14px;
+      font-size: 0.78rem;
+      margin: 6px 4px 0;
+    }
+
+    .container { max-width: 960px; margin: 0 auto; padding: 32px 16px; }
+
+    /* Section cards */
+    .section {
+      background: #1a202c;
+      border: 1px solid #2d3748;
+      border-radius: 16px;
+      padding: 28px;
+      margin-bottom: 32px;
+    }
+    .section-title {
+      font-size: 1.3rem;
+      color: #63b3ed;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .section-title .num {
+      background: #2b4a6f;
+      color: #90cdf4;
+      border-radius: 50%;
+      width: 32px; height: 32px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.9rem;
+      font-weight: bold;
+      flex-shrink: 0;
+    }
+    .section-sub { color: #a0aec0; font-size: 0.9rem; margin-bottom: 20px; }
+
+    /* SVG wrapper */
+    .diagram {
+      display: flex;
+      justify-content: center;
+      margin: 20px 0;
+      background: #0d1117;
+      border-radius: 12px;
+      padding: 16px;
+      border: 1px solid #2d3748;
+    }
+    svg text { font-family: 'Segoe UI', Arial, sans-serif; }
+
+    /* Key-value legend rows */
+    .legend { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px; }
+    .legend-item {
+      display: flex; align-items: center; gap: 8px;
+      background: #0d1117; border-radius: 8px;
+      padding: 6px 12px; border: 1px solid #2d3748;
+      font-size: 0.85rem;
+    }
+    .dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
+
+    /* Callout boxes */
+    .callout {
+      display: flex; gap: 12px; align-items: flex-start;
+      background: #1c2a3a; border-left: 4px solid #3182ce;
+      border-radius: 8px; padding: 14px 16px; margin-top: 16px;
+      font-size: 0.9rem;
+    }
+    .callout.warn { border-left-color: #ed8936; background: #2d1f0e; }
+    .callout.ok   { border-left-color: #48bb78; background: #0e2318; }
+    .callout-icon { font-size: 1.4rem; flex-shrink: 0; }
+
+    /* Table */
+    table { width: 100%; border-collapse: collapse; margin-top: 16px; font-size: 0.88rem; }
+    th { background: #2b4a6f; color: #90cdf4; padding: 10px 14px; text-align: left; }
+    td { padding: 9px 14px; border-bottom: 1px solid #2d3748; }
+    tr:last-child td { border-bottom: none; }
+    tr:nth-child(even) td { background: #151c27; }
+
+    /* Two-col layout */
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    @media(max-width:600px) { .two-col { grid-template-columns: 1fr; } }
+
+    .info-box {
+      background: #0d1117;
+      border: 1px solid #2d3748;
+      border-radius: 10px;
+      padding: 14px;
+      font-size: 0.87rem;
+      color: #cbd5e0;
+    }
+    .info-box strong { color: #90cdf4; display: block; margin-bottom: 6px; }
+
+    footer {
+      text-align: center;
+      color: #4a5568;
+      font-size: 0.78rem;
+      padding: 24px;
+      border-top: 1px solid #1a202c;
+    }
+  </style>
+</head>
+<body>
+
+<!-- ===== HERO ===== -->
+<div class="hero">
+  <h1>👁️ Visual Axis</h1>
+  <p>สื่อการเรียนรู้สำหรับ Optometrist — เข้าใจแกนการมองเห็นของดวงตา</p>
+  <div>
+    <span class="tag">Optometry</span>
+    <span class="tag">Visual Axis</span>
+    <span class="tag">Angle Kappa / Lambda</span>
+    <span class="tag">Fovea</span>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- ===== SECTION 1: Overview ===== -->
+  <div class="section">
+    <div class="section-title"><span class="num">1</span> Visual Axis คืออะไร?</div>
+    <div class="section-sub">เส้นสมมติที่เชื่อมระหว่างจุดที่กำลังมอง (Fixation Point) → Nodal Points → Fovea Centralis</div>
+
+    <!-- DIAGRAM: Eye with axes -->
+    <div class="diagram">
+      <svg width="600" height="320" viewBox="0 0 600 320">
+
+        <!-- eye outline -->
+        <ellipse cx="300" cy="160" rx="130" ry="100" fill="#0a1e30" stroke="#2b6cb0" stroke-width="2"/>
+
+        <!-- sclera highlight -->
+        <ellipse cx="300" cy="160" rx="130" ry="100" fill="none" stroke="#1a4a6e" stroke-width="8" stroke-dasharray="4 3" opacity="0.3"/>
+
+        <!-- Cornea arc -->
+        <path d="M 175,130 Q 155,160 175,190" fill="none" stroke="#63b3ed" stroke-width="3"/>
+        <text x="140" y="165" fill="#63b3ed" font-size="12" text-anchor="middle">Cornea</text>
+
+        <!-- Lens -->
+        <ellipse cx="238" cy="160" rx="20" ry="34" fill="#1a3a5c" stroke="#4299e1" stroke-width="1.5"/>
+        <text x="238" y="205" fill="#4299e1" font-size="11" text-anchor="middle">Lens</text>
+
+        <!-- Fovea -->
+        <circle cx="400" cy="160" r="8" fill="#f6e05e" stroke="#ecc94b" stroke-width="2"/>
+        <text x="400" y="183" fill="#f6e05e" font-size="11" text-anchor="middle">Fovea</text>
+
+        <!-- Optic disc (blind spot) -->
+        <circle cx="395" cy="200" r="7" fill="#fc8181" stroke="#f56565" stroke-width="1.5"/>
+        <text x="395" y="218" fill="#fc8181" font-size="10" text-anchor="middle">Optic Disc</text>
+
+        <!-- Optical Axis (horizontal center line) -->
+        <line x1="60" y1="160" x2="430" y2="160" stroke="#68d391" stroke-width="1.5" stroke-dasharray="6 4"/>
+        <text x="60" y="153" fill="#68d391" font-size="11">Optical Axis</text>
+
+        <!-- Visual Axis (slightly angled toward fovea, ~5°) -->
+        <!-- From fixation point on left, going through nodal points to fovea -->
+        <line x1="60" y1="172" x2="400" y2="160" stroke="#fc8181" stroke-width="2.2"/>
+        <text x="60" y="192" fill="#fc8181" font-size="11">Visual Axis</text>
+
+        <!-- Nodal points -->
+        <circle cx="258" cy="163" r="4" fill="#d53f8c"/>
+        <circle cx="272" cy="162" r="4" fill="#d53f8c"/>
+        <text x="265" y="145" fill="#d53f8c" font-size="10" text-anchor="middle">N  N'</text>
+        <text x="265" y="135" fill="#b794f4" font-size="9" text-anchor="middle">Nodal Points</text>
+
+        <!-- Pupil -->
+        <ellipse cx="205" cy="160" rx="14" ry="24" fill="#0a0e14" stroke="#4a5568" stroke-width="1"/>
+        <text x="205" y="196" fill="#a0aec0" font-size="10" text-anchor="middle">Pupil</text>
+
+        <!-- Angle kappa label -->
+        <path d="M 130,160 A 40,40 0 0,1 127,172" fill="none" stroke="#fbb6ce" stroke-width="1.5"/>
+        <text x="110" y="178" fill="#fbb6ce" font-size="11" font-style="italic">κ (kappa)</text>
+
+        <!-- Fixation point -->
+        <circle cx="60" cy="172" r="5" fill="#fbd38d" stroke="#f6ad55" stroke-width="1.5"/>
+        <text x="60" y="192" fill="#fbd38d" font-size="10" text-anchor="middle">Object</text>
+
+        <!-- Retina arc -->
+        <path d="M 378,85 Q 430,160 378,235" fill="none" stroke="#a0aec0" stroke-width="2"/>
+        <text x="445" y="165" fill="#a0aec0" font-size="11">Retina</text>
+
+        <!-- Title label -->
+        <text x="300" y="295" fill="#4a5568" font-size="11" text-anchor="middle">ภาพตัดขวางดวงตา (Schematic Eye)</text>
+      </svg>
+    </div>
+
+    <div class="legend">
+      <div class="legend-item"><div class="dot" style="background:#fc8181"></div> Visual Axis — เส้นจากวัตถุถึง Fovea</div>
+      <div class="legend-item"><div class="dot" style="background:#68d391"></div> Optical Axis — แกนกึ่งกลางทางเรขาคณิต</div>
+      <div class="legend-item"><div class="dot" style="background:#f6e05e"></div> Fovea Centralis — จุดรับภาพชัดสุด</div>
+      <div class="legend-item"><div class="dot" style="background:#d53f8c"></div> Nodal Points (N, N') — จุดอ้างอิงทางแสง</div>
+    </div>
+
+    <div class="callout">
+      <div class="callout-icon">💡</div>
+      <div><strong>จำง่ายๆ:</strong> Visual Axis คือ "เส้นที่เราจริงๆ มอง" ไปยังจุดที่ต้องการ ผ่านจุด Nodal ไปตกที่ Fovea ซึ่ง <em>ไม่ได้ตรงกลางลูกตาพอดี</em> จึงทำให้มีมุมเล็กน้อยกับ Optical Axis เสมอ</div>
+    </div>
+  </div>
+
+  <!-- ===== SECTION 2: Axes Comparison ===== -->
+  <div class="section">
+    <div class="section-title"><span class="num">2</span> แกนสำคัญของดวงตา (5 Axes)</div>
+    <div class="section-sub">ดวงตามีแกนอ้างอิงหลายแบบ — แต่ละแบบใช้ในบริบทต่างกัน</div>
+
+    <!-- Axes comparison diagram -->
+    <div class="diagram">
+      <svg width="580" height="260" viewBox="0 0 580 260">
+
+        <!-- Eye outline -->
+        <ellipse cx="290" cy="130" rx="120" ry="90" fill="#0a1e30" stroke="#2b6cb0" stroke-width="1.5"/>
+
+        <!-- Cornea -->
+        <path d="M 175,104 Q 158,130 175,156" fill="none" stroke="#63b3ed" stroke-width="2.5"/>
+
+        <!-- Fovea (~5° below Optical Axis horizontally) -->
+        <circle cx="385" cy="130" r="7" fill="#f6e05e" stroke="#ecc94b" stroke-width="2"/>
+
+        <!-- Pupil center -->
+        <ellipse cx="200" cy="130" rx="12" ry="20" fill="#0a0e14" stroke="#718096" stroke-width="1"/>
+
+        <!-- Corneal reflex/vertex -->
+        <circle cx="172" cy="130" r="4" fill="#90cdf4"/>
+
+        <!-- 1. Optical Axis -->
+        <line x1="40" y1="130" x2="420" y2="130" stroke="#68d391" stroke-width="1.5" stroke-dasharray="7 4"/>
+        <text x="42" y="122" fill="#68d391" font-size="10" font-weight="bold">① Optical Axis</text>
+
+        <!-- 2. Visual Axis -->
+        <line x1="40" y1="141" x2="385" y2="130" stroke="#fc8181" stroke-width="2"/>
+        <text x="42" y="158" fill="#fc8181" font-size="10" font-weight="bold">② Visual Axis</text>
+
+        <!-- 3. Pupillary Axis (perpendicular to cornea at pupil center) -->
+        <line x1="40" y1="135" x2="420" y2="126" stroke="#b794f4" stroke-width="1.5" stroke-dasharray="4 3"/>
+        <text x="42" y="116" fill="#b794f4" font-size="10">③ Pupillary Axis</text>
+
+        <!-- 4. Line of sight -->
+        <line x1="40" y1="138" x2="200" y2="130" stroke="#fbd38d" stroke-width="1.5"/>
+        <text x="42" y="175" fill="#fbd38d" font-size="10">④ Line of Sight</text>
+
+        <!-- 5. Fixation Axis -->
+        <line x1="40" y1="144" x2="385" y2="132" stroke="#76e4f7" stroke-width="1.2" stroke-dasharray="3 3"/>
+        <text x="430" y="134" fill="#76e4f7" font-size="10">⑤ Fixation Axis</text>
+
+        <!-- Angle κ (kappa) - between visual axis and pupillary axis -->
+        <path d="M 138,130 A 30,30 0 0,0 136,138" fill="none" stroke="#fbb6ce" stroke-width="1.5"/>
+        <text x="118" y="147" fill="#fbb6ce" font-size="10">κ</text>
+
+        <!-- Angle λ (lambda) - between visual axis and pupillary axis at entrance pupil -->
+        <path d="M 190,130 A 20,20 0 0,0 189,136" fill="none" stroke="#f6ad55" stroke-width="1.5"/>
+        <text x="178" y="148" fill="#f6ad55" font-size="10">λ</text>
+
+        <!-- Fovea label -->
+        <text x="385" y="148" fill="#f6e05e" font-size="10" text-anchor="middle">Fovea</text>
+
+        <!-- Optic nerve head -->
+        <circle cx="383" cy="168" r="6" fill="#fc8181" stroke="#f56565" stroke-width="1.2"/>
+        <text x="383" y="183" fill="#fc8181" font-size="9" text-anchor="middle">ONH</text>
+
+        <text x="290" y="240" fill="#4a5568" font-size="10" text-anchor="middle">การเปรียบเทียบแกนสำคัญ 5 ชนิดของดวงตา</text>
+      </svg>
+    </div>
+
+    <table>
+      <thead>
+        <tr><th>แกน</th><th>นิยาม</th><th>ใช้ใน Clinical</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td style="color:#68d391">① Optical Axis</td>
+          <td>เส้นผ่านศูนย์กลางของ cornea, lens, fovea (เรขาคณิต)</td>
+          <td>คำนวณ power ของเลนส์</td>
+        </tr>
+        <tr>
+          <td style="color:#fc8181">② Visual Axis</td>
+          <td>Fixation Point → Nodal Points → Fovea</td>
+          <td>ฐานอ้างอิงการมองเห็นที่แท้จริง</td>
+        </tr>
+        <tr>
+          <td style="color:#b794f4">③ Pupillary Axis</td>
+          <td>เส้นตั้งฉากกับ cornea ที่ผ่านศูนย์กลาง pupil</td>
+          <td>วัด Angle Kappa, Corneal topography</td>
+        </tr>
+        <tr>
+          <td style="color:#fbd38d">④ Line of Sight</td>
+          <td>Fixation Point → Entrance Pupil Center → Fovea</td>
+          <td>Contact lens fitting, Strabismus</td>
+        </tr>
+        <tr>
+          <td style="color:#76e4f7">⑤ Fixation Axis</td>
+          <td>เส้นจาก Center of Rotation → Fixation Point</td>
+          <td>การประเมินการหมุนของลูกตา (Versions)</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ===== SECTION 3: Angle Kappa ===== -->
+  <div class="section">
+    <div class="section-title"><span class="num">3</span> Angle Kappa (κ) — มุมที่สำคัญที่สุดใน Clinical</div>
+    <div class="section-sub">มุมระหว่าง Visual Axis กับ Pupillary Axis วัดที่ entrance pupil</div>
+
+    <div class="two-col">
+      <!-- Positive Kappa -->
+      <div>
+        <div class="info-box">
+          <strong style="color:#48bb78">✅ Positive Angle Kappa (ปกติ)</strong>
+          Fovea อยู่ temporal ต่อ Optical Axis → Visual Axis เบนออก nasal ทำให้ corneal reflex อยู่ nasal ต่อ pupil center เล็กน้อย (~2–4°)
+        </div>
+        <div class="diagram" style="margin-top:10px;">
+          <svg width="220" height="180" viewBox="0 0 220 180">
+            <!-- pupil -->
+            <ellipse cx="110" cy="90" rx="40" ry="55" fill="#0a0e14" stroke="#718096" stroke-width="1.5"/>
+            <!-- corneal reflex (nasal = left) -->
+            <circle cx="98" cy="90" r="6" fill="#fff" opacity="0.9"/>
+            <text x="98" y="107" fill="#a0aec0" font-size="9" text-anchor="middle">Hirschberg</text>
+            <text x="98" y="117" fill="#a0aec0" font-size="9" text-anchor="middle">reflex</text>
+            <!-- pupil center cross -->
+            <line x1="110" y1="75" x2="110" y2="105" stroke="#4a5568" stroke-width="1" stroke-dasharray="3 2"/>
+            <line x1="95" y1="90" x2="125" y2="90" stroke="#4a5568" stroke-width="1" stroke-dasharray="3 2"/>
+            <!-- annotation -->
+            <text x="110" y="155" fill="#48bb78" font-size="11" text-anchor="middle">Reflex อยู่ nasal</text>
+            <text x="110" y="170" fill="#68d391" font-size="10" text-anchor="middle">= Positive κ (ปกติ)</text>
+          </svg>
+        </div>
+      </div>
+
+      <!-- Negative Kappa -->
+      <div>
+        <div class="info-box">
+          <strong style="color:#fc8181">⚠️ Negative Angle Kappa (ผิดปกติ)</strong>
+          Fovea อยู่ nasal ต่อ Optical Axis → Visual Axis เบนออก temporal → reflex อยู่ temporal ต่อ pupil center พบในตาที่มี myopia สูงหรือ eccentric fixation
+        </div>
+        <div class="diagram" style="margin-top:10px;">
+          <svg width="220" height="180" viewBox="0 0 220 180">
+            <!-- pupil -->
+            <ellipse cx="110" cy="90" rx="40" ry="55" fill="#0a0e14" stroke="#718096" stroke-width="1.5"/>
+            <!-- corneal reflex (temporal = right) -->
+            <circle cx="122" cy="90" r="6" fill="#fff" opacity="0.9"/>
+            <text x="122" y="107" fill="#a0aec0" font-size="9" text-anchor="middle">Hirschberg</text>
+            <text x="122" y="117" fill="#a0aec0" font-size="9" text-anchor="middle">reflex</text>
+            <!-- pupil center cross -->
+            <line x1="110" y1="75" x2="110" y2="105" stroke="#4a5568" stroke-width="1" stroke-dasharray="3 2"/>
+            <line x1="95" y1="90" x2="125" y2="90" stroke="#4a5568" stroke-width="1" stroke-dasharray="3 2"/>
+            <!-- annotation -->
+            <text x="110" y="155" fill="#fc8181" font-size="11" text-anchor="middle">Reflex อยู่ temporal</text>
+            <text x="110" y="170" fill="#f56565" font-size="10" text-anchor="middle">= Negative κ</text>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <div class="callout warn">
+      <div class="callout-icon">⚠️</div>
+      <div><strong>Pseudo-strabismus:</strong> Positive κ ขนาดใหญ่ทำให้ดูเหมือนตาเหล่ออก (exotropia) ส่วน Negative κ ทำให้ดูเหมือนตาเหล่เข้า (esotropia) — สำคัญมากในการแยก Pseudo จาก True strabismus</div>
+    </div>
+
+    <div class="callout ok" style="margin-top:10px;">
+      <div class="callout-icon">📏</div>
+      <div><strong>ค่าปกติ:</strong> Angle Kappa ในคนปกติ = <strong>+3° ถึง +5°</strong> (positive) | เกิน 7° ถือว่าผิดปกติ | ต้องระวังใน refractive surgery (LASIK/PRK) ถ้า κ มากจะส่งผลต่อผลลัพธ์</div>
+    </div>
+  </div>
+
+  <!-- ===== SECTION 4: Clinical Applications ===== -->
+  <div class="section">
+    <div class="section-title"><span class="num">4</span> การประยุกต์ใช้ใน Clinical Practice</div>
+
+    <!-- Hirschberg test diagram -->
+    <div class="section-sub">Hirschberg Corneal Reflex Test — ประเมิน Angle Kappa และ Eye Alignment</div>
+    <div class="diagram">
+      <svg width="560" height="200" viewBox="0 0 560 200">
+
+        <!-- ===== Orthophoria ===== -->
+        <text x="93" y="20" fill="#90cdf4" font-size="12" text-anchor="middle" font-weight="bold">Orthophoria</text>
+        <!-- RE -->
+        <ellipse cx="65" cy="80" rx="38" ry="50" fill="#0a0e14" stroke="#718096" stroke-width="1.5"/>
+        <circle cx="65" cy="80" r="5" fill="#fff" opacity="0.9"/>
+        <!-- LE -->
+        <ellipse cx="121" cy="80" rx="38" ry="50" fill="#0a0e14" stroke="#718096" stroke-width="1.5"/>
+        <circle cx="121" cy="80" r="5" fill="#fff" opacity="0.9"/>
+        <text x="93" y="152" fill="#48bb78" font-size="10" text-anchor="middle">Symmetric (centered)</text>
+        <text x="93" y="165" fill="#68d391" font-size="9" text-anchor="middle">both reflex ≈ symmetric</text>
+
+        <!-- divider -->
+        <line x1="186" y1="10" x2="186" y2="190" stroke="#2d3748" stroke-width="1"/>
+
+        <!-- ===== Esotropia ===== -->
+        <text x="280" y="20" fill="#fc8181" font-size="12" text-anchor="middle" font-weight="bold">Esotropia (ET)</text>
+        <!-- RE deviation inward — reflex temporal -->
+        <ellipse cx="252" cy="80" rx="38" ry="50" fill="#0a0e14" stroke="#718096" stroke-width="1.5"/>
+        <circle cx="264" cy="80" r="5" fill="#fff" opacity="0.9"/>
+        <!-- LE deviation inward — reflex temporal -->
+        <ellipse cx="308" cy="80" rx="38" ry="50" fill="#0a0e14" stroke="#718096" stroke-width="1.5"/>
+        <circle cx="296" cy="80" r="5" fill="#fff" opacity="0.9"/>
+        <text x="280" y="152" fill="#fc8181" font-size="10" text-anchor="middle">Reflex อยู่ temporal ทั้งสองข้าง</text>
+        <text x="280" y="165" fill="#f56565" font-size="9" text-anchor="middle">หรือข้างใดข้างหนึ่ง</text>
+
+        <!-- divider -->
+        <line x1="372" y1="10" x2="372" y2="190" stroke="#2d3748" stroke-width="1"/>
+
+        <!-- ===== Exotropia ===== -->
+        <text x="466" y="20" fill="#fbd38d" font-size="12" text-anchor="middle" font-weight="bold">Exotropia (XT)</text>
+        <!-- RE deviation outward — reflex nasal -->
+        <ellipse cx="438" cy="80" rx="38" ry="50" fill="#0a0e14" stroke="#718096" stroke-width="1.5"/>
+        <circle cx="426" cy="80" r="5" fill="#fff" opacity="0.9"/>
+        <!-- LE deviation outward — reflex nasal -->
+        <ellipse cx="494" cy="80" rx="38" ry="50" fill="#0a0e14" stroke="#718096" stroke-width="1.5"/>
+        <circle cx="506" cy="80" r="5" fill="#fff" opacity="0.9"/>
+        <text x="466" y="152" fill="#fbd38d" font-size="10" text-anchor="middle">Reflex อยู่ nasal ทั้งสองข้าง</text>
+        <text x="466" y="165" fill="#f6ad55" font-size="9" text-anchor="middle">หรือข้างใดข้างหนึ่ง</text>
+
+        <!-- Hirschberg scale note -->
+        <text x="280" y="190" fill="#4a5568" font-size="9" text-anchor="middle">Hirschberg Rule: 1 mm ≈ 22 Δ (prism diopters) ≈ 12°</text>
+      </svg>
+    </div>
+
+    <table>
+      <thead><tr><th>การประยุกต์ใช้</th><th>ความสำคัญของ Visual Axis</th></tr></thead>
+      <tbody>
+        <tr><td>Refractive Surgery (LASIK/PRK/SMILE)</td><td>ต้อง center ablation บน Visual Axis ไม่ใช่ Optical Axis เพื่อลด aberration</td></tr>
+        <tr><td>IOL Calculation & Implantation</td><td>ตำแหน่ง IOL ต้องสอดคล้องกับ Visual Axis เพื่อความชัดสูงสุด</td></tr>
+        <tr><td>Corneal Topography / Keratometry</td><td>ต้อง align ผู้ป่วยตาม Visual Axis ก่อน capture</td></tr>
+        <tr><td>Strabismus Assessment</td><td>Angle Kappa ต้องถูก factor out ก่อนวัด angle of deviation</td></tr>
+        <tr><td>Orthokeratology / Rigid Lens Fitting</td><td>ตำแหน่ง lens บน cornea ควร center บน Visual Axis</td></tr>
+        <tr><td>Low Vision / Eccentric Viewing</td><td>ผู้ป่วย use PRL (Preferred Retinal Locus) แทน Fovea → Visual Axis เปลี่ยน</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ===== SECTION 5: Summary ===== -->
+  <div class="section">
+    <div class="section-title"><span class="num">5</span> สรุปจำง่าย — Mind Map</div>
+
+    <div class="diagram">
+      <svg width="560" height="280" viewBox="0 0 560 280">
+
+        <!-- Center node -->
+        <rect x="210" y="110" width="140" height="50" rx="25" fill="#2b4a6f" stroke="#4299e1" stroke-width="2"/>
+        <text x="280" y="131" fill="#90cdf4" font-size="13" text-anchor="middle" font-weight="bold">Visual Axis</text>
+        <text x="280" y="149" fill="#63b3ed" font-size="10" text-anchor="middle">Fix Point→N→N'→Fovea</text>
+
+        <!-- Branch: Definition -->
+        <line x1="210" y1="130" x2="110" y2="60" stroke="#68d391" stroke-width="1.5"/>
+        <rect x="20" y="30" width="120" height="44" rx="8" fill="#0d2218" stroke="#48bb78" stroke-width="1.5"/>
+        <text x="80" y="50" fill="#68d391" font-size="10" text-anchor="middle">ไม่ตรงกับ Optical Axis</text>
+        <text x="80" y="64" fill="#68d391" font-size="10" text-anchor="middle">เพราะ Fovea offset ~5°</text>
+
+        <!-- Branch: Angle Kappa -->
+        <line x1="210" y1="120" x2="100" y2="140" stroke="#fc8181" stroke-width="1.5"/>
+        <rect x="10" y="115" width="110" height="44" rx="8" fill="#2d0e0e" stroke="#fc8181" stroke-width="1.5"/>
+        <text x="65" y="135" fill="#fc8181" font-size="10" text-anchor="middle">Angle Kappa (κ)</text>
+        <text x="65" y="149" fill="#f56565" font-size="9" text-anchor="middle">ปกติ +3° ถึง +5°</text>
+
+        <!-- Branch: Angle Lambda -->
+        <line x1="210" y1="145" x2="100" y2="195" stroke="#b794f4" stroke-width="1.5"/>
+        <rect x="10" y="175" width="110" height="44" rx="8" fill="#1a0d2e" stroke="#b794f4" stroke-width="1.5"/>
+        <text x="65" y="195" fill="#b794f4" font-size="10" text-anchor="middle">Angle Lambda (λ)</text>
+        <text x="65" y="209" fill="#9f7aea" font-size="9" text-anchor="middle">วัดจาก Line of Sight</text>
+
+        <!-- Branch: Clinical uses -->
+        <line x1="350" y1="130" x2="450" y2="60" stroke="#fbd38d" stroke-width="1.5"/>
+        <rect x="420" y="30" width="120" height="44" rx="8" fill="#2d1e0e" stroke="#f6ad55" stroke-width="1.5"/>
+        <text x="480" y="50" fill="#fbd38d" font-size="10" text-anchor="middle">LASIK / PRK</text>
+        <text x="480" y="64" fill="#f6ad55" font-size="9" text-anchor="middle">center on Visual Axis</text>
+
+        <line x1="350" y1="120" x2="450" y2="120" stroke="#76e4f7" stroke-width="1.5"/>
+        <rect x="420" y="98" width="120" height="44" rx="8" fill="#062120" stroke="#4fd1c5" stroke-width="1.5"/>
+        <text x="480" y="118" fill="#76e4f7" font-size="10" text-anchor="middle">Strabismus Test</text>
+        <text x="480" y="132" fill="#4fd1c5" font-size="9" text-anchor="middle">Hirschberg / Brückner</text>
+
+        <line x1="350" y1="145" x2="450" y2="190" stroke="#fbb6ce" stroke-width="1.5"/>
+        <rect x="420" y="168" width="120" height="44" rx="8" fill="#2d0e1a" stroke="#f687b3" stroke-width="1.5"/>
+        <text x="480" y="188" fill="#fbb6ce" font-size="10" text-anchor="middle">Corneal Topography</text>
+        <text x="480" y="202" fill="#f687b3" font-size="9" text-anchor="middle">Align ตาม Visual Axis</text>
+
+        <!-- Key rule box -->
+        <rect x="160" y="225" width="240" height="40" rx="8" fill="#1a2a1a" stroke="#68d391" stroke-width="1"/>
+        <text x="280" y="242" fill="#68d391" font-size="10" text-anchor="middle">🔑 Visual Axis ≠ Optical Axis</text>
+        <text x="280" y="257" fill="#4a8c5c" font-size="9" text-anchor="middle">ต่างกัน ~5° (nasal offset ของ Fovea)</text>
+      </svg>
+    </div>
+  </div>
+
+  <!-- ===== SECTION 6: Quick Reference ===== -->
+  <div class="section">
+    <div class="section-title"><span class="num">6</span> Quick Reference Card</div>
+    <div class="two-col">
+      <div class="info-box">
+        <strong>📐 มุมสำคัญ</strong>
+        <ul style="padding-left:16px; color:#cbd5e0; font-size:0.85rem;">
+          <li>Angle κ (Kappa): Visual Axis vs Pupillary Axis</li>
+          <li>Angle λ (Lambda): Line of Sight vs Pupillary Axis</li>
+          <li>Angle α (Alpha): Visual Axis vs Optical Axis</li>
+          <li>Fovea offset จาก Optical Axis ≈ 4–5° temporal, 1.5° inferior</li>
+        </ul>
+      </div>
+      <div class="info-box">
+        <strong>🔬 เครื่องมือวัด</strong>
+        <ul style="padding-left:16px; color:#cbd5e0; font-size:0.85rem;">
+          <li>Hirschberg Test — ประเมิน reflex position</li>
+          <li>Krimsky Test — prism neutralization</li>
+          <li>Corneal Topographer — ระบุ Visual Axis</li>
+          <li>Aberrometer (Hartmann-Shack) — wavefront analysis</li>
+        </ul>
+      </div>
+      <div class="info-box">
+        <strong>⚡ Red Flags</strong>
+        <ul style="padding-left:16px; color:#cbd5e0; font-size:0.85rem;">
+          <li>Angle κ &gt; 7° → pseudo-strabismus หรือ large eccentric fixation</li>
+          <li>Asymmetric Hirschberg reflex → true strabismus</li>
+          <li>Large negative κ + myopia สูง → eccentric fixation</li>
+        </ul>
+      </div>
+      <div class="info-box">
+        <strong>📝 สูตรจำ</strong>
+        <ul style="padding-left:16px; color:#cbd5e0; font-size:0.85rem;">
+          <li>Hirschberg: 1 mm displacement ≈ 22Δ</li>
+          <li>ค่าปกติ: reflex อยู่ nasal ต่อ pupil center เล็กน้อย</li>
+          <li>Fovea อยู่ temporal → visual axis เบน nasal = positive κ</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<footer>
+  สื่อการเรียนรู้ Visual Axis สำหรับ Optometrist • อ้างอิง: Rabbetts' Clinical Visual Optics, Duke-Elder System of Ophthalmology
+</footer>
+
+</body>
+</html>

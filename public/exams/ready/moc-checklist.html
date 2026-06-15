@@ -1,0 +1,1368 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Moderate Optical & Service Checklist</title>
+    <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
+    <script src="https://unpkg.com/pdf-lib/dist/pdf-lib.min.js"></script>
+    <script src="https://unpkg.com/@pdf-lib/fontkit@0.0.4/dist/fontkit.umd.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        html ::-webkit-scrollbar,body ::-webkit-scrollbar { display: none; }
+        html,body{ -ms-text-overflow-style:none;
+        scrollbar-width: none;}
+        body { font-family: 'Inter', 'Sarabun', sans-serif; background-color: #f0f2f5; color: #1a1a1a; margin: 0; padding: 20px; }
+        .container { max-width: 900px; margin: auto; background-color: #fff; padding: 20px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .main-header { text-align: center; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid #e0e0e0; }
+        .main-header h1 { font-size: 24px; color: #000; font-weight: 700; }
+        
+        .info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px; }
+        .info-item { display: flex; flex-direction: column; }
+        .info-item label { font-weight: 600; margin-bottom: 8px; font-size: 14px; }
+        .info-item input { padding: 10px; border: 1px solid #ccc; border-radius: 6px; font-family: inherit; }
+        
+        .section-header { background-color: #000; color: white; padding: 12px 15px; margin: 30px 0 15px 0; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; font-weight: bold; }
+        .sub-header { background-color: #f0f0f0; color: #333; padding: 8px 12px; margin: 15px 0 10px; border-left: 4px solid #000; font-weight: 600; }
+        
+        .test-card { background-color: #fff; border: 1px solid #e0e0e0; border-radius: 8px; padding: 20px; margin-bottom: 15px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        .test-card h4 { margin-top: 0; font-size: 16px; color: #333; margin-bottom: 15px; }
+        
+        .button-group { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 15px; }
+        .btn { padding: 8px 16px; border: 2px solid #ffffff; border-radius: 5px; cursor: pointer; font-weight: 600; background: #000000; color: #ffffff; transition: all 0.2s; }
+        
+        .btn.btn-good.selected { background-color: #3d772c; border-color: #3d772c; color: white; }
+        .btn.btn-fair.selected { background-color: #fce358; border-color: #fce358; color: black; }
+        .btn.btn-poor.selected { background-color: #ff4d4f; border-color: #ff4d4f; color: white; }
+        .btn.btn-pass.selected { background-color: #20c76b; border-color: #20c76b; color: white; }
+        .btn.btn-fail.selected { background-color: #ff4d4f; border-color: #ff4d4f; color: white; }
+        
+        .feedback-section { margin-top: 10px; }
+        .feedback-input { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; min-height: 50px; box-sizing: border-box; font-family: inherit; margin-bottom: 10px; }
+        
+        .upload-section { display: flex; flex-direction: column; align-items: flex-start; }
+        .hidden-file-input { display: none; }
+        .btn-upload {
+            background-color: #000;
+            color: #fff;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: background-color 0.2s;
+            display: inline-flex;
+            align-items: center;
+        }
+        .btn-upload:hover { background-color: #333; }
+        
+        .img-preview-container { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+        .img-thumb { width: 60px; height: 60px; object-fit: cover; border-radius: 4px; border: 1px solid #ccc; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        
+        .footer { text-align: center; margin-top: 40px; }
+        .submit-btn { background-color: #000; color: #fff; padding: 15px 50px; font-size: 18px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; }
+        .submit-btn:hover { background-color: #333; }
+        .submit-btn:disabled { background-color: #ccc; cursor: not-allowed; }
+
+        .signature-pad { border: 1px solid #ccc; width: 100%; height: 150px; background: #fff; border-radius: 4px; }
+        .signatures-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 20px; }
+        .clear-btn { margin-top: 5px; background: #eee; border: none; padding: 5px 10px; cursor: pointer; border-radius: 4px; }
+
+        @media (max-width: 600px) { .signatures-grid { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="main-header">
+        <h1>Moderate Optical & Service Checklist</h1>
+    </div>
+
+    <div class="info-grid">
+                <div class="info-item"><label>STAFF ID</label><input type="text" inputmode="numeric" pattern="[0-9]*" id="staff-id" oninput="this.value=this.value.replace(/[^0-9]/g,'')"></div>
+        <div class="info-item"><label>STAFF NAME</label><input type="text" id="staff-name"></div>
+        <div class="info-item"><label>BRANCH</label><input type="text" id="branch"></div>
+        <div class="info-item"><label>TRAINER NAME</label><input type="text" id="trainer-name"></div>
+        <div class="info-item"><label>DATE</label><input type="date" id="date"></div>
+        <div class="info-item"><label>EMAIL</label><input type="email" id="staff-email" placeholder="Enter Email"></div>
+    </div>
+
+    <div class="section-header" style="background: #333;">
+        <span>TOTAL SCORE</span>
+        <span><span id="grand-total">0</span> / <span id="grand-max">0</span> (<span id="grand-percent">0.00</span>%)</span>
+    </div>
+
+    <div class="section-header">
+        <span>1. Basic Knowledge</span>
+        <span class="section-score"><span id="score-1">0</span> / <span id="max-1">0</span> (<span id="percent-1">0.00</span>%)</span>
+    </div>
+    <div class="sub-header" data-section="1">Calculation</div>
+    <div class="test-card" data-section="1">
+        <h4>Power Convergence Understanding</h4>
+        <div class="button-group"><button class="btn btn-good" data-value="5">Good</button><button class="btn btn-fair" data-value="3">Fair</button><button class="btn btn-poor" data-value="1">Poor</button></div>
+        <div class="feedback-section"><textarea class="feedback-input" placeholder="Feedback..."></textarea></div>
+    </div>
+    <div class="test-card" data-section="1">
+        <h4>Score Chart & Eyeball Chart Interpretation</h4>
+        <div class="button-group"><button class="btn btn-good" data-value="5">Good</button><button class="btn btn-fair" data-value="3">Fair</button><button class="btn btn-poor" data-value="1">Poor</button></div>
+        <div class="feedback-section"><textarea class="feedback-input" placeholder="Feedback..."></textarea></div>
+    </div>
+    <div class="test-card" data-section="1">
+      <h4>SE (Spherical Equivalent) Calculation</h4>
+        <div class="button-group"><button class="btn btn-good" data-value="5">Good</button><button class="btn btn-fair" data-value="3">Fair</button><button class="btn btn-poor" data-value="1">Poor</button></div>
+        <div class="feedback-section"><textarea class="feedback-input" placeholder="Feedback..."></textarea></div>
+    </div>
+    <div class="test-card" data-section="1">
+        <h4>Lens Thickness Estimation</h4>
+        <div class="button-group"><button class="btn btn-good" data-value="5">Good</button><button class="btn btn-fair" data-value="3">Fair</button><button class="btn btn-poor" data-value="1">Poor</button></div>
+        <div class="feedback-section"><textarea class="feedback-input" placeholder="Feedback..."></textarea></div>
+    </div>
+
+    <div class="section-header">
+        <span>2. Power Range Understanding</span>
+        <span class="section-score"><span id="score-2">0</span> / <span id="max-2">0</span> (<span id="percent-2">0.00</span>%)</span>
+    </div>
+    <div class="test-card" data-section="2">
+        <h4>Stock Lens Power Range Familiarity</h4>
+        <div class="button-group"><button class="btn btn-good" data-value="5">Good</button><button class="btn btn-fair" data-value="3">Fair</button><button class="btn btn-poor" data-value="1">Poor</button></div>
+        <div class="feedback-section"><textarea class="feedback-input" placeholder="Feedback..."></textarea></div>
+    </div>
+    <div class="test-card" data-section="2">
+        <h4>RX Lens Power Range Understanding (Based on frame size & diameter)</h4>
+        <div class="button-group"><button class="btn btn-good" data-value="5">Good</button><button class="btn btn-fair" data-value="3">Fair</button><button class="btn btn-poor" data-value="1">Poor</button></div>
+        <div class="feedback-section"><textarea class="feedback-input" placeholder="Feedback..."></textarea></div>
+    </div>
+    <div class="sub-header" data-section="2">Lens Diameter Calculation</div>
+    <div class="test-card" data-section="2">
+        <h4>Monocular PD-based Diameter Calculation</h4>
+        <div class="button-group"><button class="btn btn-good" data-value="5">Good</button><button class="btn btn-fair" data-value="3">Fair</button><button class="btn btn-poor" data-value="1">Poor</button></div>
+        <div class="feedback-section"><textarea class="feedback-input" placeholder="Feedback..."></textarea></div>
+    </div>
+    <div class="test-card" data-section="2">
+        <h4>Binocular PD-based Diameter Calculation</h4>
+        <div class="button-group"><button class="btn btn-good" data-value="5">Good</button><button class="btn btn-fair" data-value="3">Fair</button><button class="btn btn-poor" data-value="1">Poor</button></div>
+        <div class="feedback-section"><textarea class="feedback-input" placeholder="Feedback..."></textarea></div>
+    </div>
+    <div class="sub-header" data-section="2">Refractive Error Explanation Ability</div>
+    <div class="test-card" data-section="2">
+        <h4>Myopia</h4>
+        <div class="button-group"><button class="btn btn-pass" data-value="1">Pass</button><button class="btn btn-fail" data-value="0">Fail</button></div>
+        <div class="feedback-section"><textarea class="feedback-input" placeholder="Feedback..."></textarea></div>
+    </div>
+    <div class="test-card" data-section="2">
+        <h4>Hyperopia</h4>
+        <div class="button-group"><button class="btn btn-pass" data-value="1">Pass</button><button class="btn btn-fail" data-value="0">Fail</button></div>
+        <div class="feedback-section"><textarea class="feedback-input" placeholder="Feedback..."></textarea></div>
+    </div>
+    <div class="test-card" data-section="2">
+        <h4>Astigmatism</h4>
+        <div class="button-group"><button class="btn btn-pass" data-value="1">Pass</button><button class="btn btn-fail" data-value="0">Fail</button></div>
+        <div class="feedback-section"><textarea class="feedback-input" placeholder="Feedback..."></textarea></div>
+    </div>
+    <div class="test-card" data-section="2">
+        <h4>Presbyopia</h4>
+        <div class="button-group"><button class="btn btn-pass" data-value="1">Pass</button><button class="btn btn-fail" data-value="0">Fail</button></div>
+        <div class="feedback-section"><textarea class="feedback-input" placeholder="Feedback..."></textarea></div>
+    </div>
+
+    <div class="section-header">
+        <span>3. Registration & System</span>
+        <span class="section-score"><span id="score-3">0</span> / <span id="max-3">0</span> (<span id="percent-3">0.00</span>%)</span>
+    </div>
+    <div class="sub-header" data-section="3">Lensometer Machine Using</div>
+    <div class="test-card" data-section="3">
+        <h4>Single Vision</h4>
+        <div class="button-group"><button class="btn btn-good" data-value="5">Good</button><button class="btn btn-fair" data-value="3">Fair</button><button class="btn btn-poor" data-value="1">Poor</button></div>
+        <div class="feedback-section"><textarea class="feedback-input" placeholder="Feedback..."></textarea></div>
+    </div>
+    <div class="test-card" data-section="3">
+        <h4>Progressive Lens Checking</h4>
+        <div class="button-group"><button class="btn btn-good" data-value="5">Good</button><button class="btn btn-fair" data-value="3">Fair</button><button class="btn btn-poor" data-value="1">Poor</button></div>
+        <div class="feedback-section"><textarea class="feedback-input" placeholder="Feedback..."></textarea></div>
+    </div>
+    <div class="test-card" data-section="3">
+        <h4>PD verification using lensometer</h4>
+        <div class="button-group"><button class="btn btn-good" data-value="5">Good</button><button class="btn btn-fair" data-value="3">Fair</button><button class="btn btn-poor" data-value="1">Poor</button></div>
+        <div class="feedback-section"><textarea class="feedback-input" placeholder="Feedback..."></textarea></div>
+    </div>
+    <div class="sub-header" data-section="3">Customer KB Check (Lens type, Coating and Power)</div>
+    <div class="test-card" data-section="3">
+        <h4>Lens type</h4>
+        <div class="button-group"><button class="btn btn-good" data-value="5">Good</button><button class="btn btn-fair" data-value="3">Fair</button><button class="btn btn-poor" data-value="1">Poor</button></div>
+        <div class="feedback-section"><textarea class="feedback-input" placeholder="Feedback..."></textarea></div>
+    </div>
+      <div class="test-card" data-section="3">
+        <h4>Coating type </h4>
+        <div class="button-group"><button class="btn btn-good" data-value="5">Good</button><button class="btn btn-fair" data-value="3">Fair</button><button class="btn btn-poor" data-value="1">Poor</button></div>
+        <div class="feedback-section"><textarea class="feedback-input" placeholder="Feedback..."></textarea></div>
+    </div>
+       <div class="test-card" data-section="3">
+        <h4>Power & axis values </h4>
+        <div class="button-group"><button class="btn btn-good" data-value="5">Good</button><button class="btn btn-fair" data-value="3">Fair</button><button class="btn btn-poor" data-value="1">Poor</button></div>
+        <div class="feedback-section"><textarea class="feedback-input" placeholder="Feedback..."></textarea></div>
+    </div>
+
+     <div class="sub-header" data-section="3">FOP and FDP Case Handling</div>
+    <div class="test-card" data-section="3">
+        <h4>FOP and FDP Power Try-on </h4>
+        <div class="button-group"><button class="btn btn-good" data-value="5">Good</button><button class="btn btn-fair" data-value="3">Fair</button><button class="btn btn-poor" data-value="1">Poor</button></div>
+        <div class="feedback-section"><textarea class="feedback-input" placeholder="Feedback..."></textarea></div>
+    </div>
+    <div class="test-card" data-section="3">
+        <h4>FOP and FDP Prescription Rechecking </h4>
+        <div class="button-group"><button class="btn btn-good" data-value="5">Good</button><button class="btn btn-fair" data-value="3">Fair</button><button class="btn btn-poor" data-value="1">Poor</button></div>
+        <div class="feedback-section"><textarea class="feedback-input" placeholder="Feedback..."></textarea></div>
+    </div>
+<div class="test-card" data-section="3">
+        <h4>Memo input in correct format </h4>
+        <div class="button-group"><button class="btn btn-good" data-value="5">Good</button><button class="btn btn-fair" data-value="3">Fair</button><button class="btn btn-poor" data-value="1">Poor</button></div>
+        <div class="feedback-section"><textarea class="feedback-input" placeholder="Feedback..."></textarea></div>
+    </div>
+
+    <div class="sub-header" data-section="3">Lens Replacement Handling</div>
+    <div class="test-card" data-section="3">
+        <h4>Frame condition check</h4>
+        <div class="button-group"><button class="btn btn-good" data-value="5">Good</button><button class="btn btn-fair" data-value="3">Fair</button><button class="btn btn-poor" data-value="1">Poor</button></div>
+        <div class="feedback-section"><textarea class="feedback-input" placeholder="Feedback..."></textarea></div>
+    </div>
+    <div class="test-card" data-section="3">
+        <h4>Inform risks to the customer </h4>
+        <div class="button-group"><button class="btn btn-pass" data-value="1">Pass</button><button class="btn btn-fail" data-value="0">Fail</button></div>
+        <div class="feedback-section"><textarea class="feedback-input" placeholder="Feedback..."></textarea></div>
+    </div>
+<div class="test-card" data-section="3">
+        <h4>Capture photos & complete agreement  </h4>
+        <div class="button-group"><button class="btn btn-pass" data-value="1">Pass</button><button class="btn btn-fail" data-value="0">Fail</button></div>
+        <div class="feedback-section"><textarea class="feedback-input" placeholder="Feedback..."></textarea></div>
+    </div>
+
+
+    <div class="sub-header" data-section="3">KARTE Registration</div>
+    <div class="test-card" data-section="3">
+        <h4>Accurate prescription input </h4>
+        <div class="button-group"><button class="btn btn-pass" data-value="1">Pass</button><button class="btn btn-fail" data-value="0">Fail</button></div>
+        <div class="feedback-section"><textarea class="feedback-input" placeholder="Feedback..."></textarea></div>
+    </div>
+ <div class="test-card" data-section="3">
+        <h4>Proper memo writing format </h4>
+        <div class="button-group"><button class="btn btn-pass" data-value="1">Pass</button><button class="btn btn-fail" data-value="0">Fail</button></div>
+        <div class="feedback-section"><textarea class="feedback-input" placeholder="Feedback..."></textarea></div>
+    </div>
+ <div class="test-card" data-section="3">
+        <h4>Price Simulator Understanding </h4>
+        <div class="button-group"><button class="btn btn-pass" data-value="1">Pass</button><button class="btn btn-fail" data-value="0">Fail</button></div>
+        <div class="feedback-section"><textarea class="feedback-input" placeholder="Feedback..."></textarea></div>
+    </div>
+
+
+    <div class="section-header">
+        <span>4. Eye Test</span>
+        <span class="section-score"><span id="score-4">0</span> / <span id="max-4">0</span> (<span id="percent-4">0.00</span>%)</span>
+    </div>
+     <div class="sub-header" data-section="4">PD measurement</div>
+    <div class="test-card" data-section="4">
+        <h4>Manual PD measurement (Ruler) </h4>
+        <div class="button-group"><button class="btn btn-good" data-value="5">Good</button><button class="btn btn-fair" data-value="3">Fair</button><button class="btn btn-poor" data-value="1">Poor</button></div>
+        <div class="feedback-section"><textarea class="feedback-input" placeholder="Feedback..."></textarea></div>
+    </div>
+<div class="test-card" data-section="4">
+        <h4>Machine PD measurement (PD Meter) </h4>
+        <div class="button-group"><button class="btn btn-good" data-value="5">Good</button><button class="btn btn-fair" data-value="3">Fair</button><button class="btn btn-poor" data-value="1">Poor</button></div>
+        <div class="feedback-section"><textarea class="feedback-input" placeholder="Feedback..."></textarea></div>
+    </div>
+ <div class="sub-header" data-section="4">Focal Point Marking</div>
+    <div class="test-card" data-section="4">
+        <h4>Accurate marking for PD/PH </h4>
+        <div class="button-group"><button class="btn btn-good" data-value="5">Good</button><button class="btn btn-fair" data-value="3">Fair</button><button class="btn btn-poor" data-value="1">Poor</button></div>
+        <div class="feedback-section"><textarea class="feedback-input" placeholder="Feedback..."></textarea></div>
+    </div>
+
+     <div class="sub-header" data-section="4">Standard Question to Customer</div>
+    <div class="test-card" data-section="4">
+        <h4>Customer's Age </h4>
+        <div class="button-group"><button class="btn btn-pass" data-value="1">Pass</button><button class="btn btn-fail" data-value="0">Fail</button></div>
+        <div class="feedback-section"><textarea class="feedback-input" placeholder="Feedback..."></textarea></div>
+    </div>
+<div class="test-card" data-section="4">
+        <h4>Contact lens usage </h4>
+        <div class="button-group"><button class="btn btn-pass" data-value="1">Pass</button><button class="btn btn-fail" data-value="0">Fail</button></div>
+        <div class="feedback-section"><textarea class="feedback-input" placeholder="Feedback..."></textarea></div>
+    </div>
+<div class="test-card" data-section="4">
+        <h4>Purpose of wearing glasses (distance, near, computer, daily use) </h4>
+        <div class="button-group"><button class="btn btn-pass" data-value="1">Pass</button><button class="btn btn-fail" data-value="0">Fail</button></div>
+        <div class="feedback-section"><textarea class="feedback-input" placeholder="Feedback..."></textarea></div>
+    </div>
+
+
+          <div class="sub-header" data-section="4">Visual Acuity Check Understanding</div>
+    <div class="test-card" data-section="4">
+        <h4>Binocular V.A. </h4>
+        <div class="button-group"><button class="btn btn-pass" data-value="1">Pass</button><button class="btn btn-fail" data-value="0">Fail</button></div>
+        <div class="feedback-section"><textarea class="feedback-input" placeholder="Feedback..."></textarea></div>
+    </div>
+<div class="test-card" data-section="4">
+        <h4>Monocular V.A. </h4>
+        <div class="button-group"><button class="btn btn-pass" data-value="1">Pass</button><button class="btn btn-fail" data-value="0">Fail</button></div>
+        <div class="feedback-section"><textarea class="feedback-input" placeholder="Feedback..."></textarea></div>
+    </div>
+
+
+
+    <div class="test-card" data-section="4">
+        <h4>10 Steps Easy Fogging in a Professional Level </h4>
+        <div class="button-group"><button class="btn btn-good" data-value="5">Good</button><button class="btn btn-fair" data-value="3">Fair</button><button class="btn btn-poor" data-value="1">Poor</button></div>
+        <div class="feedback-section"><textarea class="feedback-input" placeholder="Feedback..."></textarea></div>
+    </div>
+    <div class="test-card" data-section="4">
+        <h4>Binocular Balancing</h4>
+        <div class="button-group"><button class="btn btn-good" data-value="5">Good</button><button class="btn btn-fair" data-value="3">Fair</button><button class="btn btn-poor" data-value="1">Poor</button></div>
+        <div class="feedback-section"><textarea class="feedback-input" placeholder="Feedback..."></textarea></div>
+    </div>
+
+
+             <div class="sub-header" data-section="4">Addition Power Check</div>
+    <div class="test-card" data-section="4">
+        <h4>Binocular Cross Cylinder method </h4>
+        <div class="button-group"><button class="btn btn-good" data-value="5">Good</button><button class="btn btn-fair" data-value="3">Fair</button><button class="btn btn-poor" data-value="1">Poor</button></div>
+        <div class="feedback-section"><textarea class="feedback-input" placeholder="Feedback..."></textarea></div>
+    </div>
+<div class="test-card" data-section="4">
+        <h4>Additional guideline chart usage </h4>
+        <div class="button-group"><button class="btn btn-good" data-value="5">Good</button><button class="btn btn-fair" data-value="3">Fair</button><button class="btn btn-poor" data-value="1">Poor</button></div>
+        <div class="feedback-section"><textarea class="feedback-input" placeholder="Feedback..."></textarea></div>
+    </div>
+
+  <div class="sub-header" data-section="4">Far Distance Power Try-on</div>
+    <div class="test-card" data-section="4">
+        <h4>Identify best corrected vision </h4>
+        <div class="button-group"><button class="btn btn-good" data-value="5">Good</button><button class="btn btn-fair" data-value="3">Fair</button><button class="btn btn-poor" data-value="1">Poor</button></div>
+        <div class="feedback-section"><textarea class="feedback-input" placeholder="Feedback..."></textarea></div>
+    </div>
+ <div class="test-card" data-section="4">
+        <h4>Trial Frame adjustment </h4>
+        <div class="button-group"><button class="btn btn-pass" data-value="1">Pass</button><button class="btn btn-fail" data-value="0">Fail</button></div>
+        <div class="feedback-section"><textarea class="feedback-input" placeholder="Feedback..."></textarea></div>
+    </div>
+ <div class="test-card" data-section="4">
+        <h4>Prescription adjustment </h4>
+        <div class="button-group"><button class="btn btn-good" data-value="5">Good</button><button class="btn btn-fair" data-value="3">Fair</button><button class="btn btn-poor" data-value="1">Poor</button></div>
+        <div class="feedback-section"><textarea class="feedback-input" placeholder="Feedback..."></textarea></div>
+    </div>
+ <div class="test-card" data-section="4">
+        <h4>Comfort and Visual verification </h4>
+        <div class="button-group"><button class="btn btn-pass" data-value="1">Pass</button><button class="btn btn-fail" data-value="0">Fail</button></div>
+        <div class="feedback-section"><textarea class="feedback-input" placeholder="Feedback..."></textarea></div>
+    </div>
+
+      <div class="sub-header" data-section="4">Prescription explanation </div>
+    <div class="test-card" data-section="4">
+        <h4>Comparison</h4>
+        <div class="button-group"><button class="btn btn-good" data-value="5">Good</button><button class="btn btn-fair" data-value="3">Fair</button><button class="btn btn-poor" data-value="1">Poor</button></div>
+        <div class="feedback-section"><textarea class="feedback-input" placeholder="Feedback..."></textarea></div>
+    </div>
+ <div class="test-card" data-section="4">
+        <h4>Reason giving </h4>
+        <div class="button-group"><button class="btn btn-good" data-value="5">Good</button><button class="btn btn-fair" data-value="3">Fair</button><button class="btn btn-poor" data-value="1">Poor</button></div>
+        <div class="feedback-section"><textarea class="feedback-input" placeholder="Feedback..."></textarea></div>
+    </div>
+  <div class="sub-header" data-section="4">Near Distance Power Try-on</div>
+    <div class="test-card" data-section="4">
+        <h4>Near Distance Power Try-on</h4>
+        <div class="button-group"><button class="btn btn-good" data-value="5">Good</button><button class="btn btn-fair" data-value="3">Fair</button><button class="btn btn-poor" data-value="1">Poor</button></div>
+        <div class="feedback-section"><textarea class="feedback-input" placeholder="Feedback..."></textarea></div>
+    </div>
+
+  <div class="sub-header" data-section="4">Prescription explanation </div>
+    <div class="test-card" data-section="4">
+        <h4>Comparison </h4>
+        <div class="button-group"><button class="btn btn-good" data-value="5">Good</button><button class="btn btn-fair" data-value="3">Fair</button><button class="btn btn-poor" data-value="1">Poor</button></div>
+        <div class="feedback-section"><textarea class="feedback-input" placeholder="Feedback..."></textarea></div>
+    </div>
+<div class="test-card" data-section="4">
+        <h4>Reason giving </h4>
+        <div class="button-group"><button class="btn btn-good" data-value="5">Good</button><button class="btn btn-fair" data-value="3">Fair</button><button class="btn btn-poor" data-value="1">Poor</button></div>
+        <div class="feedback-section"><textarea class="feedback-input" placeholder="Feedback..."></textarea></div>
+    </div>
+
+
+    <div class="section-header">
+        <span>5. Fitting</span>
+        <span class="section-score"><span id="score-5">0</span> / <span id="max-5">0</span> (<span id="percent-5">0.00</span>%)</span>
+    </div>
+    <div class="sub-header" data-section="5">Parameter Understanding (Understands what each fitting parameter refers to and how its values affect the final fit.)</div>
+    <div class="test-card" data-section="5">
+        <h4>Pupil Distance </h4>
+        <div class="button-group"><button class="btn btn-good" data-value="5">Good</button><button class="btn btn-fair" data-value="3">Fair</button><button class="btn btn-poor" data-value="1">Poor</button></div>
+        <div class="feedback-section"><textarea class="feedback-input" placeholder="Feedback..."></textarea></div>
+    </div>
+   <div class="test-card" data-section="5">
+        <h4>Pupil Height </h4>
+        <div class="button-group"><button class="btn btn-good" data-value="5">Good</button><button class="btn btn-fair" data-value="3">Fair</button><button class="btn btn-poor" data-value="1">Poor</button></div>
+        <div class="feedback-section"><textarea class="feedback-input" placeholder="Feedback..."></textarea></div>
+    </div>
+<div class="test-card" data-section="5">
+        <h4>Pantoscopic Angle </h4>
+        <div class="button-group"><button class="btn btn-good" data-value="5">Good</button><button class="btn btn-fair" data-value="3">Fair</button><button class="btn btn-poor" data-value="1">Poor</button></div>
+        <div class="feedback-section"><textarea class="feedback-input" placeholder="Feedback..."></textarea></div>
+    </div>
+<div class="test-card" data-section="5">
+        <h4>Wrap Angle </h4>
+        <div class="button-group"><button class="btn btn-good" data-value="5">Good</button><button class="btn btn-fair" data-value="3">Fair</button><button class="btn btn-poor" data-value="1">Poor</button></div>
+        <div class="feedback-section"><textarea class="feedback-input" placeholder="Feedback..."></textarea></div>
+    </div>
+<div class="test-card" data-section="5">
+        <h4>Vertex Distance </h4>
+        <div class="button-group"><button class="btn btn-good" data-value="5">Good</button><button class="btn btn-fair" data-value="3">Fair</button><button class="btn btn-poor" data-value="1">Poor</button></div>
+        <div class="feedback-section"><textarea class="feedback-input" placeholder="Feedback..."></textarea></div>
+    </div>
+<div class="test-card" data-section="5">
+        <h4>Basic Parameter Check / </h4>
+        <div class="button-group"><button class="btn btn-good" data-value="5">Good</button><button class="btn btn-fair" data-value="3">Fair</button><button class="btn btn-poor" data-value="1">Poor</button></div>
+        <div class="feedback-section"><textarea class="feedback-input" placeholder="Feedback..."></textarea></div>
+    </div>
+
+
+    <div class="sub-header" data-section="5">Frame Adjustment</div>
+    <div class="test-card" data-section="5">
+        <h4>Understanding 3+3 Adjustment Steps </h4>
+        <div class="button-group"><button class="btn btn-good" data-value="5">Good</button><button class="btn btn-fair" data-value="3">Fair</button><button class="btn btn-poor" data-value="1">Poor</button></div>
+        <div class="feedback-section"><textarea class="feedback-input" placeholder="Feedback..."></textarea></div>
+    </div>
+<div class="test-card" data-section="5">
+        <h4>How to use tools (use tooling correctly) </h4>
+        <div class="button-group"><button class="btn btn-good" data-value="5">Good</button><button class="btn btn-fair" data-value="3">Fair</button><button class="btn btn-poor" data-value="1">Poor</button></div>
+        <div class="feedback-section"><textarea class="feedback-input" placeholder="Feedback..."></textarea></div>
+    </div>
+
+
+
+
+    <div class="sub-header" data-section="5">Fit Pad Measurement</div>
+    <div class="test-card" data-section="5">
+        <h4>Fitting Check</h4>
+        <div class="button-group"><button class="btn btn-pass" data-value="1">Pass</button><button class="btn btn-fail" data-value="0">Fail</button></div>
+        <div class="feedback-section"><textarea class="feedback-input" placeholder="Feedback..."></textarea></div>
+    </div>
+ <div class="test-card" data-section="5">
+        <h4>Proper customer posture & alignment </h4>
+        <div class="button-group"><button class="btn btn-good" data-value="5">Good</button><button class="btn btn-fair" data-value="3">Fair</button><button class="btn btn-poor" data-value="1">Poor</button></div>
+        <div class="feedback-section"><textarea class="feedback-input" placeholder="Feedback..."></textarea></div>
+    </div>
+<div class="test-card" data-section="5">
+        <h4>Front & 3/4 angle capturing roper customer posture & alignment </h4>
+        <div class="button-group"><button class="btn btn-good" data-value="5">Good</button><button class="btn btn-fair" data-value="3">Fair</button><button class="btn btn-poor" data-value="1">Poor</button></div>
+        <div class="feedback-section"><textarea class="feedback-input" placeholder="Feedback..."></textarea></div>
+    </div>
+
+    <div class="test-card" data-section="5">
+        <h4>Result Understanding</h4>
+        <div class="button-group"><button class="btn btn-good" data-value="5">Good</button><button class="btn btn-fair" data-value="3">Fair</button><button class="btn btn-poor" data-value="1">Poor</button></div>
+        <div class="feedback-section"><textarea class="feedback-input" placeholder="Feedback..."></textarea></div>
+    </div>
+<div class="test-card" data-section="5">
+        <h4>Rechecking results for accuracy </h4>
+        <div class="button-group"><button class="btn btn-good" data-value="5">Good</button><button class="btn btn-fair" data-value="3">Fair</button><button class="btn btn-poor" data-value="1">Poor</button></div>
+        <div class="feedback-section"><textarea class="feedback-input" placeholder="Feedback..."></textarea></div>
+    </div>
+
+
+
+    <div class="section-header">
+        <span>6. Edging</span>
+        <span class="section-score"><span id="score-6">0</span> / <span id="max-6">0</span> (<span id="percent-6">0.00</span>%)</span>
+    </div>
+
+
+    <div class="sub-header" data-section="6">Lens Blocking</div>
+
+    <div class="test-card" data-section="6">
+        <h4>Accurate lens centering </h4>
+        <div class="button-group"><button class="btn btn-pass" data-value="1">Pass</button><button class="btn btn-fail" data-value="0">Fail</button></div>
+        <div class="feedback-section"><textarea class="feedback-input" placeholder="Feedback..."></textarea></div>
+    </div>
+
+    <div class="sub-header" data-section="6">Edging Machine Using Skill</div>
+    <div class="test-card" data-section="6">
+        <h4>Full Frame Edging Procedure </h4>
+        <div class="button-group"><button class="btn btn-good" data-value="5">Good</button><button class="btn btn-fair" data-value="3">Fair</button><button class="btn btn-poor" data-value="1">Poor</button></div>
+        <div class="feedback-section"><textarea class="feedback-input" placeholder="Feedback..."></textarea></div>
+    </div>
+ <div class="test-card" data-section="6">
+        <h4>Half-Rim Edging Procedure </h4>
+        <div class="button-group"><button class="btn btn-good" data-value="5">Good</button><button class="btn btn-fair" data-value="3">Fair</button><button class="btn btn-poor" data-value="1">Poor</button></div>
+        <div class="feedback-section"><textarea class="feedback-input" placeholder="Feedback..."></textarea></div>
+    </div>
+
+
+    <div class="sub-header" data-section="6">Final Quality Check</div>
+    <div class="test-card" data-section="6">
+        <h4>Power accuracy verification </h4>
+        <div class="button-group"><button class="btn btn-pass" data-value="1">Pass</button><button class="btn btn-fail" data-value="0">Fail</button></div>
+        <div class="feedback-section"><textarea class="feedback-input" placeholder="Feedback..."></textarea></div>
+    </div>
+ <div class="test-card" data-section="6">
+        <h4>Frame Balancing </h4>
+        <div class="button-group"><button class="btn btn-pass" data-value="1">Pass</button><button class="btn btn-fail" data-value="0">Fail</button></div>
+        <div class="feedback-section"><textarea class="feedback-input" placeholder="Feedback..."></textarea></div>
+    </div>
+      <div class="test-card" data-section="6">
+        <h4>Cleanliness check </h4>
+        <div class="button-group"><button class="btn btn-pass" data-value="1">Pass</button><button class="btn btn-fail" data-value="0">Fail</button></div>
+        <div class="feedback-section"><textarea class="feedback-input" placeholder="Feedback..."></textarea></div>
+    </div>
+       <div class="test-card" data-section="6">
+        <h4>Submit the edging order in the Karte system 
+        </h4>
+        <div class="button-group"><button class="btn btn-pass" data-value="1">Pass</button><button class="btn btn-fail" data-value="0">Fail</button></div>
+        <div class="feedback-section"><textarea class="feedback-input" placeholder="Feedback..."></textarea></div>
+    </div>
+
+    
+    <div class="sub-header" data-section="6">Rush-hour Management</div>
+    <div class="test-card" data-section="6">
+        <h4>Queue management </h4>
+        <div class="button-group"><button class="btn btn-good" data-value="5">Good</button><button class="btn btn-fair" data-value="3">Fair</button><button class="btn btn-poor" data-value="1">Poor</button></div>
+        <div class="feedback-section"><textarea class="feedback-input" placeholder="Feedback..."></textarea></div>
+    </div>
+
+    <div class="section-header">
+        <span>7. Operation</span>
+        <span class="section-score"><span id="score-7">0</span> / <span id="max-7">0</span> (<span id="percent-7">0.00</span>%)</span>
+    </div>
+    <div class="sub-header" data-section="7">Lens Ordering</div>
+    <div class="sub-header" data-section="7">EDI Lens order</div>
+    <div class="test-card" data-section="7">
+        <h4>Stock order</h4>
+        <div class="button-group"><button class="btn btn-good" data-value="5">Good</button><button class="btn btn-fair" data-value="3">Fair</button><button class="btn btn-poor" data-value="1">Poor</button></div>
+        <div class="feedback-section"><textarea class="feedback-input" placeholder="Feedback..."></textarea></div>
+    </div>
+    <div class="test-card" data-section="7">
+        <h4>RX Order</h4>
+        <div class="button-group"><button class="btn btn-good" data-value="5">Good</button><button class="btn btn-fair" data-value="3">Fair</button><button class="btn btn-poor" data-value="1">Poor</button></div>
+        <div class="feedback-section"><textarea class="feedback-input" placeholder="Feedback..."></textarea></div>
+    </div>
+    <div class="sub-header" data-section="7">Precal </div>
+  <div class="test-card" data-section="7">
+        <h4>Supplier's Website </h4>
+        <div class="button-group"><button class="btn btn-good" data-value="5">Good</button><button class="btn btn-fair" data-value="3">Fair</button><button class="btn btn-poor" data-value="1">Poor</button></div>
+        <div class="feedback-section"><textarea class="feedback-input" placeholder="Feedback..."></textarea></div>
+    </div>
+<div class="test-card" data-section="7">
+        <h4>Ultimate product ordering </h4>
+        <div class="button-group"><button class="btn btn-good" data-value="5">Good</button><button class="btn btn-fair" data-value="3">Fair</button><button class="btn btn-poor" data-value="1">Poor</button></div>
+        <div class="feedback-section"><textarea class="feedback-input" placeholder="Feedback..."></textarea></div>
+    </div>
+<div class="test-card" data-section="7">
+        <h4>Other product ordering </h4>
+        <div class="button-group"><button class="btn btn-good" data-value="5">Good</button><button class="btn btn-fair" data-value="3">Fair</button><button class="btn btn-poor" data-value="1">Poor</button></div>
+        <div class="feedback-section"><textarea class="feedback-input" placeholder="Feedback..."></textarea></div>
+    </div>
+<div class="test-card" data-section="7">
+        <h4>Email</h4>
+        <div class="button-group"><button class="btn btn-good" data-value="5">Good</button><button class="btn btn-fair" data-value="3">Fair</button><button class="btn btn-poor" data-value="1">Poor</button></div>
+        <div class="feedback-section"><textarea class="feedback-input" placeholder="Feedback..."></textarea></div>
+    </div>
+    <div class="sub-header" data-section="7">Lens Receiving Procedure </div>
+<div class="test-card" data-section="7">
+        <h4>Quantity check </h4>
+        <div class="button-group"><button class="btn btn-pass" data-value="1">Pass</button><button class="btn btn-fail" data-value="0">Fail</button></div>
+        <div class="feedback-section"><textarea class="feedback-input" placeholder="Feedback..."></textarea></div>
+    </div>
+<div class="test-card" data-section="7">
+        <h4>Manage No. check </h4>
+        <div class="button-group"><button class="btn btn-pass" data-value="1">Pass</button><button class="btn btn-fail" data-value="0">Fail</button></div>
+        <div class="feedback-section"><textarea class="feedback-input" placeholder="Feedback..."></textarea></div>
+    </div>
+<div class="test-card" data-section="7">
+        <h4>Lens Stock arrangement </h4>
+        <div class="button-group"><button class="btn btn-pass" data-value="1">Pass</button><button class="btn btn-fail" data-value="0">Fail</button></div>
+        <div class="feedback-section"><textarea class="feedback-input" placeholder="Feedback..."></textarea></div>
+    </div>
+<div class="test-card" data-section="7">
+        <h4>RX lens matching </h4>
+        <div class="button-group"><button class="btn btn-pass" data-value="1">Pass</button><button class="btn btn-fail" data-value="0">Fail</button></div>
+        <div class="feedback-section"><textarea class="feedback-input" placeholder="Feedback..."></textarea></div>
+    </div>
+
+
+
+
+    <div class="section-header">
+        <span>8. Dispensing 5-step OWNDAYS dispensing </span>
+        <span class="section-score"><span id="score-8">0</span> / <span id="max-8">0</span> (<span id="percent-8">0.00</span>%)</span>
+    </div>
+
+        <div class="sub-header" data-section="8">Verification </div>
+    <div class="test-card" data-section="8">
+        <h4>Name</h4>
+        <div class="button-group"><button class="btn btn-pass" data-value="1">Pass</button><button class="btn btn-fail" data-value="0">Fail</button></div>
+        <div class="feedback-section"><textarea class="feedback-input" placeholder="Feedback..."></textarea></div>
+    </div>
+ <div class="test-card" data-section="8">
+        <h4>Frame</h4>
+        <div class="button-group"><button class="btn btn-pass" data-value="1">Pass</button><button class="btn btn-fail" data-value="0">Fail</button></div>
+        <div class="feedback-section"><textarea class="feedback-input" placeholder="Feedback..."></textarea></div>
+    </div>
+<div class="test-card" data-section="8">
+        <h4>Lens detail </h4>
+        <div class="button-group"><button class="btn btn-pass" data-value="1">Pass</button><button class="btn btn-fail" data-value="0">Fail</button></div>
+        <div class="feedback-section"><textarea class="feedback-input" placeholder="Feedback..."></textarea></div>
+    </div>
+<div class="test-card" data-section="8">
+        <h4>Balanced check (Temporal) </h4>
+        <div class="button-group"><button class="btn btn-pass" data-value="1">Pass</button><button class="btn btn-fail" data-value="0">Fail</button></div>
+        <div class="feedback-section"><textarea class="feedback-input" placeholder="Feedback..."></textarea></div>
+    </div>
+<div class="test-card" data-section="8">
+        <h4>Vision try-on </h4>
+        <div class="button-group"><button class="btn btn-pass" data-value="1">Pass</button><button class="btn btn-fail" data-value="0">Fail</button></div>
+        <div class="feedback-section"><textarea class="feedback-input" placeholder="Feedback..."></textarea></div>
+    </div>
+
+
+    <div class="test-card" data-section="8">
+        <h4>5 Steps Dispensing</h4>
+        <div class="button-group"><button class="btn btn-good" data-value="5">Good</button><button class="btn btn-fair" data-value="3">Fair</button><button class="btn btn-poor" data-value="1">Poor</button></div>
+        <div class="feedback-section"><textarea class="feedback-input" placeholder="Feedback..."></textarea></div>
+    </div>
+    <div class="sub-header" data-section="8">Instruction </div>
+
+    <div class="test-card" data-section="8">
+        <h4>Warranty </h4>
+        <div class="button-group"><button class="btn btn-good" data-value="5">Good</button><button class="btn btn-fair" data-value="3">Fair</button><button class="btn btn-poor" data-value="1">Poor</button></div>
+        <div class="feedback-section"><textarea class="feedback-input" placeholder="Feedback..."></textarea></div>
+    </div>
+<div class="test-card" data-section="8">
+        <h4>After-sales service  </h4>
+        <div class="button-group"><button class="btn btn-good" data-value="5">Good</button><button class="btn btn-fair" data-value="3">Fair</button><button class="btn btn-poor" data-value="1">Poor</button></div>
+        <div class="feedback-section"><textarea class="feedback-input" placeholder="Feedback..."></textarea></div>
+    </div>
+
+    <div class="test-card" data-section="8">
+        <h4>clean & care </h4>
+        <div class="button-group"><button class="btn btn-good" data-value="5">Good</button><button class="btn btn-fair" data-value="3">Fair</button><button class="btn btn-poor" data-value="1">Poor</button></div>
+        <div class="feedback-section"><textarea class="feedback-input" placeholder="Feedback..."></textarea></div>
+    </div>
+
+
+    <div class="signatures-grid">
+        <div class="test-card">
+            <h4>Staff Signature</h4>
+            <canvas id="staff-sig" class="signature-pad"></canvas>
+            <button class="clear-btn" onclick="clearPad('staff')">Clear</button>
+        </div>
+        <div class="test-card">
+            <h4>Trainer Signature</h4>
+            <canvas id="trainer-sig" class="signature-pad"></canvas>
+            <button class="clear-btn" onclick="clearPad('trainer')">Clear</button>
+        </div>
+    </div>
+
+    <div class="footer">
+        <button id="submit-btn" class="submit-btn">Submit & Export PDF</button>
+    </div>
+
+</div>
+
+<script>
+    let staffPad, trainerPad;
+    const cardImages = new Map();
+    const STORAGE_KEY = 'optical_checklist_autosave_v4'; 
+
+    const sectionsConfig = [
+        { id: 1, title: "1. Basic Knowledge" },
+        { id: 2, title: "2. Power Range Understanding" },
+        { id: 3, title: "3. Registration & System" },
+        { id: 4, title: "4. Eye Test" },
+        { id: 5, title: "5. Fitting" },
+        { id: 6, title: "6. Edging" },
+        { id: 7, title: "7. Operation" },
+        { id: 8, title: "8. Dispensing" }
+    ];
+
+    document.addEventListener('DOMContentLoaded', () => {
+        initSignaturePads();
+
+        setupComponents();
+
+        loadProgress();
+
+        calculateMaxScores();
+        calculateScores();
+
+        document.getElementById('submit-btn').addEventListener('click', generateDesignedPDF);
+    });
+
+    function initSignaturePads() {
+        const canvasStaff = document.getElementById('staff-sig');
+        const canvasTrainer = document.getElementById('trainer-sig');
+        
+        function resizeCanvas(c) {
+            const ratio = Math.max(window.devicePixelRatio || 1, 1);
+            c.width = c.offsetWidth * ratio;
+            c.height = c.offsetHeight * ratio;
+            c.getContext("2d").scale(ratio, ratio);
+        }
+        
+        staffPad = new SignaturePad(canvasStaff);
+        trainerPad = new SignaturePad(canvasTrainer);
+        resizeCanvas(canvasStaff);
+        resizeCanvas(canvasTrainer);
+    }
+
+    function setupComponents() {
+        document.querySelectorAll('.test-card').forEach((card, index) => {
+            if(card.querySelector('h4').innerText.includes('Signature')) return;
+            card.dataset.index = index; 
+
+            const uploadDiv = document.createElement('div');
+            uploadDiv.className = 'upload-section';
+            uploadDiv.innerHTML = `
+                <input type="file" class="hidden-file-input" multiple accept="image/*">
+                <button type="button" class="btn-upload">Upload Image</button>
+                <div class="img-preview-container"></div>
+            `;
+            card.appendChild(uploadDiv);
+
+            const btnUpload = uploadDiv.querySelector('.btn-upload');
+            const fileInput = uploadDiv.querySelector('.hidden-file-input');
+            const preview = uploadDiv.querySelector('.img-preview-container');
+
+            btnUpload.addEventListener('click', () => fileInput.click());
+
+            fileInput.addEventListener('change', async (e) => {
+                const files = Array.from(e.target.files);
+                if (files.length > 5) {
+                    alert("Maximum 5 images allowed.");
+                    fileInput.value = ""; 
+                    return;
+                }
+                btnUpload.innerText = files.length > 0 ? `Selected ${files.length} Image(s)` : "Upload Image";
+
+                const processedImages = [];
+                preview.innerHTML = ''; 
+                for (const file of files) {
+                    try {
+                        const base64 = await processImage(file);
+                        processedImages.push(base64);
+                        const img = document.createElement('img');
+                        img.src = base64;
+                        img.className = 'img-thumb';
+                        preview.appendChild(img);
+                    } catch (err) { console.error(err); }
+                }
+                cardImages.set(index, processedImages);
+            });
+
+            const feedbackArea = card.querySelector('.feedback-input');
+            if(feedbackArea) {
+                feedbackArea.addEventListener('input', saveProgress);
+                feedbackArea.addEventListener('change', saveProgress); 
+            }
+        });
+
+        document.querySelectorAll('.btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                if(e.target.dataset.value) {
+                    const group = e.target.closest('.button-group');
+                    group.querySelectorAll('.btn').forEach(b => b.classList.remove('selected'));
+                    e.target.classList.add('selected');
+                    calculateScores();
+                    saveProgress(); 
+                }
+            });
+        });
+
+        const inputs = document.querySelectorAll('input[type="text"], input[type="date"]');
+        inputs.forEach(input => {
+            input.addEventListener('input', saveProgress);
+            input.addEventListener('change', saveProgress);
+        });
+        const dateInput = document.getElementById('date');
+        if (!dateInput.value) {
+            dateInput.valueAsDate = new Date();
+        }
+    }
+
+
+    function saveProgress() {
+        const data = {
+            inputs: {},
+            selections: {},
+            feedbacks: {}
+        };
+
+        document.querySelectorAll('input[type="text"], input[type="date"]').forEach(input => {
+            if(input.id) data.inputs[input.id] = input.value;
+        });
+
+        document.querySelectorAll('.test-card').forEach((card) => {
+            const index = card.dataset.index;
+            if(index === undefined) return;
+
+            const selectedBtn = card.querySelector('.btn.selected');
+            if (selectedBtn) {
+                data.selections[index] = selectedBtn.dataset.value;
+            }
+
+            const feedback = card.querySelector('.feedback-input');
+            if (feedback && feedback.value) {
+                data.feedbacks[index] = feedback.value;
+            }
+        });
+
+        try { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); } catch(e) {}
+    }
+
+    function loadProgress() {
+        let saved;
+        try { saved = localStorage.getItem(STORAGE_KEY); } catch(e) { return; }
+        if (!saved) return;
+
+        try {
+            const data = JSON.parse(saved);
+
+            for (const [id, value] of Object.entries(data.inputs || {})) {
+                const el = document.getElementById(id);
+                if (el) el.value = value;
+            }
+
+            document.querySelectorAll('.test-card').forEach((card) => {
+                const index = card.dataset.index;
+                if(index === undefined) return;
+
+                if (data.selections && data.selections[index]) {
+                    const val = data.selections[index];
+                    card.querySelectorAll('.btn').forEach(b => b.classList.remove('selected'));
+                    const btn = card.querySelector(`.btn[data-value="${val}"]`);
+                    if (btn) btn.classList.add('selected');
+                }
+
+                if (data.feedbacks && data.feedbacks[index]) {
+                    const feedback = card.querySelector('.feedback-input');
+                    if (feedback) feedback.value = data.feedbacks[index];
+                }
+            });
+
+        } catch (e) {
+            console.error("Error loading saved data:", e);
+        }
+    }
+
+    function clearAllData() {
+        localStorage.removeItem(STORAGE_KEY);
+
+        document.querySelectorAll('input[type="text"], input[type="date"]').forEach(input => input.value = '');
+        
+        document.querySelectorAll('.feedback-input').forEach(area => area.value = '');
+
+        document.querySelectorAll('.btn.selected').forEach(btn => btn.classList.remove('selected'));
+
+        document.querySelectorAll('.img-preview-container').forEach(div => div.innerHTML = '');
+        document.querySelectorAll('.btn-upload').forEach(btn => btn.innerText = "Upload Image");
+        cardImages.clear();
+
+        staffPad.clear();
+        trainerPad.clear();
+
+        document.getElementById('date').valueAsDate = new Date();
+
+        calculateScores();
+    }
+
+
+
+    function processImage(file) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = (event) => {
+                const img = new Image();
+                img.src = event.target.result;
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    const MAX_WIDTH = 800;
+                    const scaleSize = MAX_WIDTH / img.width;
+                    const width = (img.width > MAX_WIDTH) ? MAX_WIDTH : img.width;
+                    const height = (img.width > MAX_WIDTH) ? img.height * scaleSize : img.height;
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+                    resolve(canvas.toDataURL('image/jpeg', 0.8));
+                };
+                img.onerror = reject;
+            };
+            reader.onerror = reject;
+        });
+    }
+
+    function clearPad(who) {
+        if(who === 'staff') staffPad.clear();
+        if(who === 'trainer') trainerPad.clear();
+    }
+
+    function calculateMaxScores() {
+        let grandMax = 0;
+        sectionsConfig.forEach(sec => {
+            let secMax = 0;
+            const cards = document.querySelectorAll(`.test-card[data-section="${sec.id}"]`);
+            cards.forEach(card => {
+                let maxVal = 0;
+                card.querySelectorAll('.btn').forEach(b => {
+                    const v = parseInt(b.dataset.value);
+                    if(v > maxVal) maxVal = v;
+                });
+                secMax += maxVal;
+            });
+            const el = document.getElementById(`max-${sec.id}`);
+            if(el) el.innerText = secMax;
+            grandMax += secMax;
+        });
+        document.getElementById('grand-max').innerText = grandMax;
+    }
+
+    function calculateScores() {
+        let grandTotal = 0;
+        const grandMax = parseInt(document.getElementById('grand-max').innerText) || 1;
+        sectionsConfig.forEach(sec => {
+            let secScore = 0;
+            const cards = document.querySelectorAll(`.test-card[data-section="${sec.id}"]`);
+            cards.forEach(card => {
+                const sel = card.querySelector('.btn.selected');
+                if(sel) secScore += parseInt(sel.dataset.value);
+            });
+            const max = parseInt(document.getElementById(`max-${sec.id}`).innerText) || 1;
+            const scoreEl = document.getElementById(`score-${sec.id}`);
+            const percentEl = document.getElementById(`percent-${sec.id}`);
+            if(scoreEl) scoreEl.innerText = secScore;
+            if(percentEl) percentEl.innerText = ((secScore/max)*100).toFixed(2) + "%";
+            grandTotal += secScore;
+        });
+        document.getElementById('grand-total').innerText = grandTotal;
+        document.getElementById('grand-percent').innerText = ((grandTotal/grandMax)*100).toFixed(2) + "%";
+    }
+
+    function textToImage(text, width = 600) {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        const fontSize = 16; 
+        const lineHeight = 30;
+        const fontFamily = "'Sarabun', sans-serif";
+        ctx.font = `${fontSize}px ${fontFamily}`;
+        const words = text.split(''); 
+        let line = '';
+        let lines = [];
+        for(let i = 0; i < words.length; i++) {
+            const testLine = line + words[i];
+            const metrics = ctx.measureText(testLine);
+            const testWidth = metrics.width;
+            if (testWidth > width && i > 0) {
+                lines.push(line);
+                line = words[i];
+            } else {
+                line = testLine;
+            }
+        }
+        lines.push(line);
+        canvas.width = width;
+        canvas.height = lines.length * lineHeight + 10; 
+        ctx.fillStyle = "transparent"; 
+        ctx.font = `${fontSize}px ${fontFamily}`; 
+        ctx.fillStyle = "#555555"; 
+        ctx.textBaseline = "top";
+        for (let i = 0; i < lines.length; i++) {
+            ctx.fillText(lines[i], 0, i * lineHeight);
+        }
+        return canvas.toDataURL('image/png');
+    }
+
+    function breakTextIntoLines(text, size, font, maxWidth) {
+        const words = text.split(' ');
+        let lines = [];
+        let currentLine = words[0];
+        for (let i = 1; i < words.length; i++) {
+            const word = words[i];
+            const width = font.widthOfTextAtSize(currentLine + " " + word, size);
+            if (width < maxWidth) {
+                currentLine += " " + word;
+            } else {
+                lines.push(currentLine);
+                currentLine = word;
+            }
+        }
+        lines.push(currentLine);
+        return lines;
+    }
+
+    // --- PDF GENERATION LOGIC ---
+
+    async function generateDesignedPDF() {
+      const btn = document.getElementById('submit-btn');
+      btn.disabled = true;
+      btn.innerText = "Generating PDF...";
+
+      try {
+        const pdfDoc = await PDFLib.PDFDocument.create();
+        pdfDoc.registerFontkit(fontkit);
+
+        const font = await pdfDoc.embedFont(PDFLib.StandardFonts.Helvetica);
+        const fontBold = await pdfDoc.embedFont(PDFLib.StandardFonts.HelveticaBold);
+
+        let page = pdfDoc.addPage();
+        const { width, height } = page.getSize();
+        const margin = 40;
+        let y = height - 60;
+        const bottomMargin = 50; 
+
+        const newPage = () => {
+          page = pdfDoc.addPage();
+          y = height - 50;
+        };
+        const ensureSpace = (minSpace) => {
+          if (y - minSpace < bottomMargin) newPage();
+        };
+        const drawDivider = () => {
+            const need = 21;
+            if (y - need < bottomMargin) return;
+            const lineY = y - 8;
+            page.drawLine({ start: { x: margin, y: lineY }, end: { x: width - margin, y: lineY }, thickness: 1, color: PDFLib.rgb(0.82, 0.82, 0.82) });
+            y = lineY - 12;
+        };
+
+        const blueHeader = PDFLib.rgb(0.85, 0.93, 0.98);
+        const blueTotal = PDFLib.rgb(0.75, 0.88, 0.96);
+        const greenPass = PDFLib.rgb(0.35, 0.8, 0.45);
+        const redFail = PDFLib.rgb(0.9, 0.35, 0.35);
+        const yellowFair = PDFLib.rgb(0.95, 0.75, 0.1);
+        const white = PDFLib.rgb(1, 1, 1);
+        const lightGray = PDFLib.rgb(0.95, 0.95, 0.95);
+
+        // Title
+        ensureSpace(60);
+        const title = "Moderate Optical & Service Checklist";
+        const titleWidth = fontBold.widthOfTextAtSize(title, 20);
+        page.drawText(title, { x: (width - titleWidth) / 2, y, size: 20, font: fontBold });
+        y -= 40;
+
+        // Info
+        const staffName = document.getElementById('staff-name').value || "N/A";
+        const staffId = document.getElementById('staff-id').value || "N/A";
+        const trainer = document.getElementById('trainer-name').value || "N/A";
+        const branch = document.getElementById('branch').value || "N/A";
+        const dateStr = document.getElementById('date').value || "N/A";
+
+        ensureSpace(60);
+        const infoSize = 10;
+        page.drawText(`Staff Name: ${staffName}`, { x: margin, y, size: infoSize, font });
+        page.drawText(`Staff ID: ${staffId}`, { x: width / 2, y, size: infoSize, font });
+        page.drawText(`Date: ${dateStr}`, { x: width - 120, y, size: infoSize, font });
+        y -= 20;
+
+        page.drawText(`Trainer Name: ${trainer}`, { x: margin, y, size: infoSize, font });
+        page.drawText(`Branch: ${branch}`, { x: width / 2, y, size: infoSize, font });
+        y -= 30;
+
+        // Total Score
+        const grandTotal = document.getElementById('grand-total').innerText;
+        const grandMax = document.getElementById('grand-max').innerText;
+        const grandPercent = document.getElementById('grand-percent').innerText;
+
+        ensureSpace(50);
+        page.drawRectangle({ x: margin, y: y - 10, width: width - margin * 2, height: 30, color: blueTotal });
+        page.drawText("TOTAL SCORE", { x: margin + 15, y, size: 14, font: fontBold });
+        const totalText = `${grandTotal} / ${grandMax} (${grandPercent})`;
+        const totalTextW = fontBold.widthOfTextAtSize(totalText, 14);
+        page.drawText(totalText, { x: width - margin - totalTextW - 15, y, size: 14, font: fontBold });
+        y -= 40;
+
+        for (const sec of sectionsConfig) {
+          ensureSpace(60);
+          const scoreEl = document.getElementById(`score-${sec.id}`);
+          const maxEl = document.getElementById(`max-${sec.id}`);
+          const percentEl = document.getElementById(`percent-${sec.id}`);
+          if (!scoreEl) continue;
+
+          page.drawRectangle({ x: margin, y: y - 8, width: width - margin * 2, height: 25, color: blueHeader });
+          page.drawText(sec.title, { x: margin + 10, y, size: 11, font: fontBold });
+          const secScoreText = `${scoreEl.innerText} / ${maxEl.innerText} (${percentEl.innerText})`;
+          const secScoreW = fontBold.widthOfTextAtSize(secScoreText, 11);
+          page.drawText(secScoreText, { x: width - margin - secScoreW - 10, y, size: 11, font: fontBold });
+          y -= 30;
+
+          const elements = document.querySelectorAll(`.sub-header[data-section="${sec.id}"], .test-card[data-section="${sec.id}"]`);
+          for (const el of elements) {
+            ensureSpace(80);
+            if (el.classList.contains('sub-header')) {
+              const subText = el.innerText.trim();
+              const subFontSize = 10;
+              const subWidth = width - margin * 2 - 20;
+              const subLines = breakTextIntoLines(subText, subFontSize, fontBold, subWidth);
+              const lineHeight = 14;
+              const boxHeight = subLines.length * lineHeight + 6;
+              let rectBottomY = y - 4 - (subLines.length - 1) * lineHeight;
+
+              if (rectBottomY < bottomMargin) {
+                newPage();
+                rectBottomY = y - 4 - (subLines.length - 1) * lineHeight;
+              }
+              page.drawRectangle({ x: margin, y: rectBottomY, width: width - margin * 2, height: boxHeight, color: lightGray });
+              page.drawRectangle({ x: margin, y: rectBottomY, width: 4, height: boxHeight, color: PDFLib.rgb(0, 0, 0) });
+              let textY = y;
+              for (const line of subLines) {
+                page.drawText(line, { x: margin + 10, y: textY, size: subFontSize, font: fontBold });
+                textY -= lineHeight;
+              }
+              y = rectBottomY - 20;
+              continue;
+            }
+
+            // Test Card
+            const card = el;
+            const titleEl = card.querySelector('h4');
+            const itemTitle = (titleEl?.innerText || "").replace(/\\n/g, " ").trim();
+            const selBtn = card.querySelector('.btn.selected');
+            const feedback = card.querySelector('textarea')?.value || "";
+            const cardIndex = parseInt(card.dataset.index, 10);
+
+            let status = "N/A";
+            let badgeColor = PDFLib.rgb(0.8, 0.8, 0.8);
+            if (selBtn) {
+              status = selBtn.innerText;
+              if (status === "Pass" || status === "Good") badgeColor = greenPass;
+              else if (status === "Fail" || status === "Poor") badgeColor = redFail;
+              else if (status === "Fair") badgeColor = yellowFair;
+            }
+
+            const fontSize = 10;
+            const maxTextWidth = width - margin * 2 - 80;
+            const textLines = breakTextIntoLines(itemTitle, fontSize, font, maxTextWidth);
+            const titleTopY = y;
+            for (const line of textLines) {
+              ensureSpace(20);
+              page.drawText(line, { x: margin + 10, y, size: fontSize, font });
+              y -= 14;
+            }
+            y += 4;
+
+            const badgeW = 50;
+            const badgeH = 18;
+            const badgeX = width - margin - badgeW - 10;
+            const badgeY = titleTopY - 4;
+
+            if (selBtn) {
+              page.drawRectangle({ x: badgeX, y: badgeY, width: badgeW, height: badgeH, color: badgeColor });
+              const statusW = fontBold.widthOfTextAtSize(status, 9);
+              page.drawText(status, { x: badgeX + (badgeW - statusW) / 2, y: badgeY + 5, size: 9, font: fontBold, color: white });
+            }
+            y -= 6;
+
+            if (feedback) {
+              try {
+                const feedbackImgBase64 = textToImage("Note: " + feedback, 800);
+                const feedbackBytes = await fetch(feedbackImgBase64).then(res => res.arrayBuffer());
+                const feedbackImg = await pdfDoc.embedPng(feedbackBytes);
+                
+                const targetWidth = 400;
+                const scaleFactor = targetWidth / feedbackImg.width;
+                const targetHeight = feedbackImg.height * scaleFactor;
+                ensureSpace(targetHeight + 20);
+                page.drawImage(feedbackImg, { x: margin + 20, y: y - targetHeight, width: targetWidth, height: targetHeight });
+                y -= targetHeight + 10;
+              } catch (err) { console.error("Error drawing feedback:", err); }
+            }
+
+            if (cardImages.has(cardIndex)) {
+              const images = cardImages.get(cardIndex) || [];
+              if (images.length > 0) {
+                const imgW = 80;
+                const imgH = 60;
+                const gap = 10;
+                let currentX = margin + 20;
+                ensureSpace(imgH + 20);
+                for (const imgBase64 of images) {
+                  try {
+                    const imgBytes = await fetch(imgBase64).then(res => res.arrayBuffer());
+                    const imgEmbed = await pdfDoc.embedJpg(imgBytes);
+                    
+                    const dims = imgEmbed.scaleToFit(imgW, imgH);
+                    page.drawImage(imgEmbed, { x: currentX, y: y - dims.height, width: dims.width, height: dims.height });
+                    currentX += imgW + gap;
+                  } catch (e) { console.error("embed image error", e); }
+                }
+                y -= imgH + 10;
+              }
+            }
+            y -= 5;
+            drawDivider();
+          }
+          y -= 10;
+        }
+
+        ensureSpace(160);
+        y -= 20;
+
+        try {
+          if (!staffPad.isEmpty()) {
+            const pngBytes = await fetch(staffPad.toDataURL()).then(res => res.arrayBuffer());
+            const png = await pdfDoc.embedPng(pngBytes);
+            page.drawImage(png, { x: margin + 20, y: y - 60, width: 100, height: 50 });
+          }
+        } catch (e) {}
+        page.drawText("Staff Signature", { x: margin + 30, y: y - 75, size: 10, font });
+        page.drawLine({ start: { x: margin + 20, y: y - 60 }, end: { x: margin + 140, y: y - 60 }, thickness: 1 });
+
+        try {
+          if (!trainerPad.isEmpty()) {
+            const pngBytes = await fetch(trainerPad.toDataURL()).then(res => res.arrayBuffer());
+            const png = await pdfDoc.embedPng(pngBytes);
+            page.drawImage(png, { x: width / 2 + 20, y: y - 60, width: 100, height: 50 });
+          }
+        } catch (e) {}
+        page.drawText("Trainer Signature", { x: width / 2 + 30, y: y - 75, size: 10, font });
+        page.drawLine({ start: { x: width / 2 + 20, y: y - 60 }, end: { x: width / 2 + 140, y: y - 60 }, thickness: 1 });
+
+        if (cardImages.size > 0) {
+            newPage();
+            page.drawText("APPENDIX: ATTACHED IMAGES", { x: margin, y: height - 50, size: 16, font: fontBold, color: PDFLib.rgb(0, 0, 0) });
+            y = height - 80;
+
+            const allCards = document.querySelectorAll('.test-card');
+            for (const card of allCards) {
+                const index = parseInt(card.dataset.index);
+                if (cardImages.has(index)) {
+                    const images = cardImages.get(index);
+                    if (images && images.length > 0) {
+                        const titleEl = card.querySelector('h4');
+                        let cardTitle = titleEl ? titleEl.innerText : "Untitled";
+                        cardTitle = cardTitle.replace(/\\n/g, " ").trim();
+
+                        if (y < bottomMargin + 60) newPage(); 
+
+                        page.drawRectangle({ x: margin, y: y - 5, width: width - (margin*2), height: 20, color: PDFLib.rgb(0.95, 0.95, 0.95) });
+                        page.drawText(`Ref: ${cardTitle}`, { x: margin + 5, y: y, size: 10, font: fontBold });
+                        y -= 30; 
+
+                        let currentX = margin + 20;
+                        let rowMaxH = 0;
+                        const imgGap = 15;
+                        const maxImgW = 170;
+                        const maxImgH = 150;
+
+                        for (const imgBase64 of images) {
+                            try {
+                                const imageBytes = await fetch(imgBase64).then((res) => res.arrayBuffer());
+                                const imgEmbed = await pdfDoc.embedJpg(imageBytes);
+
+                                const dims = imgEmbed.scaleToFit(maxImgW, maxImgH);
+
+                         
+                                if (currentX + dims.width > width - margin) {
+                                 
+                                    y -= (rowMaxH + 20);
+                                  
+                                    currentX = margin + 20;
+                            
+                                    rowMaxH = 0;
+                                }
+
+                            
+                                if (y - dims.height < bottomMargin) {
+                                    newPage();
+                                  
+                                    currentX = margin + 20;
+                                    rowMaxH = 0;
+                              
+                                    page.drawRectangle({ x: margin, y: y - 5, width: width - (margin*2), height: 20, color: PDFLib.rgb(0.95, 0.95, 0.95) });
+                                //    page.drawText(`Ref: ${cardTitle} (Cont.)`, { x: margin + 5, y: y, size: 10, font: fontBold });
+                                    y -= 30;
+                                }
+
+                             
+                                page.drawImage(imgEmbed, { x: currentX, y: y - dims.height, width: dims.width, height: dims.height });
+
+                            
+                                currentX += dims.width + imgGap;
+                         
+                                rowMaxH = Math.max(rowMaxH, dims.height);
+
+                            } catch (e) {
+                                console.error("Appendix image error", e);
+                            }
+                        }
+               
+                        y -= (rowMaxH + 20); 
+                    }
+                }
+            }
+        }
+    
+        const pdfBytes = await pdfDoc.save();
+        const blob = new Blob([pdfBytes], { type: "application/pdf" });
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        const safeName = staffName ? staffName.replace(/[^a-z0-9]/gi, "_") : "Result";
+        const safeId = staffId ? staffId.replace(/[^a-z0-9]/gi, "_") : "Result";
+        const safeBranch = branch ? branch.replace(/[^a-z0-9]/gi, "_") : "Result";
+        link.download = `Moderate Optical & Service _${safeId}-${safeName}-${safeBranch}.pdf`;
+        link.click();
+
+        clearAllData();
+        alert("Submit PDF Generated. Data cleared for next use."); 
+
+      } catch (err) {
+        console.error(err);
+        alert("Error: " + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.innerText = "Submit & Export PDF";
+      }
+    }
+</script>
+<script>
+(function() {
+  var SEND_URL = 'https://script.google.com/macros/s/AKfycbzaRX-3Wko8Xuyg81OhsaoQoWjU3akRv2mKP7Y2YjZAoWmUek4JxsDwCZYhXzDiOjki/exec';
+  var SHEET_NAME = 'MOC_Checklist';
+  
+  function _post(payload) {
+    try {
+      var ifr = document.createElement('iframe');
+      ifr.name = '_sh' + Date.now();
+      ifr.style.cssText = 'position:absolute;width:0;height:0;border:0;visibility:hidden;';
+      document.body.appendChild(ifr);
+      var f = document.createElement('form');
+      f.method = 'POST'; f.action = SEND_URL; f.target = ifr.name;
+      var inp = document.createElement('input');
+      inp.type = 'hidden'; inp.name = 'data'; inp.value = JSON.stringify(payload);
+      f.appendChild(inp);
+      document.body.appendChild(f);
+      f.submit();
+      setTimeout(function(){
+        try{document.body.removeChild(f);document.body.removeChild(ifr);}catch(e){}
+      }, 3000);
+    } catch(e) { console.error('sendToSheet:', e); }
+  }
+  document.addEventListener('click', function(e) {
+    var t = e.target;
+    if (!t) return;
+    if (t.id !== 'submit-btn' && (!t.closest || !t.closest('#submit-btn'))) return;
+    _post({
+      sheetName: SHEET_NAME,
+      staffName: (document.getElementById('staff-name') || {}).value || '',
+      staffId: (document.getElementById('staff-id') || {}).value || '',
+      branch: (document.getElementById('branch') || {}).value || '',
+      trainerName: (document.getElementById('trainer-name') || {}).value || '',
+      examDate: (document.getElementById('date') || {}).value || '',
+      staffEmail: (document.getElementById('staff-email') || {}).value || '',
+      totalScore: parseFloat((document.getElementById('grand-total') || {}).textContent) || 0,
+      maxScore: parseFloat((document.getElementById('grand-max') || {}).textContent) || 0,
+      percentage: parseFloat((document.getElementById('grand-percent') || {}).textContent) || 0
+    });
+  }, true);
+})();
+</script>
+</body>
+</html>}

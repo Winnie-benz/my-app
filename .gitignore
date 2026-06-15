@@ -19,6 +19,13 @@
 
 # production
 /build
+/dist
+/server/dist
+
+# local database and backups
+/server/data/*.db
+/server/data/*.db-*
+/server/data/backups/
 
 # misc
 .DS_Store

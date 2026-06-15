@@ -1,0 +1,959 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
+    <script src="https://unpkg.com/pdf-lib/dist/pdf-lib.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <title>Moderate Contact Lens insight Course [Practical Test]</title>
+    <style>
+        body {
+            font-family: 'Inter', 'Sarabun', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: #f0f2f5;
+            color: #1a1a1a;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 900px;
+            margin: auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        .main-header { text-align: center; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid #e0e0e0; }
+        .main-header h1 { font-size: 26px; color: #000; font-weight: 700; }
+        .info-grid { display: grid; grid-template-columns: 1fr; gap: 16px; margin-bottom: 24px; }
+        .info-item { display: flex; flex-direction: column; }
+        .info-item label { font-weight: 600; margin-bottom: 8px; color: #333; font-size: 14px; }
+        .info-item input {
+            padding: 10px 12px; font-size: 15px; border: 1px solid #ccc;
+            border-radius: 6px; transition: border-color 0.3s, box-shadow 0.3s; font-family: inherit;
+        }
+        .info-item input:focus { border-color: #4a90e2; box-shadow: 0 0 0 3px rgba(74,144,226,0.2); outline: none; }
+        .section-header {
+            background-color: #000; color: white; padding: 12px 15px;
+            margin: 25px 0 15px 0; border-radius: 8px;
+            display: flex; justify-content: space-between; align-items: center; font-weight: bold;
+        }
+        .test-card {
+            background-color: #fff; border: 1px solid #e0e0e0; border-radius: 8px;
+            padding: 20px; margin-bottom: 15px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+        .test-card h4 { margin-top: 0; font-size: 16px; color: #333; }
+        .button-group { display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; }
+        .btn {
+            padding: 8px 16px; border: 2px solid #000; border-radius: 5px;
+            cursor: pointer; font-weight: 600; font-size: 14px;
+            background-color: #000; color: #fff; transition: all 0.2s ease-in-out;
+        }
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .btn.selected { color: white; }
+        .btn.btn-pass.selected       { background-color: #20c76b; border-color: #20c76b; }
+        .btn.btn-fail.selected       { background-color: #ff4d4f; border-color: #ff4d4f; }
+        .btn.btn-slit-width.selected  { background-color: #0d569b; border-color: #0d569b; }
+        .btn.btn-brightness.selected  { background-color: #6ad2ff; border-color: #6ad2ff; }
+        .btn.btn-magnification.selected { background-color: #ff8b65; border-color: #ff8b65; }
+        .btn.btn-identify.selected   { background-color: #a7ff70; border-color: #a7ff70; color: #333; }
+        .btn.btn-angle.selected      { background-color: #7000cc; border-color: #7000cc; }
+        .btn.btn-procedure.selected  { background-color: #00606c; border-color: #00606c; }
+        .btn.btn-evaluation.selected { background-color: #04d4cd; border-color: #04d4cd; }
+        .footer { text-align: center; margin-top: 30px; }
+        .submit-btn {
+            background-color: #000; color: #fff; padding: 12px 40px;
+            font-size: 16px; border: none; border-radius: 8px; cursor: pointer;
+            font-weight: 600; transition: background-color 0.3s, transform 0.2s;
+        }
+        .submit-btn:hover { background-color: #333; transform: scale(1.05); }
+        .submit-btn:disabled { background-color: #ccc; cursor: not-allowed; transform: none; }
+        .section-score { font-size: 14px; font-weight: normal; }
+        .feedback-section {
+            margin-top: 15px; border-top: 1px solid #eee; padding-top: 15px;
+            display: flex; flex-direction: column; gap: 10px;
+        }
+        .feedback-input {
+            width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;
+            font-family: inherit; font-size: 14px; min-height: 50px; resize: vertical; box-sizing: border-box;
+        }
+        .upload-wrapper { position: relative; overflow: hidden; display: inline-block; }
+        .upload-btn {
+            border: 1px solid #000; display: inline-block; padding: 6px 12px;
+            cursor: pointer; background-color: #000; color: #fff; border-radius: 4px; font-weight: normal;
+        }
+        .upload-wrapper input[type=file] {
+            font-size: 100px; position: absolute; left: 0; top: 0; opacity: 0; cursor: pointer;
+        }
+        .image-preview { margin-top: 10px; }
+        .image-preview img { max-width: 100%; max-height: 150px; border-radius: 4px; border: 1px solid #ddd; }
+        .signatures-section { margin-top: 30px; }
+        .signatures-grid { display: grid; grid-template-columns: 1fr; gap: 20px; margin-top: 15px; }
+        .signature-box {
+            border: 1px solid #e0e0e0; border-radius: 8px; padding: 20px;
+            display: flex; flex-direction: column; box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+        .signature-box h4 { margin: 0 0 10px 0; font-size: 16px; text-align: left; }
+        .signature-pad {
+            border: 1px solid #ccc; border-radius: 4px; cursor: crosshair;
+            touch-action: none; width: 100%; height: 150px; background-color: #fff;
+        }
+        .clear-btn-wrapper { text-align: right; margin-top: 10px; }
+        .clear-btn {
+            padding: 6px 20px; font-size: 14px; background-color: #777;
+            color: white; border: none; border-radius: 5px; cursor: pointer;
+        }
+        .clear-btn:hover { opacity: 0.9; }
+        .input-box {
+            padding: 8px; border: 1px solid #ccc; border-radius: 5px; font-size: 14px;
+            font-family: inherit; width: 100%; box-sizing: border-box; margin-bottom: 10px; background-color: #f9f9f9;
+        }
+        .health-check-grid { display: grid; grid-template-columns: 1fr; gap: 20px; align-items: start; }
+        @media (min-width: 768px) {
+            .info-grid { grid-template-columns: repeat(2, 1fr); }
+            .signatures-grid { grid-template-columns: 1fr 1fr; }
+            .health-check-grid { grid-template-columns: 1fr 1fr; }
+        }
+        @media (min-width: 900px) {
+            .info-grid { grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="main-header">
+        <h1>Moderate Vision Care Advisor Course [Checklist]</h1>
+    </div>
+
+    <div class="info-grid">
+        <div class="info-item">
+            <label for="info-staff-name">STAFF NAME</label>
+            <input type="text" id="info-staff-name" placeholder="Enter Staff Name" />
+        </div>
+        <div class="info-item">
+            <label for="info-staff-id">STAFF ID</label>
+            <input type="text" id="info-staff-id" placeholder="Enter Staff ID" />
+        </div>
+        <div class="info-item">
+            <label for="info-branch">BRANCH</label>
+            <input type="text" id="info-branch" placeholder="Enter Branch" />
+        </div>
+        <div class="info-item">
+            <label for="info-trainer-name">TRAINER NAME</label>
+            <input type="text" id="info-trainer-name" placeholder="Enter Trainer Name" />
+        </div>
+        <div class="info-item">
+            <label for="info-date">Date</label>
+            <input type="date" id="info-date" />
+        </div>
+    </div>
+
+    <div class="section-header" style="background-color:#000;">
+        <span>Total Score</span>
+        <span><span id="current-score">0</span> / <span id="max-score">0</span> (<span id="current-percentage">0.00</span>%)</span>
+    </div>
+
+    <div class="section-header">
+        <span>Measurement of ocular dimension</span>
+        <span class="section-score"><span id="section-12-score">0</span> / 3 (<span id="section-12-percentage">0.00</span>%)</span>
+    </div>
+    <div class="test-card" data-section="12">
+        <h4>K-reading</h4>
+        <div class="button-group"><button type="button" class="btn btn-pass" data-value="1">Pass</button><button type="button" class="btn btn-fail" data-value="0">Fail</button></div>
+        <div class="feedback-section">
+            <textarea class="feedback-input" placeholder="Feedback..."></textarea>
+            <div class="upload-wrapper"><label class="upload-btn">Upload Image<input type="file" class="image-upload" accept="image/*" multiple></label></div>
+            <div class="image-preview"></div>
+        </div>
+    </div>
+    <div class="test-card" data-section="12">
+        <h4>Base curve</h4>
+        <div class="button-group"><button type="button" class="btn btn-pass" data-value="1">Pass</button><button type="button" class="btn btn-fail" data-value="0">Fail</button></div>
+        <div class="feedback-section">
+            <textarea class="feedback-input" placeholder="Feedback..."></textarea>
+            <div class="upload-wrapper"><label class="upload-btn">Upload Image<input type="file" class="image-upload" accept="image/*" multiple></label></div>
+            <div class="image-preview"></div>
+        </div>
+    </div>
+    <div class="test-card" data-section="12">
+        <h4>Prescription</h4>
+        <div class="button-group"><button type="button" class="btn btn-pass" data-value="1">Pass</button><button type="button" class="btn btn-fail" data-value="0">Fail</button></div>
+        <div class="feedback-section">
+            <textarea class="feedback-input" placeholder="Feedback..."></textarea>
+            <div class="upload-wrapper"><label class="upload-btn">Upload Image<input type="file" class="image-upload" accept="image/*" multiple></label></div>
+            <div class="image-preview"></div>
+        </div>
+    </div>
+
+    <div class="section-header">
+        <span>Preparing the machine before operation</span>
+        <span class="section-score"><span id="section-11-score">0</span> / 2 (<span id="section-11-percentage">0.00</span>%)</span>
+    </div>
+    <div class="test-card" data-section="11">
+        <h4>Adjust the prescription</h4>
+        <div class="button-group"><button type="button" class="btn btn-pass" data-value="1">Pass</button><button type="button" class="btn btn-fail" data-value="0">Fail</button></div>
+        <div class="feedback-section">
+            <textarea class="feedback-input" placeholder="Feedback..."></textarea>
+            <div class="upload-wrapper"><label class="upload-btn">Upload Image<input type="file" class="image-upload" accept="image/*" multiple></label></div>
+            <div class="image-preview"></div>
+        </div>
+    </div>
+    <div class="test-card" data-section="11">
+        <h4>Adjust customer's position</h4>
+        <div class="button-group"><button type="button" class="btn btn-pass" data-value="1">Pass</button><button type="button" class="btn btn-fail" data-value="0">Fail</button></div>
+        <div class="feedback-section">
+            <textarea class="feedback-input" placeholder="Feedback..."></textarea>
+            <div class="upload-wrapper"><label class="upload-btn">Upload Image<input type="file" class="image-upload" accept="image/*" multiple></label></div>
+            <div class="image-preview"></div>
+        </div>
+    </div>
+
+    <div class="section-header">
+        <span>Hygiene</span>
+        <span class="section-score"><span id="section-7-score">0</span> / 2 (<span id="section-7-percentage">0.00</span>%)</span>
+    </div>
+    <div class="test-card" data-section="7">
+        <h4>Using alcohol spray before touching customer</h4>
+        <div class="button-group"><button type="button" class="btn btn-pass" data-value="1">Pass</button><button type="button" class="btn btn-fail" data-value="0">Fail</button></div>
+        <div class="feedback-section">
+            <textarea class="feedback-input" placeholder="Feedback..."></textarea>
+            <div class="upload-wrapper"><label class="upload-btn">Upload Image<input type="file" class="image-upload" accept="image/*" multiple></label></div>
+            <div class="image-preview"></div>
+        </div>
+    </div>
+    <div class="test-card" data-section="7">
+        <h4>Using gloves</h4>
+        <div class="button-group"><button type="button" class="btn btn-pass" data-value="1">Pass</button><button type="button" class="btn btn-fail" data-value="0">Fail</button></div>
+        <div class="feedback-section">
+            <textarea class="feedback-input" placeholder="Feedback..."></textarea>
+            <div class="upload-wrapper"><label class="upload-btn">Upload Image<input type="file" class="image-upload" accept="image/*" multiple></label></div>
+            <div class="image-preview"></div>
+        </div>
+    </div>
+
+    <div class="health-check-grid">
+        <div class="health-check-column">
+            <div class="section-header">
+                <span>EYE HEALTH CHECK (LEFT)</span>
+                <span class="section-score"><span id="section-6-score">0</span> / 56 (<span id="section-6-percentage">0.00</span>%)</span>
+            </div>
+            <div class="test-card" data-section="6">
+                <h4>Lids &amp; Lashes</h4>
+                <div class="button-group" data-type="checklist">
+                    <button type="button" class="btn btn-slit-width" data-value="1">Slit Width</button>
+                    <button type="button" class="btn btn-brightness" data-value="1">Brightness</button>
+                    <button type="button" class="btn btn-magnification" data-value="1">Magnification</button>
+                    <button type="button" class="btn btn-evaluation" data-value="1">Type of illuminations</button>
+                    <button type="button" class="btn btn-identify" data-value="1">Identify</button>
+                    <button type="button" class="btn btn-angle" data-value="1">Position of light</button>
+                    <button type="button" class="btn btn-procedure" data-value="1">Procedure</button>
+                    <button type="button" class="btn btn-fail" data-value="0">Fail</button>
+                </div>
+                <div class="feedback-section">
+                    <textarea class="feedback-input" placeholder="Feedback..."></textarea>
+                    <div class="upload-wrapper"><label class="upload-btn">Upload Image<input type="file" class="image-upload" accept="image/*" multiple></label></div>
+                    <div class="image-preview"></div>
+                </div>
+            </div>
+            <div class="test-card" data-section="6">
+                <h4>Bulbar Conjunctiva</h4>
+                <div class="button-group" data-type="checklist">
+                    <button type="button" class="btn btn-slit-width" data-value="1">Slit Width</button>
+                    <button type="button" class="btn btn-brightness" data-value="1">Brightness</button>
+                    <button type="button" class="btn btn-magnification" data-value="1">Magnification</button>
+                    <button type="button" class="btn btn-evaluation" data-value="1">Type of illuminations</button>
+                    <button type="button" class="btn btn-identify" data-value="1">Identify</button>
+                    <button type="button" class="btn btn-angle" data-value="1">Position of light</button>
+                    <button type="button" class="btn btn-procedure" data-value="1">Procedure</button>
+                    <button type="button" class="btn btn-fail" data-value="0">Fail</button>
+                </div>
+                <div class="feedback-section">
+                    <textarea class="feedback-input" placeholder="Feedback..."></textarea>
+                    <div class="upload-wrapper"><label class="upload-btn">Upload Image<input type="file" class="image-upload" accept="image/*" multiple></label></div>
+                    <div class="image-preview"></div>
+                </div>
+            </div>
+            <div class="test-card" data-section="6">
+                <h4>Palpebral Conjunctiva</h4>
+                <div class="button-group" data-type="checklist">
+                    <button type="button" class="btn btn-slit-width" data-value="1">Slit Width</button>
+                    <button type="button" class="btn btn-brightness" data-value="1">Brightness</button>
+                    <button type="button" class="btn btn-magnification" data-value="1">Magnification</button>
+                    <button type="button" class="btn btn-evaluation" data-value="1">Type of illuminations</button>
+                    <button type="button" class="btn btn-identify" data-value="1">Identify</button>
+                    <button type="button" class="btn btn-angle" data-value="1">Position of light</button>
+                    <button type="button" class="btn btn-procedure" data-value="1">Procedure</button>
+                    <button type="button" class="btn btn-fail" data-value="0">Fail</button>
+                </div>
+                <div class="feedback-section">
+                    <textarea class="feedback-input" placeholder="Feedback..."></textarea>
+                    <div class="upload-wrapper"><label class="upload-btn">Upload Image<input type="file" class="image-upload" accept="image/*" multiple></label></div>
+                    <div class="image-preview"></div>
+                </div>
+            </div>
+            <div class="test-card" data-section="6">
+                <h4>Limbus</h4>
+                <div class="button-group" data-type="checklist">
+                    <button type="button" class="btn btn-slit-width" data-value="1">Slit Width</button>
+                    <button type="button" class="btn btn-brightness" data-value="1">Brightness</button>
+                    <button type="button" class="btn btn-magnification" data-value="1">Magnification</button>
+                    <button type="button" class="btn btn-evaluation" data-value="1">Type of illuminations</button>
+                    <button type="button" class="btn btn-identify" data-value="1">Identify</button>
+                    <button type="button" class="btn btn-angle" data-value="1">Position of light</button>
+                    <button type="button" class="btn btn-procedure" data-value="1">Procedure</button>
+                    <button type="button" class="btn btn-fail" data-value="0">Fail</button>
+                </div>
+                <div class="feedback-section">
+                    <textarea class="feedback-input" placeholder="Feedback..."></textarea>
+                    <div class="upload-wrapper"><label class="upload-btn">Upload Image<input type="file" class="image-upload" accept="image/*" multiple></label></div>
+                    <div class="image-preview"></div>
+                </div>
+            </div>
+            <div class="test-card" data-section="6">
+                <h4>Iris</h4>
+                <div class="button-group" data-type="checklist">
+                    <button type="button" class="btn btn-slit-width" data-value="1">Slit Width</button>
+                    <button type="button" class="btn btn-brightness" data-value="1">Brightness</button>
+                    <button type="button" class="btn btn-magnification" data-value="1">Magnification</button>
+                    <button type="button" class="btn btn-evaluation" data-value="1">Type of illuminations</button>
+                    <button type="button" class="btn btn-identify" data-value="1">Identify</button>
+                    <button type="button" class="btn btn-angle" data-value="1">Position of light</button>
+                    <button type="button" class="btn btn-procedure" data-value="1">Procedure</button>
+                    <button type="button" class="btn btn-fail" data-value="0">Fail</button>
+                </div>
+                <div class="feedback-section">
+                    <textarea class="feedback-input" placeholder="Feedback..."></textarea>
+                    <div class="upload-wrapper"><label class="upload-btn">Upload Image<input type="file" class="image-upload" accept="image/*" multiple></label></div>
+                    <div class="image-preview"></div>
+                </div>
+            </div>
+            <div class="test-card" data-section="6">
+                <h4>Cornea</h4>
+                <div class="button-group" data-type="checklist">
+                    <button type="button" class="btn btn-slit-width" data-value="1">Slit Width</button>
+                    <button type="button" class="btn btn-brightness" data-value="1">Brightness</button>
+                    <button type="button" class="btn btn-magnification" data-value="1">Magnification</button>
+                    <button type="button" class="btn btn-evaluation" data-value="1">Type of illuminations</button>
+                    <button type="button" class="btn btn-identify" data-value="1">Identify</button>
+                    <button type="button" class="btn btn-angle" data-value="1">Position of light</button>
+                    <button type="button" class="btn btn-procedure" data-value="1">Procedure</button>
+                    <button type="button" class="btn btn-fail" data-value="0">Fail</button>
+                </div>
+                <div class="feedback-section">
+                    <textarea class="feedback-input" placeholder="Feedback..."></textarea>
+                    <div class="upload-wrapper"><label class="upload-btn">Upload Image<input type="file" class="image-upload" accept="image/*" multiple></label></div>
+                    <div class="image-preview"></div>
+                </div>
+            </div>
+            <div class="test-card" data-section="6">
+                <h4>Tears</h4>
+                <div class="button-group" data-type="checklist">
+                    <button type="button" class="btn btn-slit-width" data-value="1">Slit Width</button>
+                    <button type="button" class="btn btn-brightness" data-value="1">Brightness</button>
+                    <button type="button" class="btn btn-magnification" data-value="1">Magnification</button>
+                    <button type="button" class="btn btn-evaluation" data-value="1">Type of illuminations</button>
+                    <button type="button" class="btn btn-identify" data-value="1">Identify</button>
+                    <button type="button" class="btn btn-angle" data-value="1">Position of light</button>
+                    <button type="button" class="btn btn-procedure" data-value="1">Procedure</button>
+                    <button type="button" class="btn btn-fail" data-value="0">Fail</button>
+                </div>
+                <div class="feedback-section">
+                    <textarea class="feedback-input" placeholder="Feedback..."></textarea>
+                    <div class="upload-wrapper"><label class="upload-btn">Upload Image<input type="file" class="image-upload" accept="image/*" multiple></label></div>
+                    <div class="image-preview"></div>
+                </div>
+            </div>
+            <div class="test-card" data-section="6">
+                <h4>Crystalline Lens</h4>
+                <div class="button-group" data-type="checklist">
+                    <button type="button" class="btn btn-slit-width" data-value="1">Slit Width</button>
+                    <button type="button" class="btn btn-brightness" data-value="1">Brightness</button>
+                    <button type="button" class="btn btn-magnification" data-value="1">Magnification</button>
+                    <button type="button" class="btn btn-evaluation" data-value="1">Type of illuminations</button>
+                    <button type="button" class="btn btn-identify" data-value="1">Identify</button>
+                    <button type="button" class="btn btn-angle" data-value="1">Position of light</button>
+                    <button type="button" class="btn btn-procedure" data-value="1">Procedure</button>
+                    <button type="button" class="btn btn-fail" data-value="0">Fail</button>
+                </div>
+                <div class="feedback-section">
+                    <textarea class="feedback-input" placeholder="Feedback..."></textarea>
+                    <div class="upload-wrapper"><label class="upload-btn">Upload Image<input type="file" class="image-upload" accept="image/*" multiple></label></div>
+                    <div class="image-preview"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="health-check-column">
+            <div class="section-header">
+                <span>EYE HEALTH CHECK (RIGHT)</span>
+                <span class="section-score"><span id="section-8-score">0</span> / 56 (<span id="section-8-percentage">0.00</span>%)</span>
+            </div>
+            <div class="test-card" data-section="8">
+                <h4>Lids &amp; Lashes</h4>
+                <div class="button-group" data-type="checklist">
+                    <button type="button" class="btn btn-slit-width" data-value="1">Slit Width</button>
+                    <button type="button" class="btn btn-brightness" data-value="1">Brightness</button>
+                    <button type="button" class="btn btn-magnification" data-value="1">Magnification</button>
+                    <button type="button" class="btn btn-evaluation" data-value="1">Type of illuminations</button>
+                    <button type="button" class="btn btn-identify" data-value="1">Identify</button>
+                    <button type="button" class="btn btn-angle" data-value="1">Position of light</button>
+                    <button type="button" class="btn btn-procedure" data-value="1">Procedure</button>
+                    <button type="button" class="btn btn-fail" data-value="0">Fail</button>
+                </div>
+                <div class="feedback-section">
+                    <textarea class="feedback-input" placeholder="Feedback..."></textarea>
+                    <div class="upload-wrapper"><label class="upload-btn">Upload Image<input type="file" class="image-upload" accept="image/*" multiple></label></div>
+                    <div class="image-preview"></div>
+                </div>
+            </div>
+            <div class="test-card" data-section="8">
+                <h4>Bulbar Conjunctiva</h4>
+                <div class="button-group" data-type="checklist">
+                    <button type="button" class="btn btn-slit-width" data-value="1">Slit Width</button>
+                    <button type="button" class="btn btn-brightness" data-value="1">Brightness</button>
+                    <button type="button" class="btn btn-magnification" data-value="1">Magnification</button>
+                    <button type="button" class="btn btn-evaluation" data-value="1">Type of illuminations</button>
+                    <button type="button" class="btn btn-identify" data-value="1">Identify</button>
+                    <button type="button" class="btn btn-angle" data-value="1">Position of light</button>
+                    <button type="button" class="btn btn-procedure" data-value="1">Procedure</button>
+                    <button type="button" class="btn btn-fail" data-value="0">Fail</button>
+                </div>
+                <div class="feedback-section">
+                    <textarea class="feedback-input" placeholder="Feedback..."></textarea>
+                    <div class="upload-wrapper"><label class="upload-btn">Upload Image<input type="file" class="image-upload" accept="image/*" multiple></label></div>
+                    <div class="image-preview"></div>
+                </div>
+            </div>
+            <div class="test-card" data-section="8">
+                <h4>Palpebral Conjunctiva</h4>
+                <div class="button-group" data-type="checklist">
+                    <button type="button" class="btn btn-slit-width" data-value="1">Slit Width</button>
+                    <button type="button" class="btn btn-brightness" data-value="1">Brightness</button>
+                    <button type="button" class="btn btn-magnification" data-value="1">Magnification</button>
+                    <button type="button" class="btn btn-evaluation" data-value="1">Type of illuminations</button>
+                    <button type="button" class="btn btn-identify" data-value="1">Identify</button>
+                    <button type="button" class="btn btn-angle" data-value="1">Position of light</button>
+                    <button type="button" class="btn btn-procedure" data-value="1">Procedure</button>
+                    <button type="button" class="btn btn-fail" data-value="0">Fail</button>
+                </div>
+                <div class="feedback-section">
+                    <textarea class="feedback-input" placeholder="Feedback..."></textarea>
+                    <div class="upload-wrapper"><label class="upload-btn">Upload Image<input type="file" class="image-upload" accept="image/*" multiple></label></div>
+                    <div class="image-preview"></div>
+                </div>
+            </div>
+            <div class="test-card" data-section="8">
+                <h4>Limbus</h4>
+                <div class="button-group" data-type="checklist">
+                    <button type="button" class="btn btn-slit-width" data-value="1">Slit Width</button>
+                    <button type="button" class="btn btn-brightness" data-value="1">Brightness</button>
+                    <button type="button" class="btn btn-magnification" data-value="1">Magnification</button>
+                    <button type="button" class="btn btn-evaluation" data-value="1">Type of illuminations</button>
+                    <button type="button" class="btn btn-identify" data-value="1">Identify</button>
+                    <button type="button" class="btn btn-angle" data-value="1">Position of light</button>
+                    <button type="button" class="btn btn-procedure" data-value="1">Procedure</button>
+                    <button type="button" class="btn btn-fail" data-value="0">Fail</button>
+                </div>
+                <div class="feedback-section">
+                    <textarea class="feedback-input" placeholder="Feedback..."></textarea>
+                    <div class="upload-wrapper"><label class="upload-btn">Upload Image<input type="file" class="image-upload" accept="image/*" multiple></label></div>
+                    <div class="image-preview"></div>
+                </div>
+            </div>
+            <div class="test-card" data-section="8">
+                <h4>Iris</h4>
+                <div class="button-group" data-type="checklist">
+                    <button type="button" class="btn btn-slit-width" data-value="1">Slit Width</button>
+                    <button type="button" class="btn btn-brightness" data-value="1">Brightness</button>
+                    <button type="button" class="btn btn-magnification" data-value="1">Magnification</button>
+                    <button type="button" class="btn btn-evaluation" data-value="1">Type of illuminations</button>
+                    <button type="button" class="btn btn-identify" data-value="1">Identify</button>
+                    <button type="button" class="btn btn-angle" data-value="1">Position of light</button>
+                    <button type="button" class="btn btn-procedure" data-value="1">Procedure</button>
+                    <button type="button" class="btn btn-fail" data-value="0">Fail</button>
+                </div>
+                <div class="feedback-section">
+                    <textarea class="feedback-input" placeholder="Feedback..."></textarea>
+                    <div class="upload-wrapper"><label class="upload-btn">Upload Image<input type="file" class="image-upload" accept="image/*" multiple></label></div>
+                    <div class="image-preview"></div>
+                </div>
+            </div>
+            <div class="test-card" data-section="8">
+                <h4>Cornea</h4>
+                <div class="button-group" data-type="checklist">
+                    <button type="button" class="btn btn-slit-width" data-value="1">Slit Width</button>
+                    <button type="button" class="btn btn-brightness" data-value="1">Brightness</button>
+                    <button type="button" class="btn btn-magnification" data-value="1">Magnification</button>
+                    <button type="button" class="btn btn-evaluation" data-value="1">Type of illuminations</button>
+                    <button type="button" class="btn btn-identify" data-value="1">Identify</button>
+                    <button type="button" class="btn btn-angle" data-value="1">Position of light</button>
+                    <button type="button" class="btn btn-procedure" data-value="1">Procedure</button>
+                    <button type="button" class="btn btn-fail" data-value="0">Fail</button>
+                </div>
+                <div class="feedback-section">
+                    <textarea class="feedback-input" placeholder="Feedback..."></textarea>
+                    <div class="upload-wrapper"><label class="upload-btn">Upload Image<input type="file" class="image-upload" accept="image/*" multiple></label></div>
+                    <div class="image-preview"></div>
+                </div>
+            </div>
+            <div class="test-card" data-section="8">
+                <h4>Tears</h4>
+                <div class="button-group" data-type="checklist">
+                    <button type="button" class="btn btn-slit-width" data-value="1">Slit Width</button>
+                    <button type="button" class="btn btn-brightness" data-value="1">Brightness</button>
+                    <button type="button" class="btn btn-magnification" data-value="1">Magnification</button>
+                    <button type="button" class="btn btn-evaluation" data-value="1">Type of illuminations</button>
+                    <button type="button" class="btn btn-identify" data-value="1">Identify</button>
+                    <button type="button" class="btn btn-angle" data-value="1">Position of light</button>
+                    <button type="button" class="btn btn-procedure" data-value="1">Procedure</button>
+                    <button type="button" class="btn btn-fail" data-value="0">Fail</button>
+                </div>
+                <div class="feedback-section">
+                    <textarea class="feedback-input" placeholder="Feedback..."></textarea>
+                    <div class="upload-wrapper"><label class="upload-btn">Upload Image<input type="file" class="image-upload" accept="image/*" multiple></label></div>
+                    <div class="image-preview"></div>
+                </div>
+            </div>
+            <div class="test-card" data-section="8">
+                <h4>Crystalline Lens</h4>
+                <div class="button-group" data-type="checklist">
+                    <button type="button" class="btn btn-slit-width" data-value="1">Slit Width</button>
+                    <button type="button" class="btn btn-brightness" data-value="1">Brightness</button>
+                    <button type="button" class="btn btn-magnification" data-value="1">Magnification</button>
+                    <button type="button" class="btn btn-evaluation" data-value="1">Type of illuminations</button>
+                    <button type="button" class="btn btn-identify" data-value="1">Identify</button>
+                    <button type="button" class="btn btn-angle" data-value="1">Position of light</button>
+                    <button type="button" class="btn btn-procedure" data-value="1">Procedure</button>
+                    <button type="button" class="btn btn-fail" data-value="0">Fail</button>
+                </div>
+                <div class="feedback-section">
+                    <textarea class="feedback-input" placeholder="Feedback..."></textarea>
+                    <div class="upload-wrapper"><label class="upload-btn">Upload Image<input type="file" class="image-upload" accept="image/*" multiple></label></div>
+                    <div class="image-preview"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="section-header">
+        <span>Customer Service Skills</span>
+        <span class="section-score"><span id="section-20-score">0</span> / 2 (<span id="section-20-percentage">0.00</span>%)</span>
+    </div>
+    <div class="test-card" data-section="20">
+        <h4>Suggestion to Customer</h4>
+        <div class="button-group"><button type="button" class="btn btn-pass" data-value="1">Pass</button><button type="button" class="btn btn-fail" data-value="0">Fail</button></div>
+        <div class="feedback-section">
+            <textarea class="feedback-input" placeholder="Feedback..."></textarea>
+            <div class="upload-wrapper"><label class="upload-btn">Upload Image<input type="file" class="image-upload" accept="image/*" multiple></label></div>
+            <div class="image-preview"></div>
+        </div>
+    </div>
+    <div class="test-card" data-section="20">
+        <h4>Manners while processing on customers</h4>
+        <div class="button-group"><button type="button" class="btn btn-pass" data-value="1">Pass</button><button type="button" class="btn btn-fail" data-value="0">Fail</button></div>
+        <div class="feedback-section">
+            <textarea class="feedback-input" placeholder="Feedback..."></textarea>
+            <div class="upload-wrapper"><label class="upload-btn">Upload Image<input type="file" class="image-upload" accept="image/*" multiple></label></div>
+            <div class="image-preview"></div>
+        </div>
+    </div>
+
+    <div class="signatures-section">
+        <h3>Signatures</h3>
+        <div class="signatures-grid">
+            <div class="signature-box">
+                <h4>Staff Signature:</h4>
+                <input type="text" id="staff-name-display" class="input-box" placeholder="Staff Name" disabled>
+                <canvas id="staff-signature" class="signature-pad"></canvas>
+                <div class="clear-btn-wrapper"><button type="button" class="clear-btn" data-canvas-id="staff-signature">Clear</button></div>
+            </div>
+            <div class="signature-box">
+                <h4>Trainer Signature:</h4>
+                <input type="text" id="trainer-name-display" class="input-box" placeholder="Trainer Name" disabled>
+                <canvas id="trainer-signature" class="signature-pad"></canvas>
+                <div class="clear-btn-wrapper"><button type="button" class="clear-btn" data-canvas-id="trainer-signature">Clear</button></div>
+            </div>
+        </div>
+    </div>
+    <div class="footer"><button type="button" id="submit-btn" class="submit-btn">Submit &amp; Export PDF</button></div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+
+    var APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxFDuVUcUX7krsuqH4icGxCoAUFvO1-eLRwEW9P7YeH8H9IPW4iNRsk-v1CnoayHXtK/exec";
+    var PASS_THRESHOLD  = 80;
+
+    var sectionsConfig = [
+        { id: 6,  maxScore: 56 },
+        { id: 7,  maxScore: 2  },
+        { id: 8,  maxScore: 56 },
+        { id: 11, maxScore: 2  },
+        { id: 12, maxScore: 3  },
+        { id: 20, maxScore: 2  }
+    ];
+
+    var submitBtn              = document.getElementById('submit-btn');
+    var totalScoreElement      = document.getElementById('current-score');
+    var totalPercentageElement = document.getElementById('current-percentage');
+    var maxScoreElement        = document.getElementById('max-score');
+
+    var grandTotalMaxScore = sectionsConfig.reduce(function (sum, s) { return sum + s.maxScore; }, 0);
+    maxScoreElement.textContent = grandTotalMaxScore;
+
+    // Signature pads
+    var staffSigCanvas    = document.getElementById('staff-signature');
+    var trainerSigCanvas  = document.getElementById('trainer-signature');
+    var staffSignaturePad   = new SignaturePad(staffSigCanvas,   { penColor: 'black' });
+    var trainerSignaturePad = new SignaturePad(trainerSigCanvas, { penColor: 'black' });
+
+    function resizeCanvas() {
+        [staffSigCanvas, trainerSigCanvas].forEach(function (canvas) {
+            var ratio = Math.max(window.devicePixelRatio || 1, 1);
+            canvas.width  = canvas.offsetWidth  * ratio;
+            canvas.height = canvas.offsetHeight * ratio;
+            canvas.getContext('2d').scale(ratio, ratio);
+        });
+        staffSignaturePad.clear();
+        trainerSignaturePad.clear();
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    document.getElementById('info-staff-name').addEventListener('input', function (e) {
+        document.getElementById('staff-name-display').value = e.target.value;
+    });
+    document.getElementById('info-trainer-name').addEventListener('input', function (e) {
+        document.getElementById('trainer-name-display').value = e.target.value;
+    });
+
+    // Score calculation
+    function getRawScore(sectionId) {
+        var score = 0;
+        document.querySelectorAll('[data-section="' + sectionId + '"] .btn.selected').forEach(function (btn) {
+            score += parseInt(btn.dataset.value, 10);
+        });
+        return score;
+    }
+
+    function updateScores() {
+        var total = 0;
+        sectionsConfig.forEach(function (cfg) {
+            var score   = getRawScore(cfg.id);
+            var scoreEl = document.getElementById('section-' + cfg.id + '-score');
+            var pctEl   = document.getElementById('section-' + cfg.id + '-percentage');
+            if (scoreEl) scoreEl.textContent = score;
+            if (pctEl)   pctEl.textContent   = (cfg.maxScore > 0 ? (score / cfg.maxScore) * 100 : 0).toFixed(2);
+            total += score;
+        });
+        totalScoreElement.textContent      = total;
+        totalPercentageElement.textContent = (grandTotalMaxScore > 0 ? (total / grandTotalMaxScore) * 100 : 0).toFixed(2);
+    }
+
+    // Button click
+    document.querySelectorAll('.btn').forEach(function (button) {
+        button.addEventListener('click', function () {
+            var group       = this.closest('.button-group');
+            var isChecklist = group.dataset.type === 'checklist';
+
+            if (isChecklist) {
+                this.classList.toggle('selected');
+                if (this.classList.contains('btn-fail') && this.classList.contains('selected')) {
+                    group.querySelectorAll('.btn').forEach(function (b) { if (b !== button) b.classList.remove('selected'); });
+                } else if (this.classList.contains('selected')) {
+                    var failBtn = group.querySelector('.btn-fail');
+                    if (failBtn) failBtn.classList.remove('selected');
+                }
+            } else {
+                group.querySelectorAll('.btn').forEach(function (b) { b.classList.remove('selected'); });
+                this.classList.add('selected');
+            }
+            updateScores();
+        });
+    });
+
+    // Image upload
+    document.querySelectorAll('.image-upload').forEach(function (input) {
+        input.addEventListener('change', function (e) {
+            var preview = e.target.closest('.feedback-section').querySelector('.image-preview');
+            Array.from(e.target.files).forEach(function (file) {
+                if (file && file.type.startsWith('image/')) {
+                    var reader = new FileReader();
+                    reader.onload = function (ev) {
+                        var img = document.createElement('img');
+                        img.src = ev.target.result;
+                        preview.appendChild(img);
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        });
+    });
+
+    // Clear signature
+    document.querySelectorAll('.clear-btn').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            if (this.dataset.canvasId === 'staff-signature')   staffSignaturePad.clear();
+            if (this.dataset.canvasId === 'trainer-signature') trainerSignaturePad.clear();
+        });
+    });
+
+    // Thai-safe canvas text helper
+    function hasThai(text) { return /[฀-๿]/.test(text); }
+
+    function wrapForCanvas(text, ctx, maxW) {
+        if (!text) return [''];
+        var isThai = hasThai(text);
+        var tokens = isThai ? Array.from(text) : text.split(' ');
+        var lines = [], line = '';
+        tokens.forEach(function (tok) {
+            var candidate = line ? (isThai ? line + tok : line + ' ' + tok) : tok;
+            if (ctx.measureText(candidate).width <= maxW) {
+                line = candidate;
+            } else {
+                if (line) lines.push(line);
+                line = tok;
+            }
+        });
+        if (line) lines.push(line);
+        return lines;
+    }
+
+    function feedbackToDataURL(feedback, opts) {
+        opts = opts || {};
+        var fontFamily  = opts.fontFamily  || '"Sarabun","Inter",sans-serif';
+        var fontPx      = opts.fontPx      || 16;
+        var lineHeight  = opts.lineHeight  || 1.4;
+        var padding     = opts.padding     || 8;
+        var maxWidthPx  = opts.maxWidthPx  || 800;
+        var textColor   = opts.textColor   || '#444';
+        var bg          = opts.bg          || '#ffffff';
+        var scale       = opts.scale       || 2;
+
+        var off = document.createElement('canvas');
+        var ctx = off.getContext('2d');
+        ctx.font = fontPx + 'px ' + fontFamily;
+        var lines       = wrapForCanvas(feedback, ctx, maxWidthPx - padding * 2);
+        var lineHeightPx = Math.round(fontPx * lineHeight);
+        var w = maxWidthPx, h = padding * 2 + lines.length * lineHeightPx;
+        off.width  = w * scale;
+        off.height = h * scale;
+        var ctx2 = off.getContext('2d');
+        ctx2.scale(scale, scale);
+        ctx2.fillStyle = bg;
+        ctx2.fillRect(0, 0, w, h);
+        ctx2.font          = fontPx + 'px ' + fontFamily;
+        ctx2.fillStyle     = textColor;
+        ctx2.textBaseline  = 'top';
+        var y = padding;
+        lines.forEach(function (l) { ctx2.fillText(l, padding, y); y += lineHeightPx; });
+        return { dataURL: off.toDataURL('image/png'), pixelWidth: w, pixelHeight: h };
+    }
+
+    // Send to Google Sheet
+    function sendToSheet() {
+        var percentage = parseFloat(totalPercentageElement.textContent);
+        var payload = {
+            staffName:   document.getElementById('info-staff-name').value,
+            staffId:     document.getElementById('info-staff-id').value,
+            branch:      document.getElementById('info-branch').value,
+            trainerName: document.getElementById('info-trainer-name').value,
+            examDate:    document.getElementById('info-date').value,
+            totalScore:  parseInt(totalScoreElement.textContent),
+            maxScore:    grandTotalMaxScore,
+            percentage:  percentage
+        };
+        var formData = new URLSearchParams();
+        formData.append('data', JSON.stringify(payload));
+        fetch(APPS_SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: formData })
+            .catch(function (err) { console.error('sendToSheet failed:', err); });
+    }
+
+    // Generate PDF
+    async function generatePDF() {
+        if (typeof PDFLib === 'undefined') {
+            alert('Error: ไม่สามารถโหลดไลบรารีสำหรับสร้าง PDF ได้ กรุณาตรวจสอบการเชื่อมต่ออินเทอร์เน็ต');
+            return;
+        }
+        var originalText = submitBtn.innerText;
+        submitBtn.disabled  = true;
+        submitBtn.innerText = 'Generating...';
+
+        try {
+            var PDFDocument  = PDFLib.PDFDocument;
+            var rgb          = PDFLib.rgb;
+            var StandardFonts = PDFLib.StandardFonts;
+
+            var pdfDoc   = await PDFDocument.create();
+            var font     = await pdfDoc.embedFont(StandardFonts.Helvetica);
+            var fontBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+            var PAGE_W = 595, PAGE_H = 842, M = 40;
+            var page = pdfDoc.addPage([PAGE_W, PAGE_H]);
+            var y    = PAGE_H - M;
+
+            function drawText(text, x, yy, opts) {
+                opts = opts || {};
+                var size  = opts.size  || 11;
+                var color = opts.color || rgb(0, 0, 0);
+                var f     = opts.f     || font;
+                if (!text) return;
+                page.drawText(String(text), { x: x, y: yy, size: size, color: color, font: f });
+            }
+
+            function checkY(needed) {
+                needed = needed || 25;
+                if (y < M + needed) {
+                    page = pdfDoc.addPage([PAGE_W, PAGE_H]);
+                    y    = PAGE_H - M;
+                }
+            }
+
+            var staffName   = document.getElementById('info-staff-name').value   || '-';
+            var staffId     = document.getElementById('info-staff-id').value     || '-';
+            var branch      = document.getElementById('info-branch').value       || '-';
+            var trainerName = document.getElementById('info-trainer-name').value || '-';
+            var examDate    = document.getElementById('info-date').value         || '-';
+
+            drawText('Moderate Vision Care Advisor Course [Checklist]', M, y, { size: 13, f: fontBold });
+            y -= 22;
+            drawText('Staff: ' + staffName + '   ID: ' + staffId + '   Branch: ' + branch, M, y, { size: 10 });
+            y -= 14;
+            drawText('Trainer: ' + trainerName + '   Date: ' + examDate, M, y, { size: 10 });
+            y -= 20;
+
+            var totalScore = parseInt(totalScoreElement.textContent);
+            var totalPct   = parseFloat(totalPercentageElement.textContent);
+            var isPassed   = totalPct >= PASS_THRESHOLD;
+            page.drawRectangle({ x: M, y: y - 26, width: PAGE_W - M * 2, height: 30, color: rgb(0, 0, 0) });
+            drawText('Total Score: ' + totalScore + ' / ' + grandTotalMaxScore + '  (' + totalPct.toFixed(2) + '%)', M + 8, y - 14, { size: 11, color: rgb(1, 1, 1), f: fontBold });
+            drawText(isPassed ? 'PASS' : 'FAIL', PAGE_W - M - 48, y - 14, {
+                size: 11,
+                color: isPassed ? rgb(0.1, 0.8, 0.3) : rgb(1, 0.3, 0.3),
+                f: fontBold
+            });
+            y -= 44;
+
+            var sectionSummary = [
+                { id: 12, name: 'Measurement of ocular dimension', max: 3  },
+                { id: 11, name: 'Preparing the machine',           max: 2  },
+                { id: 7,  name: 'Hygiene',                         max: 2  },
+                { id: 6,  name: 'Eye Health Check (LEFT)',          max: 56 },
+                { id: 8,  name: 'Eye Health Check (RIGHT)',         max: 56 },
+                { id: 20, name: 'Customer Service Skills',          max: 2  }
+            ];
+            drawText('Section Summary', M, y, { size: 11, f: fontBold });
+            y -= 14;
+            sectionSummary.forEach(function (s) {
+                var sc  = (document.getElementById('section-' + s.id + '-score')      || {}).textContent || '0';
+                var pct = (document.getElementById('section-' + s.id + '-percentage') || {}).textContent || '0.00';
+                drawText('  ' + s.name + ': ' + sc + ' / ' + s.max + '  (' + pct + '%)', M, y, { size: 9.5 });
+                y -= 13;
+            });
+            y -= 10;
+
+            var cards = document.querySelectorAll('.test-card');
+            for (var i = 0; i < cards.length; i++) {
+                var card     = cards[i];
+                var title    = (card.querySelector('h4') || {}).textContent || '';
+                var selBtns  = Array.from(card.querySelectorAll('.btn.selected')).map(function (b) { return b.textContent.trim(); });
+                var selected = selBtns.length ? selBtns.join(', ') : 'No selection';
+                var feedback = ((card.querySelector('.feedback-input') || {}).value || '').trim();
+                var images   = card.querySelectorAll('.image-preview img');
+
+                checkY(35);
+                page.drawRectangle({ x: M, y: y - 2, width: PAGE_W - M * 2, height: 16, color: rgb(0.93, 0.93, 0.93) });
+                drawText(title.trim(), M + 4, y, { size: 9.5, f: fontBold });
+                y -= 16;
+
+                var resultColor = selected === 'No selection'
+                    ? rgb(0.5, 0.5, 0.5)
+                    : (selected.includes('Fail') ? rgb(0.9, 0.2, 0.2) : rgb(0.1, 0.7, 0.3));
+                drawText('Result: ' + selected, M + 4, y, { size: 9, color: resultColor });
+                y -= 13;
+
+                if (feedback) {
+                    try {
+                        var maxW    = PAGE_W - M * 2 - 8;
+                        var fbData  = feedbackToDataURL(feedback, { maxWidthPx: maxW * 2, fontPx: 13 });
+                        var pdfH    = Math.round(fbData.pixelHeight * (maxW / fbData.pixelWidth));
+                        checkY(pdfH + 5);
+                        var fbBytes = await fetch(fbData.dataURL).then(function (r) { return r.arrayBuffer(); });
+                        var embFb   = await pdfDoc.embedPng(fbBytes);
+                        page.drawImage(embFb, { x: M + 4, y: y - pdfH, width: maxW, height: pdfH });
+                        y -= pdfH + 5;
+                    } catch (e) {}
+                }
+
+                for (var j = 0; j < images.length; j++) {
+                    try {
+                        checkY(80);
+                        var imgBytes = await fetch(images[j].src).then(function (r) { return r.arrayBuffer(); });
+                        var embImg   = images[j].src.startsWith('data:image/png')
+                            ? await pdfDoc.embedPng(imgBytes)
+                            : await pdfDoc.embedJpg(imgBytes);
+                        var iW = 140, iH = embImg.height * (140 / embImg.width);
+                        page.drawImage(embImg, { x: M + 4, y: y - iH, width: iW, height: iH });
+                        y -= iH + 5;
+                    } catch (e) {}
+                }
+                y -= 6;
+            }
+
+            checkY(160);
+            y -= 8;
+            drawText('Signatures', M, y, { size: 12, f: fontBold });
+            y -= 18;
+            var sigW = (PAGE_W - M * 2 - 15) / 2, sigH = 100;
+
+            page.drawRectangle({ x: M, y: y - sigH, width: sigW, height: sigH, borderColor: rgb(0.7, 0.7, 0.7), borderWidth: 1 });
+            drawText('Staff Signature', M + 4, y - 12, { size: 9, color: rgb(0.5, 0.5, 0.5) });
+            if (!staffSignaturePad.isEmpty()) {
+                try {
+                    var sBytes = await fetch(staffSignaturePad.toDataURL('image/png')).then(function (r) { return r.arrayBuffer(); });
+                    var sSig   = await pdfDoc.embedPng(sBytes);
+                    page.drawImage(sSig, { x: M + 4, y: y - sigH + 4, width: sigW - 8, height: sigH - 8 });
+                } catch (e) {}
+            }
+
+            var tx = M + sigW + 15;
+            page.drawRectangle({ x: tx, y: y - sigH, width: sigW, height: sigH, borderColor: rgb(0.7, 0.7, 0.7), borderWidth: 1 });
+            drawText('Trainer Signature', tx + 4, y - 12, { size: 9, color: rgb(0.5, 0.5, 0.5) });
+            if (!trainerSignaturePad.isEmpty()) {
+                try {
+                    var tBytes = await fetch(trainerSignaturePad.toDataURL('image/png')).then(function (r) { return r.arrayBuffer(); });
+                    var tSig   = await pdfDoc.embedPng(tBytes);
+                    page.drawImage(tSig, { x: tx + 4, y: y - sigH + 4, width: sigW - 8, height: sigH - 8 });
+                } catch (e) {}
+            }
+
+            var pdfBytes = await pdfDoc.save();
+            var blob = new Blob([pdfBytes], { type: 'application/pdf' });
+            var url  = URL.createObjectURL(blob);
+            var a    = document.createElement('a');
+            a.href     = url;
+            a.download = 'Checklist_' + staffId + '_' + examDate + '.pdf';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+
+        } catch (err) {
+            alert('เกิดข้อผิดพลาดในการสร้าง PDF: ' + err.message);
+            console.error(err);
+        } finally {
+            submitBtn.disabled  = false;
+            submitBtn.innerText = originalText;
+        }
+    }
+
+    // Submit
+    submitBtn.addEventListener('click', async function () {
+        await generatePDF();
+        sendToSheet();
+    });
+
+});
+</script>
+</body>
+</html>

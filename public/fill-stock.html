@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fill Stock Calculator</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f8fafc; color: #1e293b; font-size: 14px; }
+    .container { max-width: 1400px; margin: 0 auto; padding: 24px; }
+    h1 { font-size: 18px; font-weight: 600; margin-bottom: 8px; }
+    .subtitle { color: #64748b; font-size: 13px; margin-bottom: 24px; }
+
+    /* Upload */
+    .upload-wrap { background: white; border: 2px dashed #cbd5e1; border-radius: 12px; padding: 48px 32px; text-align: center; cursor: pointer; transition: border-color .2s, background .2s; }
+    .upload-wrap:hover, .upload-wrap.dragover { border-color: #0f172a; background: #f8fafc; }
+    .upload-wrap input { display: none; }
+    .upload-icon { font-size: 36px; margin-bottom: 12px; }
+    .upload-title { font-weight: 500; margin-bottom: 4px; }
+    .upload-hint { color: #94a3b8; font-size: 13px; }
+    .file-loaded { display: flex; align-items: center; gap: 10px; justify-content: center; font-size: 13px; color: #0f172a; }
+    .file-loaded .change-btn { color: #64748b; text-decoration: underline; cursor: pointer; }
+
+    /* Cards */
+    .cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 20px 0; }
+    @media (max-width: 768px) { .cards { grid-template-columns: repeat(2, 1fr); } }
+    .card { background: white; border: 1px solid #e2e8f0; border-radius: 10px; padding: 16px 20px; }
+    .card-label { font-size: 12px; color: #64748b; margin-bottom: 6px; }
+    .card-val { font-size: 22px; font-weight: 600; }
+    .card-val.red { color: #dc2626; }
+    .card-val.green { color: #16a34a; }
+
+    /* Alert */
+    .alert { border-radius: 8px; padding: 10px 14px; font-size: 13px; margin-bottom: 12px; }
+    .alert-warn { background: #fffbeb; border: 1px solid #fcd34d; color: #92400e; }
+    .alert-ok { background: #f0fdf4; border: 1px solid #86efac; color: #166534; }
+
+    /* Toolbar */
+    .toolbar { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; justify-content: space-between; }
+    .toolbar-left { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+    .search { padding: 7px 12px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 13px; width: 220px; outline: none; }
+    .search:focus { border-color: #94a3b8; }
+    select { padding: 7px 12px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 13px; outline: none; background: white; cursor: pointer; }
+    select:focus { border-color: #94a3b8; }
+
+    /* Tabs */
+    .tabs { display: flex; gap: 0; margin-bottom: 14px; border-bottom: 1px solid #e2e8f0; }
+    .tab { padding: 8px 16px; cursor: pointer; border-bottom: 2px solid transparent; font-size: 13px; color: #64748b; user-select: none; }
+    .tab.active { border-bottom-color: #0f172a; color: #0f172a; font-weight: 500; }
+    .tab-count { background: #f1f5f9; color: #475569; border-radius: 99px; padding: 1px 6px; font-size: 11px; margin-left: 4px; }
+
+    /* Table */
+    .table-wrap { background: white; border: 1px solid #e2e8f0; border-radius: 10px; overflow: auto; max-height: 600px; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    thead tr { position: sticky; top: 0; z-index: 1; }
+    th { background: #f8fafc; font-size: 11px; font-weight: 500; color: #64748b; padding: 9px 12px; text-align: left; border-bottom: 1px solid #e2e8f0; white-space: nowrap; cursor: pointer; user-select: none; }
+    th:hover { color: #0f172a; }
+    td { padding: 9px 12px; border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: #f8fafc; }
+    .no-data { text-align: center; color: #94a3b8; padding: 40px; }
+
+    /* Badges */
+    .badge { display: inline-block; padding: 2px 8px; border-radius: 99px; font-size: 11px; font-weight: 500; white-space: nowrap; }
+    .badge-l  { background: #fef3c7; color: #92400e; }
+    .badge-m  { background: #f1f5f9; color: #475569; }
+    .badge-full    { background: #dcfce7; color: #166534; }
+    .badge-partial { background: #fef3c7; color: #92400e; }
+    .badge-none    { background: #fee2e2; color: #991b1b; }
+    .badge-ok      { background: #f1f5f9; color: #94a3b8; }
+
+    /* Text */
+    .text-danger { color: #dc2626; font-weight: 500; }
+    .text-warn   { color: #d97706; }
+    .text-muted  { color: #94a3b8; }
+    .text-bold   { font-weight: 600; }
+    .text-green  { color: #16a34a; font-weight: 500; }
+
+    /* Buttons */
+    .btn { padding: 7px 14px; border-radius: 8px; font-size: 13px; font-weight: 500; cursor: pointer; border: none; }
+    .btn-dark { background: #0f172a; color: white; }
+    .btn-dark:hover { background: #1e293b; }
+    .btn-outline { background: white; color: #0f172a; border: 1px solid #e2e8f0; }
+    .btn-outline:hover { background: #f8fafc; }
+
+    #resultsSection { display: none; margin-top: 24px; }
+
+    /* Shop group header row */
+    .shop-header-row td { background: #f8fafc; font-weight: 500; color: #1e293b; padding: 8px 12px; border-bottom: 1px solid #e2e8f0; }
+    .shop-total { font-size: 12px; color: #64748b; font-weight: 400; margin-left: 8px; }
+
+    /* Pagination */
+    .pagination { display: flex; align-items: center; gap: 8px; margin-top: 12px; justify-content: flex-end; font-size: 13px; color: #64748b; }
+    .page-btn { padding: 4px 10px; border: 1px solid #e2e8f0; border-radius: 6px; cursor: pointer; background: white; font-size: 13px; }
+    .page-btn:disabled { opacity: 0.4; cursor: default; }
+    .page-btn.active { background: #0f172a; color: white; border-color: #0f172a; }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <h1>Fill Stock Calculator</h1>
+  <div class="subtitle">อัพโหลด Excel เพื่อคำนวณว่าสาขาไหนต้องเติมสินค้าเท่าไหร่</div>
+
+  <!-- Upload Area -->
+  <div class="upload-wrap" id="uploadArea" onclick="document.getElementById('fileInput').click()">
+    <input type="file" id="fileInput" accept=".xlsx,.xls">
+    <div id="uploadIdle">
+      <div class="upload-icon">&#128194;</div>
+      <div class="upload-title">คลิกหรือลากไฟล์ Excel มาวางที่นี่</div>
+      <div class="upload-hint">รองรับไฟล์ .xlsx &nbsp;|&nbsp; Sheet1 = สาขา &nbsp;|&nbsp; Sheet2 = Minimum &nbsp;|&nbsp; Sheet3 = Stock ปัจจุบัน</div>
+    </div>
+    <div id="uploadLoaded" style="display:none">
+      <div class="file-loaded">
+        <span>&#9989;</span>
+        <span id="loadedFileName"></span>
+        <span class="change-btn">(เปลี่ยนไฟล์)</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Results -->
+  <div id="resultsSection">
+
+    <!-- Summary Cards -->
+    <div class="cards" id="summaryCards"></div>
+
+    <!-- Alert -->
+    <div id="alertBox"></div>
+
+    <!-- Tabs -->
+    <div class="tabs">
+      <div class="tab active" id="tabShop" onclick="switchView('shop')">รายสาขา <span class="tab-count" id="countShop">0</span></div>
+      <div class="tab" id="tabSku" onclick="switchView('sku')">รายสินค้า <span class="tab-count" id="countSku">0</span></div>
+    </div>
+
+    <!-- Toolbar -->
+    <div class="toolbar">
+      <div class="toolbar-left">
+        <input type="text" class="search" id="searchInput" placeholder="ค้นหาสาขา / สินค้า / บาร์โค้ด..." oninput="onFilter()">
+        <select id="typeFilter" onchange="onFilter()">
+          <option value="">ทุกประเภท</option>
+          <option value="L">L &times;3 (High Performance)</option>
+          <option value="M">M &times;1 (ปกติ)</option>
+        </select>
+        <select id="statusFilter" onchange="onFilter()">
+          <option value="need">ต้องส่งเท่านั้น</option>
+          <option value="insufficient">ของไม่พอส่ง</option>
+          <option value="">ทั้งหมด</option>
+        </select>
+      </div>
+      <button class="btn btn-dark" onclick="exportExcel()">&#8595; Export Excel</button>
+    </div>
+
+    <!-- Table -->
+    <div class="table-wrap">
+      <table>
+        <thead id="tableHead"></thead>
+        <tbody id="tableBody"></tbody>
+      </table>
+    </div>
+    <div class="pagination" id="pagination"></div>
+
+  </div>
+</div>
+
+<script>
+// ============================================================
+// STATE
+// ============================================================
+let calcResult = null;
+let currentView = 'shop';
+let currentPage = 1;
+const PAGE_SIZE = 200;
+
+// ============================================================
+// FILE UPLOAD
+// ============================================================
+document.getElementById('fileInput').addEventListener('change', function(e) {
+  const file = e.target.files[0];
+  if (file) loadFile(file);
+});
+
+const uploadArea = document.getElementById('uploadArea');
+uploadArea.addEventListener('dragover', function(e) {
+  e.preventDefault(); this.classList.add('dragover');
+});
+uploadArea.addEventListener('dragleave', function() { this.classList.remove('dragover'); });
+uploadArea.addEventListener('drop', function(e) {
+  e.preventDefault(); this.classList.remove('dragover');
+  const file = e.dataTransfer.files[0];
+  if (file) loadFile(file);
+});
+
+function loadFile(file) {
+  document.getElementById('loadedFileName').textContent = file.name;
+  document.getElementById('uploadIdle').style.display = 'none';
+  document.getElementById('uploadLoaded').style.display = '';
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const wb = XLSX.read(e.target.result, { type: 'array' });
+      calcResult = calculate(wb);
+      renderAll();
+    } catch (err) {
+      alert('เกิดข้อผิดพลาด: ' + err.message + '\n\nตรวจสอบว่าไฟล์มี Sheet1, Sheet2, Sheet3 ครบ');
+      console.error(err);
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+// ============================================================
+// CORE CALCULATION
+// ============================================================
+function calculate(wb) {
+  const toArr = (name) => XLSX.utils.sheet_to_json(wb.Sheets[name], { header: 1, defval: '' });
+
+  // --- Sheet1: shop tiers ---
+  const s1 = toArr('Sheet1');
+  const lSet = new Set(s1.slice(1).map(r => String(r[0])).filter(x => x !== '' && x !== 'undefined'));
+  const mSet = new Set(s1.slice(1).map(r => String(r[1])).filter(x => x !== '' && x !== 'undefined'));
+
+  // --- Sheet2: SKU minimums + office stock ---
+  const s2 = toArr('Sheet2');
+  const skuInfo = {}; // barcode -> {name, barcode, minL, minM, officeStock}
+  s2.slice(1).forEach(function(row) {
+    const barcode = String(row[1]).trim();
+    if (!barcode || barcode === '') return;
+    skuInfo[barcode] = {
+      name: String(row[0]),
+      barcode: barcode,
+      minL: Number(row[2]) || 0,
+      minM: Number(row[3]) || 0,
+      officeStock: Number(row[4]) || 0,
+    };
+  });
+
+  // --- Sheet3: current stock matrix ---
+  const s3 = toArr('Sheet3');
+  const codesRow  = s3[0]; // row 1: shop codes
+  const namesRow  = s3[1]; // row 2: shop names
+
+  // Build shop list (only Sheet1 shops)
+  const shops = [];
+  for (let col = 2; col < codesRow.length; col++) {
+    const code = String(codesRow[col]);
+    if (lSet.has(code)) {
+      shops.push({ col, code, name: String(namesRow[col]), type: 'L' });
+    } else if (mSet.has(code)) {
+      shops.push({ col, code, name: String(namesRow[col]), type: 'M' });
+    }
+  }
+
+  // --- Per-SKU calculation ---
+  const skuResults = []; // [{...skuInfo, shops: [{...shop, current, effMin, shortage, allocated, allocStatus}], totalNeed, totalAllocated}]
+
+  s3.slice(2).forEach(function(row) {
+    const barcode = String(row[1]).trim();
+    const sku = skuInfo[barcode];
+    if (!sku) return;
+
+    const shopData = shops.map(function(shop) {
+      const current = Number(row[shop.col]) || 0;
+      const effMin = shop.type === 'L' ? sku.minL * 3 : sku.minM * 1;
+      const shortage = Math.max(0, effMin - current);
+      return Object.assign({}, shop, { current, effMin, shortage, allocated: 0, allocStatus: 'ok' });
+    });
+
+    // Distribution
+    const distributed = distribute(sku.officeStock, shopData);
+    const totalNeed = distributed.reduce(function(s, x) { return s + x.shortage; }, 0);
+    const totalAllocated = distributed.reduce(function(s, x) { return s + x.allocated; }, 0);
+
+    skuResults.push(Object.assign({}, sku, {
+      shops: distributed,
+      totalNeed,
+      totalAllocated,
+      officeAfter: sku.officeStock - totalAllocated,
+    }));
+  });
+
+  return { shops, skuResults };
+}
+
+// ============================================================
+// FAIR DISTRIBUTION ALGORITHM
+// ============================================================
+function distribute(officeStock, shops) {
+  const withShortage = shops.filter(function(s) { return s.shortage > 0; });
+  if (withShortage.length === 0) {
+    return shops.map(function(s) { return Object.assign({}, s, { allocated: 0, allocStatus: 'ok' }); });
+  }
+
+  const totalNeed = withShortage.reduce(function(s, x) { return s + x.shortage; }, 0);
+
+  // Enough stock: full allocation
+  if (officeStock >= totalNeed) {
+    return shops.map(function(s) {
+      return Object.assign({}, s, {
+        allocated: s.shortage,
+        allocStatus: s.shortage === 0 ? 'ok' : 'full',
+      });
+    });
+  }
+
+  // Not enough: L shops first, then M
+  const lGroup = withShortage.filter(function(s) { return s.type === 'L'; });
+  const mGroup = withShortage.filter(function(s) { return s.type === 'M'; });
+  const allocMap = {};
+
+  function fairDist(available, group) {
+    if (group.length === 0) return available;
+    // Sort by shortage ascending → small needs satisfied first → maximize shop coverage
+    const sorted = group.slice().sort(function(a, b) { return a.shortage - b.shortage; });
+    let rem = available;
+    sorted.forEach(function(shop, i) {
+      const remainingCount = sorted.length - i;
+      const fairShare = Math.floor(rem / remainingCount);
+      const alloc = Math.min(shop.shortage, fairShare);
+      allocMap[shop.code] = alloc;
+      rem -= alloc;
+    });
+    return rem;
+  }
+
+  const afterL = fairDist(officeStock, lGroup);
+  fairDist(afterL, mGroup);
+
+  return shops.map(function(s) {
+    if (s.shortage === 0) return Object.assign({}, s, { allocated: 0, allocStatus: 'ok' });
+    const alloc = allocMap[s.code] !== undefined ? allocMap[s.code] : 0;
+    const status = alloc >= s.shortage ? 'full' : alloc > 0 ? 'partial' : 'none';
+    return Object.assign({}, s, { allocated: alloc, allocStatus: status });
+  });
+}
+
+// ============================================================
+// RENDER
+// ============================================================
+function renderAll() {
+  document.getElementById('resultsSection').style.display = '';
+  renderCards();
+  renderAlert();
+  currentPage = 1;
+  renderTable();
+}
+
+function renderCards() {
+  const skus = calcResult.skuResults;
+  const totalNeedSkus = skus.filter(function(s) { return s.totalNeed > 0; }).length;
+  const totalUnits = skus.reduce(function(s, x) { return s + x.totalNeed; }, 0);
+  const totalSend  = skus.reduce(function(s, x) { return s + x.totalAllocated; }, 0);
+  const insuffSkus = skus.filter(function(s) { return s.totalNeed > s.officeStock && s.totalNeed > 0; }).length;
+
+  document.getElementById('summaryCards').innerHTML =
+    card('SKU ที่ต้องเติม', totalNeedSkus, '') +
+    card('Units รวมที่ต้องส่ง', totalUnits.toLocaleString(), '') +
+    card('Units ที่จัดสรรได้', totalSend.toLocaleString(), totalSend < totalUnits ? '' : 'green') +
+    card('SKU ที่ Office ไม่พอ', insuffSkus, insuffSkus > 0 ? 'red' : 'green');
+}
+
+function card(label, val, cls) {
+  return '<div class="card"><div class="card-label">' + label + '</div><div class="card-val ' + cls + '">' + val + '</div></div>';
+}
+
+function renderAlert() {
+  const insuff = calcResult.skuResults.filter(function(s) { return s.totalNeed > s.officeStock && s.totalNeed > 0; });
+  let html = '';
+  if (insuff.length > 0) {
+    html = '<div class="alert alert-warn">&#9888;&#65039; มี ' + insuff.length + ' SKU ที่ Office Stock ไม่เพียงพอ — ใช้ Fair Distribution แล้ว (Priority: L shops ก่อน)</div>';
+  } else if (calcResult.skuResults.some(function(s) { return s.totalNeed > 0; })) {
+    html = '<div class="alert alert-ok">&#9989; Office Stock เพียงพอสำหรับทุก SKU</div>';
+  }
+  document.getElementById('alertBox').innerHTML = html;
+}
+
+function switchView(view) {
+  currentView = view;
+  currentPage = 1;
+  document.getElementById('tabShop').classList.toggle('active', view === 'shop');
+  document.getElementById('tabSku').classList.toggle('active', view === 'sku');
+  renderTable();
+}
+
+function onFilter() {
+  currentPage = 1;
+  renderTable();
+}
+
+function getFilters() {
+  return {
+    search: document.getElementById('searchInput').value.toLowerCase().trim(),
+    type: document.getElementById('typeFilter').value,
+    status: document.getElementById('statusFilter').value,
+  };
+}
+
+function renderTable() {
+  if (!calcResult) return;
+  const f = getFilters();
+
+  if (currentView === 'shop') {
+    renderShopView(f);
+  } else {
+    renderSkuView(f);
+  }
+}
+
+// ---- BY SHOP VIEW ----
+function renderShopView(f) {
+  // Build flat rows: {sku, shopData}
+  let rows = [];
+  calcResult.skuResults.forEach(function(sku) {
+    sku.shops.forEach(function(sh) {
+      rows.push({ sku, sh });
+    });
+  });
+
+  // Filter
+  rows = rows.filter(function(r) {
+    const { sku, sh } = r;
+    if (f.status === 'need' && sh.shortage === 0) return false;
+    if (f.status === 'insufficient' && sh.allocStatus !== 'partial' && sh.allocStatus !== 'none') return false;
+    if (f.type && sh.type !== f.type) return false;
+    if (f.search) {
+      const hay = (sh.name + sh.code + sku.name + sku.barcode).toLowerCase();
+      if (!hay.includes(f.search)) return false;
+    }
+    return true;
+  });
+
+  // Sort: shop name, then sku name
+  rows.sort(function(a, b) {
+    const sc = a.sh.name.localeCompare(b.sh.name, 'th');
+    if (sc !== 0) return sc;
+    return a.sku.name.localeCompare(b.sku.name, 'th');
+  });
+
+  document.getElementById('countShop').textContent = rows.length;
+
+  document.getElementById('tableHead').innerHTML = '<tr>' +
+    '<th>สาขา</th><th>ประเภท</th><th>สินค้า</th><th>Barcode</th>' +
+    '<th style="text-align:right">Stock ปัจจุบัน</th>' +
+    '<th style="text-align:right">Min ที่กำหนด</th>' +
+    '<th style="text-align:right">ขาด</th>' +
+    '<th style="text-align:right">ส่ง</th>' +
+    '<th style="text-align:right">Office Stock</th>' +
+    '<th>สถานะ</th>' +
+    '</tr>';
+
+  const start = (currentPage - 1) * PAGE_SIZE;
+  const pageRows = rows.slice(start, start + PAGE_SIZE);
+
+  let prev = null;
+  const tbody = document.getElementById('tableBody');
+  tbody.innerHTML = '';
+
+  pageRows.forEach(function(r) {
+    const { sku, sh } = r;
+
+    // Shop group header
+    if (prev !== sh.code) {
+      const shopRows = rows.filter(function(x) { return x.sh.code === sh.code; });
+      const shopTotal = shopRows.reduce(function(s, x) { return s + x.sh.allocated; }, 0);
+      const shopNeed  = shopRows.reduce(function(s, x) { return s + x.sh.shortage; }, 0);
+      const tr = document.createElement('tr');
+      tr.className = 'shop-header-row';
+      tr.innerHTML = '<td colspan="10">' +
+        sh.name +
+        ' <span class="text-muted" style="font-size:11px">#' + sh.code + '</span> &nbsp;' +
+        '<span class="badge badge-' + sh.type.toLowerCase() + '">' + sh.type + ' &times;' + (sh.type === 'L' ? 3 : 1) + '</span>' +
+        '<span class="shop-total">ต้องส่ง ' + shopNeed + ' units &nbsp;|&nbsp; จัดสรรได้ ' + shopTotal + ' units</span>' +
+        '</td>';
+      tbody.appendChild(tr);
+      prev = sh.code;
+    }
+
+    const shortage = sh.shortage;
+    const tr = document.createElement('tr');
+    tr.innerHTML =
+      '<td></td>' +
+      '<td></td>' +
+      '<td>' + sku.name + '</td>' +
+      '<td class="text-muted">' + sku.barcode + '</td>' +
+      '<td style="text-align:right">' + sh.current + '</td>' +
+      '<td style="text-align:right">' + sh.effMin + '</td>' +
+      '<td style="text-align:right" class="' + (shortage > 0 ? 'text-danger' : 'text-muted') + '">' + (shortage > 0 ? shortage : '-') + '</td>' +
+      '<td style="text-align:right" class="text-bold">' + (sh.allocated > 0 ? sh.allocated : '-') + '</td>' +
+      '<td style="text-align:right" class="' + (sku.officeStock < sku.totalNeed ? 'text-warn' : 'text-muted') + '">' + sku.officeStock + '</td>' +
+      '<td>' + statusBadge(sh.allocStatus, sh.shortage) + '</td>';
+    tbody.appendChild(tr);
+  });
+
+  if (pageRows.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="10" class="no-data">ไม่มีข้อมูลที่ตรงเงื่อนไข</td></tr>';
+  }
+
+  renderPagination(rows.length);
+}
+
+// ---- BY SKU VIEW ----
+function renderSkuView(f) {
+  let skus = calcResult.skuResults;
+
+  skus = skus.filter(function(sku) {
+    if (f.status === 'need' && sku.totalNeed === 0) return false;
+    if (f.status === 'insufficient' && sku.totalNeed <= sku.officeStock) return false;
+    if (f.search) {
+      const hay = (sku.name + sku.barcode).toLowerCase();
+      if (!hay.includes(f.search)) return false;
+    }
+    return true;
+  });
+
+  // type filter: only show if that type has shortage
+  if (f.type) {
+    skus = skus.filter(function(sku) {
+      return sku.shops.some(function(sh) { return sh.type === f.type && sh.shortage > 0; });
+    });
+  }
+
+  skus.sort(function(a, b) { return a.name.localeCompare(b.name, 'th'); });
+
+  document.getElementById('countSku').textContent = skus.length;
+
+  document.getElementById('tableHead').innerHTML = '<tr>' +
+    '<th>สินค้า</th>' +
+    '<th>Barcode</th>' +
+    '<th style="text-align:right">Office Stock</th>' +
+    '<th style="text-align:right">รวมที่ต้องส่ง</th>' +
+    '<th style="text-align:right">รวมที่จัดสรรได้</th>' +
+    '<th style="text-align:right">Office คงเหลือ</th>' +
+    '<th style="text-align:right">สาขาที่ขาด</th>' +
+    '<th>สถานะ</th>' +
+    '</tr>';
+
+  const start = (currentPage - 1) * PAGE_SIZE;
+  const pageSkus = skus.slice(start, start + PAGE_SIZE);
+  const tbody = document.getElementById('tableBody');
+  tbody.innerHTML = '';
+
+  pageSkus.forEach(function(sku) {
+    const diff = sku.officeStock - sku.totalNeed;
+    const shopCount = sku.shops.filter(function(s) { return s.shortage > 0; }).length;
+    const isInsuff = sku.totalNeed > sku.officeStock;
+    const tr = document.createElement('tr');
+    tr.innerHTML =
+      '<td>' + sku.name + '</td>' +
+      '<td class="text-muted">' + sku.barcode + '</td>' +
+      '<td style="text-align:right">' + sku.officeStock + '</td>' +
+      '<td style="text-align:right" class="' + (sku.totalNeed > 0 ? 'text-bold' : 'text-muted') + '">' + sku.totalNeed + '</td>' +
+      '<td style="text-align:right">' + sku.totalAllocated + '</td>' +
+      '<td style="text-align:right" class="' + (diff < 0 ? 'text-danger' : diff === 0 ? 'text-muted' : 'text-green') + '">' + (diff >= 0 ? '+' : '') + diff + '</td>' +
+      '<td style="text-align:right">' + shopCount + ' สาขา</td>' +
+      '<td>' + (isInsuff && sku.totalNeed > 0
+        ? '<span class="badge badge-partial">Office ไม่พอ</span>'
+        : sku.totalNeed === 0
+          ? '<span class="badge badge-ok">ไม่ต้องส่ง</span>'
+          : '<span class="badge badge-full">Office พอ</span>'
+      ) + '</td>';
+    tbody.appendChild(tr);
+  });
+
+  if (pageSkus.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="8" class="no-data">ไม่มีข้อมูลที่ตรงเงื่อนไข</td></tr>';
+  }
+
+  renderPagination(skus.length);
+}
+
+function renderPagination(total) {
+  const totalPages = Math.ceil(total / PAGE_SIZE);
+  const el = document.getElementById('pagination');
+  if (totalPages <= 1) { el.innerHTML = ''; return; }
+
+  let html = '<span>' + ((currentPage - 1) * PAGE_SIZE + 1) + '–' + Math.min(currentPage * PAGE_SIZE, total) + ' / ' + total + '</span>';
+  html += '<button class="page-btn" onclick="changePage(' + (currentPage - 1) + ')" ' + (currentPage <= 1 ? 'disabled' : '') + '>&lt;</button>';
+  for (let p = 1; p <= totalPages; p++) {
+    if (p === 1 || p === totalPages || Math.abs(p - currentPage) <= 1) {
+      html += '<button class="page-btn ' + (p === currentPage ? 'active' : '') + '" onclick="changePage(' + p + ')">' + p + '</button>';
+    } else if (Math.abs(p - currentPage) === 2) {
+      html += '<span>…</span>';
+    }
+  }
+  html += '<button class="page-btn" onclick="changePage(' + (currentPage + 1) + ')" ' + (currentPage >= totalPages ? 'disabled' : '') + '>&gt;</button>';
+  el.innerHTML = html;
+}
+
+function changePage(p) {
+  currentPage = p;
+  renderTable();
+  document.querySelector('.table-wrap').scrollTop = 0;
+}
+
+function statusBadge(status, shortage) {
+  if (shortage === 0)         return '<span class="badge badge-ok">ไม่ต้องส่ง</span>';
+  if (status === 'full')      return '<span class="badge badge-full">ส่งครบ</span>';
+  if (status === 'partial')   return '<span class="badge badge-partial">ส่งบางส่วน</span>';
+  if (status === 'none')      return '<span class="badge badge-none">ไม่มีส่ง</span>';
+  return '';
+}
+
+// ============================================================
+// EXPORT EXCEL
+// ============================================================
+function exportExcel() {
+  if (!calcResult) return;
+  const wb = XLSX.utils.book_new();
+
+  // --- Sheet: รายสาขา ---
+  const byShop = [['สาขา', 'รหัสสาขา', 'ประเภท', 'สินค้า', 'Barcode', 'Stock ปัจจุบัน', 'Min ที่กำหนด', 'ขาด', 'ส่ง', 'Office Stock', 'สถานะ']];
+  calcResult.skuResults.forEach(function(sku) {
+    sku.shops
+      .filter(function(sh) { return sh.shortage > 0; })
+      .sort(function(a, b) { return a.name.localeCompare(b.name, 'th'); })
+      .forEach(function(sh) {
+        byShop.push([
+          sh.name, sh.code, sh.type,
+          sku.name, sku.barcode,
+          sh.current, sh.effMin, sh.shortage, sh.allocated,
+          sku.officeStock,
+          sh.allocStatus === 'full' ? 'ส่งครบ' : sh.allocStatus === 'partial' ? 'ส่งบางส่วน' : 'ไม่มีส่ง',
+        ]);
+      });
+  });
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(byShop), 'รายสาขา');
+
+  // --- Sheet: รายสินค้า ---
+  const bySku = [['สินค้า', 'Barcode', 'Office Stock', 'รวมที่ต้องส่ง', 'รวมที่จัดสรรได้', 'Office คงเหลือ', 'สาขาที่ขาด', 'สถานะ']];
+  calcResult.skuResults
+    .filter(function(s) { return s.totalNeed > 0; })
+    .sort(function(a, b) { return a.name.localeCompare(b.name, 'th'); })
+    .forEach(function(sku) {
+      bySku.push([
+        sku.name, sku.barcode,
+        sku.officeStock, sku.totalNeed, sku.totalAllocated,
+        sku.officeStock - sku.totalAllocated,
+        sku.shops.filter(function(s) { return s.shortage > 0; }).length,
+        sku.totalNeed > sku.officeStock ? 'Office ไม่พอ' : 'Office พอ',
+      ]);
+    });
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(bySku), 'รายสินค้า');
+
+  // --- Sheet: สรุป Office Stock ไม่พอ ---
+  const insuff = [['สินค้า', 'Barcode', 'Office Stock', 'ต้องการรวม', 'ขาด', 'L shops ได้รับ', 'M shops ได้รับ']];
+  calcResult.skuResults
+    .filter(function(s) { return s.totalNeed > s.officeStock && s.totalNeed > 0; })
+    .forEach(function(sku) {
+      const lTotal = sku.shops.filter(function(s) { return s.type === 'L'; }).reduce(function(s, x) { return s + x.allocated; }, 0);
+      const mTotal = sku.shops.filter(function(s) { return s.type === 'M'; }).reduce(function(s, x) { return s + x.allocated; }, 0);
+      insuff.push([sku.name, sku.barcode, sku.officeStock, sku.totalNeed, sku.totalNeed - sku.officeStock, lTotal, mTotal]);
+    });
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(insuff), 'Office ไม่พอ');
+
+  XLSX.writeFile(wb, 'fill-stock-result.xlsx');
+}
+</script>
+</body>
+</html>
