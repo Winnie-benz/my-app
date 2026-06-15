@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express'
 import { z } from 'zod'
 import db from '../db/database'
 import { requireAuth } from '../middleware/requireAuth'
+import { nowTH } from '../utils/time'
 
 const router = Router()
 router.use(requireAuth)
@@ -55,9 +56,9 @@ router.post('/', (req: Request, res: Response) => {
   const customer_id = nextCustomerId()
 
   db.prepare(`
-    INSERT INTO customers (customer_id, first_name, last_name, phone_no, email, birthday, gender, address, note, source)
-    VALUES (@customer_id, @first_name, @last_name, @phone_no, @email, @birthday, @gender, @address, @note, @source)
-  `).run({ customer_id, ...d })
+    INSERT INTO customers (customer_id, first_name, last_name, phone_no, email, birthday, gender, address, note, source, created_at)
+    VALUES (@customer_id, @first_name, @last_name, @phone_no, @email, @birthday, @gender, @address, @note, @source, @created_at)
+  `).run({ customer_id, ...d, created_at: nowTH() })
 
   const customer = db.prepare('SELECT * FROM customers WHERE customer_id = ?').get(customer_id)
   res.status(201).json({ success: true, data: customer })

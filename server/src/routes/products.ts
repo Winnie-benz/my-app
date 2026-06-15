@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express'
 import { z } from 'zod'
 import db from '../db/database'
 import { requireAuth } from '../middleware/requireAuth'
+import { nowTH } from '../utils/time'
 
 const router = Router()
 router.use(requireAuth)
@@ -86,9 +87,9 @@ router.post('/', (req: Request, res: Response) => {
   }
 
   const result = db.prepare(`
-    INSERT INTO products (barcode, sku, name, category, cost_price, sell_price, stock_current, avg_cost, note, reorder_point)
-    VALUES (@barcode, @sku, @name, @category, @cost_price, @sell_price, @stock_current, @avg_cost, @note, @reorder_point)
-  `).run({ ...d, avg_cost: d.cost_price })
+    INSERT INTO products (barcode, sku, name, category, cost_price, sell_price, stock_current, avg_cost, note, reorder_point, created_at)
+    VALUES (@barcode, @sku, @name, @category, @cost_price, @sell_price, @stock_current, @avg_cost, @note, @reorder_point, @created_at)
+  `).run({ ...d, avg_cost: d.cost_price, created_at: nowTH() })
 
   const product = db.prepare('SELECT * FROM products WHERE id = ?').get(result.lastInsertRowid)
   res.status(201).json({ success: true, data: product })
@@ -150,7 +151,7 @@ router.post('/:id/stock-in', (req: Request, res: Response) => {
 
   db.transaction(() => {
     db.prepare('UPDATE products SET stock_current = ?, avg_cost = ? WHERE id = ?').run(newStock, newAvg, id)
-    db.prepare(`INSERT INTO stock_movements (product_id, type, qty, cost) VALUES (?, 'stock_in', ?, ?)`).run(id, qty, cost)
+    db.prepare(`INSERT INTO stock_movements (product_id, type, qty, cost, created_at) VALUES (?, 'stock_in', ?, ?, ?)`).run(id, qty, cost, nowTH())
   })()
 
   const updated = db.prepare('SELECT * FROM products WHERE id = ?').get(id)
@@ -175,7 +176,7 @@ router.post('/:id/stock-out', (req: Request, res: Response) => {
 
   db.transaction(() => {
     db.prepare('UPDATE products SET stock_current = ?, avg_cost = ? WHERE id = ?').run(newStock, newAvg, id)
-    db.prepare(`INSERT INTO stock_movements (product_id, type, qty, cost) VALUES (?, 'stock_out', ?, ?)`).run(id, -qty, cost)
+    db.prepare(`INSERT INTO stock_movements (product_id, type, qty, cost, created_at) VALUES (?, 'stock_out', ?, ?, ?)`).run(id, -qty, cost, nowTH())
   })()
 
   const updated = db.prepare('SELECT * FROM products WHERE id = ?').get(id)
@@ -195,7 +196,7 @@ router.post('/:id/deduct', (req: Request, res: Response) => {
   const newStock = Math.max(0, product.stock_current - parsed.data.qty)
   db.transaction(() => {
     db.prepare('UPDATE products SET stock_current = ? WHERE id = ?').run(newStock, id)
-    db.prepare(`INSERT INTO stock_movements (product_id, type, qty) VALUES (?, 'sale', ?)`).run(id, -parsed.data.qty)
+    db.prepare(`INSERT INTO stock_movements (product_id, type, qty, created_at) VALUES (?, 'sale', ?, ?)`).run(id, -parsed.data.qty, nowTH())
   })()
 
   const updated = db.prepare('SELECT * FROM products WHERE id = ?').get(id)

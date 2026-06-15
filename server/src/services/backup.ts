@@ -16,10 +16,17 @@ function timestamp(): string {
   return `${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}_${pad(d.getHours())}${pad(d.getMinutes())}${pad(d.getSeconds())}${ms}`
 }
 
+const USE_REMOTE = !!(process.env.TURSO_DATABASE_URL && process.env.TURSO_AUTH_TOKEN)
+
 export function createBackup(
   tag: 'daily' | 'weekly' | 'manual' = 'manual',
   options?: { skipPrune?: boolean },
 ): string {
+  if (USE_REMOTE) {
+    // On Turso cloud, durability + point-in-time recovery is handled by Turso
+    // itself; VACUUM INTO a local file is not supported over the remote connection.
+    throw new Error('ใช้ Turso cloud อยู่ — สำรองข้อมูลผ่าน Turso (ไม่ต้องสำรองไฟล์ในเครื่อง)')
+  }
   const filename = `shop_${tag}_${timestamp()}.db`
   const dest     = path.join(BACKUP_DIR, filename)
   db.prepare('VACUUM INTO ?').run(dest)

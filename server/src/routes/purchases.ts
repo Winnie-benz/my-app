@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express'
 import { z } from 'zod'
 import db from '../db/database'
 import { requireAuth } from '../middleware/requireAuth'
+import { nowTH } from '../utils/time'
 
 const router = Router({ mergeParams: true })
 router.use(requireAuth)
@@ -318,13 +319,13 @@ router.post('/', (req: Request, res: Response) => {
          price_lens, price_frame, price_other, special_discount, total, pickup_date, pickup_time,
          payment_status, paid_amount, order_status, cost_lens, cost_frame, cost_other,
          prev_rx_data, order_rx_data, lens_variant_id_r, lens_variant_id_l,
-         stock_override_data, stock_override_by, stock_override_at)
+         stock_override_data, stock_override_by, stock_override_at, created_at)
       VALUES
         (@id, @customer_id, @date, @lens_data, @frame_data, @other_data,
          @price_lens, @price_frame, @price_other, @special_discount, @total, @pickup_date, @pickup_time,
          @payment_status, @paid_amount, 'waiting', @cost_lens, @cost_frame, @cost_other,
          @prev_rx_data, @order_rx_data, @lens_variant_id_r, @lens_variant_id_l,
-         @stock_override_data, @stock_override_by, @stock_override_at)
+         @stock_override_data, @stock_override_by, @stock_override_at, @created_at)
     `).run({
       id,
       customer_id:       customerId,
@@ -351,13 +352,14 @@ router.post('/', (req: Request, res: Response) => {
       stock_override_data: override?.data ?? null,
       stock_override_by:   override?.by ?? '',
       stock_override_at:   override?.at ?? '',
+      created_at:          nowTH(),
     })
 
     if (ip && ip.amount > 0) {
       db.prepare(`
-        INSERT INTO payments (id, purchase_id, amount, method, note, paid_at)
-        VALUES (?, ?, ?, ?, ?, ?)
-      `).run(`pay-${Date.now()}`, id, ip.amount, ip.method, ip.note ?? '', ip.paid_at || d.date)
+        INSERT INTO payments (id, purchase_id, amount, method, note, paid_at, created_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+      `).run(`pay-${Date.now()}`, id, ip.amount, ip.method, ip.note ?? '', ip.paid_at || d.date, nowTH())
     }
 
     // Server-side stock deduction (atomic with purchase creation)
@@ -377,7 +379,7 @@ router.post('/', (req: Request, res: Response) => {
       if (!p) continue
       const newStock = p.stock_current - 1
       db.prepare('UPDATE products SET stock_current = ? WHERE id = ?').run(newStock, p.id)
-      db.prepare(`INSERT INTO stock_movements (product_id, type, qty, cost, reference) VALUES (?, 'sale', -1, ?, ?)`).run(p.id, p.avg_cost ?? 0, id)
+      db.prepare(`INSERT INTO stock_movements (product_id, type, qty, cost, reference, created_at) VALUES (?, 'sale', -1, ?, ?, ?)`).run(p.id, p.avg_cost ?? 0, id, nowTH())
     }
 
     if (d.lens_variant_id_r) db.prepare('UPDATE lens_variants SET stock_qty = stock_qty - 1 WHERE id = ?').run(d.lens_variant_id_r)
@@ -434,8 +436,8 @@ function applyStockDeductions(lens: any, frame: any, other: any, purchaseId: str
     if (!p) continue
     const newStock = p.stock_current - 1
     db.prepare('UPDATE products SET stock_current = ? WHERE id = ?').run(newStock, p.id)
-    db.prepare(`INSERT INTO stock_movements (product_id, type, qty, cost, reference) VALUES (?, 'sale', -1, ?, ?)`)
-      .run(p.id, p.avg_cost ?? 0, purchaseId)
+    db.prepare(`INSERT INTO stock_movements (product_id, type, qty, cost, reference, created_at) VALUES (?, 'sale', -1, ?, ?, ?)`)
+      .run(p.id, p.avg_cost ?? 0, purchaseId, nowTH())
   }
 }
 
@@ -517,6 +519,7 @@ router.put('/:purchaseId', (req: Request, res: Response) => {
       stock_override_data: override?.data ?? null,
       stock_override_by:   override?.by ?? '',
       stock_override_at:   override?.at ?? '',
+      created_at:          nowTH(),
     })
 
     applyStockDeductions(d.lens as any, d.frame as any, d.other as any, purchaseId)

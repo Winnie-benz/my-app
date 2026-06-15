@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express'
 import { z } from 'zod'
 import db from '../db/database'
 import { requireAuth } from '../middleware/requireAuth'
+import { nowTH } from '../utils/time'
 
 const router = Router({ mergeParams: true })
 router.use(requireAuth)
@@ -54,10 +55,10 @@ router.post('/', (req: Request, res: Response) => {
   const id = genId()
   try {
     db.prepare(`
-      INSERT INTO claim_payments (id, claim_id, amount, method, note, paid_at)
-      VALUES (?, ?, ?, ?, ?, ?)
+      INSERT INTO claim_payments (id, claim_id, amount, method, note, paid_at, created_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?)
     `).run(id, claimId, Number(amount), method ?? 'cash', note ?? '',
-      paid_at ?? new Date().toISOString().slice(0, 10))
+      paid_at ?? new Date().toISOString().slice(0, 10), nowTH())
     syncStatus(claimId)
     const payment      = db.prepare('SELECT * FROM claim_payments WHERE id = ?').get(id)
     const updatedClaim = db.prepare('SELECT * FROM claims WHERE id = ?').get(claimId)

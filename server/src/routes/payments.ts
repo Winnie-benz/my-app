@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express'
 import { z } from 'zod'
 import db from '../db/database'
 import { requireAuth } from '../middleware/requireAuth'
+import { nowTH } from '../utils/time'
 
 const router = Router({ mergeParams: true })
 router.use(requireAuth)
@@ -67,9 +68,9 @@ router.post('/', (req: Request, res: Response) => {
 
   const insertAndUpdate = db.transaction(() => {
     db.prepare(`
-      INSERT INTO payments (id, purchase_id, amount, method, note, paid_at)
-      VALUES (?, ?, ?, ?, ?, ?)
-    `).run(payId, purchaseId, d.amount, d.method, d.note, d.paid_at)
+      INSERT INTO payments (id, purchase_id, amount, method, note, paid_at, created_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?)
+    `).run(payId, purchaseId, d.amount, d.method, d.note, d.paid_at, nowTH())
 
     const newPaid = (purchase.paid_amount ?? 0) + d.amount
     db.prepare(
