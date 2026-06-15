@@ -19,6 +19,13 @@
 
 # production
 /build
+/dist
+/server/dist
+
+# local database and backups
+/server/data/*.db
+/server/data/*.db-*
+/server/data/backups/
 
 # misc
 .DS_Store
@@ -32,6 +39,8 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+!.env.example
+!server/.env.example
 
 # vercel
 .vercel

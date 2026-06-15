@@ -1,0 +1,1551 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>OWNDAYS Good Appearance and Service — Checklist</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* \uc0\u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 
+   GOOD APPEARANCE CHECKLIST v5 — OWNDAYS Thailand
+   Professional Evaluation • Brand Image & Service Experience
+   Multi-Entry • History Tracking • Optimized Backend
+   Mobile-first • Dark Theme • GAS-ready
+   \uc0\u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552  */
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  /* \uc0\u9472 \u9472  Clean Light Theme \u9472 \u9472  */
+  --bg: #F4F5F7;
+  --bg-grain: none;
+  --surface: #FFFFFF;
+  --surface2: #F8F9FB;
+  --surface3: #EEEEF2;
+  --surface-glow: rgba(37, 99, 235, 0.04);
+  --border: #DDE0E7;
+  --border-focus: #2563EB;
+
+  /* Text — high contrast */
+  --text: #111827;
+  --text2: #4B5563;
+  --text3: #9CA3AF;
+  --text-inv: #FFFFFF;
+
+  /* Semantic — vivid */
+  --accent: #2563EB;
+  --accent-soft: rgba(37, 99, 235, 0.08);
+  --pass: #059669;
+  --pass-soft: rgba(5, 150, 105, 0.08);
+  --pass-bg: #ECFDF5;
+  --fail: #DC2626;
+  --fail-soft: rgba(220, 38, 38, 0.08);
+  --fail-bg: #FEF2F2;
+  --warn: #D97706;
+  --warn-soft: rgba(217, 119, 6, 0.08);
+  --warn-bg: #FFFBEB;
+  --na: #7C3AED;
+  --na-soft: rgba(124, 58, 237, 0.08);
+  --na-bg: #F5F3FF;
+  --score0: #DC2626;
+  --score1: #D97706;
+  --score2: #059669;
+
+  /* Shape */
+  --r: 12px;
+  --r-sm: 8px;
+  --r-xs: 6px;
+
+  /* Type */
+  --sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  --mono: 'IBM Plex Mono', 'Menlo', monospace;
+
+  /* Depth */
+  --shadow-card: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-float: 0 -2px 16px rgba(0,0,0,0.08);
+  --shadow-btn: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+html { font-size: 16px; scroll-behavior: smooth; }
+
+body {
+  font-family: var(--sans);
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh; min-height: 100dvh;
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+  overflow-x: hidden;
+}
+
+/* \uc0\u9472 \u9472  Animations \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472  */
+@keyframes fadeUp { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes checkPop { 0%{transform:scale(0)} 60%{transform:scale(1.2)} 100%{transform:scale(1)} }
+
+.fade-up { animation: fadeUp 0.4s ease both; }
+
+/* \uc0\u9472 \u9472  Header \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472  */
+.header {
+  position: sticky; top: 0; z-index: 100;
+  background: rgba(255,255,255,0.92);
+  backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border);
+  padding: 14px 16px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.header-left { display: flex; align-items: center; gap: 10px; }
+.header-logo {
+  width: 36px; height: 36px;
+  background: var(--accent); border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 800; font-size: 0.9rem; color: #fff;
+  letter-spacing: -0.5px;
+}
+.header-brand { font-weight:800; font-size:1rem; letter-spacing:2px; text-transform:uppercase; color:var(--text); line-height:1.1; }
+.header-sub { font-size:0.7rem; color:var(--accent); letter-spacing:1.2px; font-family:var(--mono); font-weight:600; margin-top:2px; }
+.header-right { text-align:right; font-size:0.75rem; color:var(--text3); font-family:var(--mono); line-height:1.4; }
+
+/* \uc0\u9472 \u9472  Stepper \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472  */
+.stepper { background:var(--surface); padding:12px 16px 8px; border-bottom:1px solid var(--border); }
+.step-dots { display:flex; gap:6px; margin-bottom:8px; }
+.step-dot { flex:1; height:3px; border-radius:3px; background:var(--surface3); transition:background 0.4s, box-shadow 0.4s; }
+.step-dot.active { background:var(--accent); box-shadow:0 0 8px rgba(99,138,255,0.4); }
+.step-dot.done { background:var(--pass); }
+.step-info { display:flex; align-items:center; justify-content:space-between; }
+.step-label { font-size:0.68rem; color:var(--text3); letter-spacing:1px; font-family:var(--mono); font-weight:500; }
+.step-counter { font-size:0.65rem; color:var(--text3); font-family:var(--mono); }
+
+/* \uc0\u9472 \u9472  Container \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472  */
+.container { padding:16px; max-width:520px; margin:0 auto; }
+
+/* \uc0\u9472 \u9472  Card \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472  */
+.card {
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:var(--r); padding:18px; margin-bottom:14px;
+  box-shadow:var(--shadow-card);
+}
+.card-head { display:flex; align-items:center; gap:8px; margin-bottom:16px; }
+.card-icon {
+  width:28px; height:28px; border-radius:8px;
+  display:flex; align-items:center; justify-content:center; font-size:0.8rem;
+}
+.card-icon.blue { background:var(--accent-soft); color:var(--accent); }
+.card-icon.green { background:var(--pass-soft); color:var(--pass); }
+.card-icon.orange { background:var(--warn-soft); color:var(--warn); }
+.card-title { font-size:0.7rem; font-weight:700; color:var(--text2); text-transform:uppercase; letter-spacing:1.5px; font-family:var(--mono); }
+
+/* \uc0\u9472 \u9472  Form \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472  */
+.field { margin-bottom:14px; }
+.field:last-child { margin-bottom:0; }
+.field-label { display:block; font-size:0.88rem; color:var(--text2); margin-bottom:6px; font-weight:600; }
+.field-hint { font-size:0.75rem; color:var(--text3); margin-top:4px; font-family:var(--mono); line-height:1.5; }
+.input, .select-wrap select {
+  width:100%; padding:14px 16px;
+  background:var(--surface); border:1.5px solid var(--border);
+  border-radius:var(--r-sm); color:var(--text);
+  font-family:var(--sans); font-size:1rem; font-weight:500;
+  outline:none; transition:all 0.2s;
+  appearance:none; -webkit-appearance:none;
+}
+.input::placeholder { color:var(--text3); }
+.input:focus, .select-wrap select:focus { border-color:var(--accent); box-shadow:0 0 0 3px rgba(99,138,255,0.12); }
+.select-wrap { position:relative; }
+.select-wrap::after { content:'\uc0\u9662 '; position:absolute; right:14px; top:50%; transform:translateY(-50%); color:var(--text3); pointer-events:none; font-size:0.75rem; }
+
+/* \uc0\u9472 \u9472  Staff Info Bar \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472  */
+.staff-bar { display:grid; grid-template-columns:1fr 1fr; gap:1px; background:var(--border); border-radius:var(--r-sm); overflow:hidden; margin-bottom:16px; }
+.staff-bar-item { background:var(--surface2); padding:10px 12px; }
+.staff-bar-key { font-size:0.6rem; color:var(--text3); text-transform:uppercase; letter-spacing:1px; font-family:var(--mono); font-weight:500; }
+.staff-bar-val { font-size:0.82rem; font-weight:600; margin-top:2px; color:var(--text); }
+
+/* \uc0\u9472 \u9472  Section Header \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472  */
+.sec-header { display:flex; align-items:center; justify-content:space-between; padding:16px 0 12px; border-bottom:1px solid var(--border); margin-bottom:14px; }
+.sec-name { font-size:1.1rem; font-weight:700; }
+.sec-badge { font-family:var(--mono); font-size:0.75rem; padding:5px 12px; border-radius:8px; font-weight:700; background:var(--surface3); color:var(--text3); transition:all 0.3s; }
+
+/* \uc0\u9472 \u9472  Category Label \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472  */
+.cat-label { font-size:0.78rem; font-weight:700; color:var(--accent); text-transform:uppercase; letter-spacing:1.5px; font-family:var(--mono); margin:20px 0 12px; padding-left:12px; border-left:3px solid var(--accent); }
+
+/* \uc0\u9472 \u9472  Checklist Item \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472  */
+.ci {
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:var(--r); padding:14px 14px 12px;
+  margin-bottom:10px; transition:all 0.25s;
+  position:relative; overflow:hidden;
+}
+.ci::before {
+  content:''; position:absolute; left:0; top:0; bottom:0;
+  width:3px; background:transparent; transition:background 0.3s;
+  border-radius:3px 0 0 3px;
+}
+.ci.scored-pass::before { background:var(--pass); }
+.ci.scored-fail::before { background:var(--fail); }
+.ci.scored-na::before { background:var(--na); }
+.ci.scored-0::before { background:var(--score0); }
+.ci.scored-1::before { background:var(--score1); }
+.ci.scored-2::before { background:var(--score2); }
+.ci.scored-pass { border-color:rgba(5,150,105,0.25); background:var(--pass-bg); }
+.ci.scored-fail { border-color:rgba(220,38,38,0.25); background:var(--fail-bg); }
+.ci.scored-na { border-color:rgba(124,58,237,0.25); background:var(--na-bg); }
+
+.ci-top { display:flex; align-items:center; gap:10px; margin-bottom:12px; }
+.ci-id {
+  font-family:var(--mono); font-size:0.75rem; color:var(--accent);
+  font-weight:700; background:var(--accent-soft);
+  padding:3px 9px; border-radius:5px; flex-shrink:0;
+}
+.ci-label { font-size:1rem; font-weight:600; color:var(--text); flex:1; line-height:1.4; }
+
+/* \uc0\u9472 \u9472  Info Toggle (Criteria) \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472  */
+.ci-info-btn {
+  flex-shrink:0; width:26px; height:26px;
+  border-radius:50%; border:1.5px solid var(--border);
+  background:var(--surface2); color:var(--accent);
+  font-size:0.72rem; font-weight:800;
+  cursor:pointer; display:flex; align-items:center; justify-content:center;
+  transition:all 0.2s; font-family:var(--sans);
+}
+.ci-info-btn:active { transform:scale(0.9); }
+.ci-info-btn.open { background:var(--accent-soft); border-color:var(--accent); }
+
+.ci-detail {
+  max-height:0; overflow:hidden; opacity:0;
+  transition:max-height 0.35s ease, opacity 0.25s ease, padding 0.25s ease;
+  background:var(--surface2); border-radius:var(--r-sm);
+  margin:0 0 8px; padding:0 12px;
+  font-size:0.75rem; line-height:1.65; color:var(--text2);
+}
+.ci-detail.open {
+  max-height:600px; opacity:1; padding:10px 12px;
+  margin:8px 0 10px;
+}
+.ci-detail p { margin-bottom:6px; }
+.ci-detail p:last-child { margin-bottom:0; }
+.ci-detail strong { color:var(--text); font-weight:600; }
+.ci-detail .note {
+  color:var(--warn); font-size:0.7rem;
+  font-family:var(--mono); font-weight:500;
+}
+
+/* \uc0\u9472 \u9472  Score Buttons \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472  */
+.sbtn-row { display:flex; gap:8px; }
+.sbtn {
+  flex:1; padding:14px 6px;
+  border:2px solid var(--border); border-radius:var(--r-sm);
+  background:var(--surface); color:var(--text3);
+  font-family:var(--sans); font-size:0.92rem; font-weight:700;
+  cursor:pointer; text-align:center; transition:all 0.18s;
+  letter-spacing:0.3px; -webkit-user-select:none; user-select:none;
+  box-shadow:var(--shadow-btn);
+}
+.sbtn:active { transform:scale(0.95); }
+.sbtn.sel-pass { background:var(--pass-bg); color:var(--pass); border-color:var(--pass); box-shadow:0 0 0 3px rgba(5,150,105,0.15), var(--shadow-btn); }
+.sbtn.sel-fail { background:var(--fail-bg); color:var(--fail); border-color:var(--fail); box-shadow:0 0 0 3px rgba(220,38,38,0.15), var(--shadow-btn); }
+.sbtn.sel-na { background:#7C3AED; color:#FFFFFF; border-color:#7C3AED; box-shadow:0 0 0 3px rgba(124,58,237,0.25), var(--shadow-btn); }
+.sbtn.sel-0 { background:var(--fail-bg); color:var(--score0); border-color:var(--score0); box-shadow:0 0 0 3px rgba(220,38,38,0.15), var(--shadow-btn); }
+.sbtn.sel-1 { background:var(--warn-bg); color:var(--score1); border-color:var(--score1); box-shadow:0 0 0 3px rgba(217,119,6,0.15), var(--shadow-btn); }
+.sbtn.sel-2 { background:var(--pass-bg); color:var(--score2); border-color:var(--score2); box-shadow:0 0 0 3px rgba(5,150,105,0.15), var(--shadow-btn); }
+
+/* \uc0\u9472 \u9472  Memo Area \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472  */
+.memo-wrap {
+  margin-top:10px; max-height:0; overflow:hidden; opacity:0;
+  transition:max-height 0.35s ease, opacity 0.25s ease;
+}
+.memo-wrap.open { max-height:280px; opacity:1; }
+.memo-wrap textarea {
+  width:100%; min-height:64px; padding:10px 12px;
+  background:var(--surface2); border:1px solid var(--border);
+  border-radius:var(--r-sm); color:var(--text);
+  font-family:var(--sans); font-size:0.82rem;
+  resize:vertical; outline:none; transition:border-color 0.2s; line-height:1.5;
+}
+.memo-wrap textarea:focus { border-color:var(--accent); }
+.memo-wrap textarea::placeholder { color:var(--text3); }
+.memo-req { font-size:0.65rem; color:var(--fail); font-family:var(--mono); margin-top:4px; font-weight:500; display:none; }
+.photo-row { display:flex; align-items:center; gap:8px; margin-top:8px; }
+.photo-btn {
+  display:inline-flex; align-items:center; gap:5px;
+  padding:7px 11px; background:var(--surface3);
+  border:1px solid var(--border); border-radius:var(--r-xs);
+  color:var(--text2); font-size:0.72rem; cursor:pointer;
+  font-family:var(--sans); font-weight:500; transition:all 0.15s;
+}
+.photo-btn:active { transform:scale(0.97); }
+.photo-preview { max-width:80px; max-height:60px; border-radius:var(--r-xs); display:none; border:1px solid var(--border); }
+
+/* \uc0\u9472 \u9472  Progress Float \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472  */
+.prog-float {
+  position:fixed; bottom:0; left:0; right:0;
+  background:rgba(255,255,255,0.95);
+  backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px);
+  border-top:1px solid var(--border);
+  padding:12px 16px 16px; z-index:90;
+  box-shadow:var(--shadow-float); display:none;
+}
+.prog-row { display:flex; align-items:center; justify-content:space-between; margin-bottom:6px; }
+.prog-text { font-family:var(--mono); font-size:0.7rem; color:var(--text2); font-weight:500; }
+.prog-track { height:4px; background:var(--surface3); border-radius:4px; overflow:hidden; }
+.prog-fill { height:100%; border-radius:4px; background:linear-gradient(90deg,var(--accent),var(--pass)); transition:width 0.4s ease; width:0; }
+
+/* \uc0\u9472 \u9472  Buttons \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472  */
+.btn {
+  width:100%; padding:16px; border:none; border-radius:var(--r);
+  font-family:var(--sans); font-size:1rem; font-weight:700;
+  cursor:pointer; transition:all 0.18s; letter-spacing:0.3px;
+  -webkit-user-select:none; user-select:none;
+}
+.btn:active { transform:scale(0.98); }
+.btn:disabled { opacity:0.35; cursor:not-allowed; transform:none; }
+.btn-primary { background:var(--accent); color:#fff; box-shadow:0 4px 16px rgba(37,99,235,0.25); }
+.btn-primary:active:not(:disabled) { background:#1D4ED8; }
+.btn-secondary { background:var(--surface); color:var(--text); border:1.5px solid var(--border); margin-top:8px; }
+
+/* \uc0\u9472 \u9472  Score Display \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472  */
+.score-hero { text-align:center; padding:28px 20px; background:var(--surface); border-radius:var(--r); margin:16px 0; border:1px solid var(--border); box-shadow:var(--shadow-card); }
+.score-big { font-family:var(--mono); font-size:3.2rem; font-weight:800; line-height:1; letter-spacing:-1px; }
+.score-unit { font-size:0.4em; color:var(--text3); font-weight:600; }
+.score-title { font-size:0.7rem; color:var(--text3); letter-spacing:2px; text-transform:uppercase; font-family:var(--mono); font-weight:600; margin-top:6px; }
+.score-grid { display:grid; grid-template-columns:1fr 1fr; gap:1px; margin-top:18px; background:var(--border); border-radius:var(--r-sm); overflow:hidden; }
+.score-cell { background:var(--surface); padding:14px 10px; text-align:center; }
+.score-cell-val { font-family:var(--mono); font-size:1.3rem; font-weight:800; }
+.score-cell-lbl { font-size:0.65rem; color:var(--text3); margin-top:2px; font-family:var(--mono); }
+
+/* \uc0\u9472 \u9472  Review Items \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472  */
+.rev-item { display:flex; align-items:flex-start; gap:10px; padding:10px 0; border-bottom:1px solid var(--border); }
+.rev-item:last-child { border-bottom:none; }
+.rev-badge { font-family:var(--mono); font-size:0.6rem; padding:3px 8px; border-radius:5px; font-weight:700; white-space:nowrap; flex-shrink:0; }
+.rev-badge.fail { background:var(--fail-soft); color:var(--fail); }
+.rev-badge.s0 { background:var(--fail-soft); color:var(--score0); }
+.rev-badge.s1 { background:var(--warn-soft); color:var(--score1); }
+.rev-info { flex:1; }
+.rev-name { font-size:0.82rem; font-weight:600; }
+.rev-memo { font-size:0.72rem; color:var(--text2); margin-top:3px; font-style:italic; line-height:1.4; }
+
+/* \uc0\u9472 \u9472  Loading \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472  */
+.loading { position:fixed; inset:0; background:rgba(255,255,255,0.88); backdrop-filter:blur(8px); display:none; flex-direction:column; align-items:center; justify-content:center; z-index:200; }
+.loading.show { display:flex; }
+.spinner { width:32px; height:32px; border:3px solid var(--border); border-top-color:var(--accent); border-radius:50%; animation:spin 0.7s linear infinite; }
+.loading-msg { margin-top:12px; font-size:0.88rem; color:var(--text2); font-weight:500; }
+
+/* \uc0\u9472 \u9472  Done \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472  */
+.done-check { width:72px; height:72px; margin:0 auto 20px; background:var(--pass-soft); border-radius:50%; display:flex; align-items:center; justify-content:center; animation:checkPop 0.5s ease both; }
+.done-check svg { width:36px; height:36px; }
+
+/* \uc0\u9472 \u9472  Tabs Nav \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472  */
+.tabs { display:flex; gap:2px; background:var(--surface3); padding:4px; border-radius:var(--r); margin-bottom:16px; }
+.tab-btn {
+  flex:1; padding:12px 8px; border:none; border-radius:var(--r-sm);
+  background:transparent; color:var(--text3);
+  font-family:var(--sans); font-size:0.88rem; font-weight:700;
+  cursor:pointer; transition:all 0.2s; text-align:center;
+}
+.tab-btn.active { background:var(--surface); color:var(--accent); box-shadow:var(--shadow-card); }
+.tab-btn:active { transform:scale(0.97); }
+
+/* \uc0\u9472 \u9472  History Card \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472  */
+.hist-card {
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:var(--r); padding:14px;
+  margin-bottom:10px; cursor:pointer;
+  transition:all 0.2s; position:relative;
+}
+.hist-card:active { transform:scale(0.99); }
+.hist-card:hover { border-color:rgba(99,138,255,0.2); }
+.hist-top { display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; }
+.hist-name { font-size:0.88rem; font-weight:700; }
+.hist-score {
+  font-family:var(--mono); font-size:0.85rem; font-weight:800;
+  padding:4px 10px; border-radius:6px;
+}
+.hist-meta { display:flex; flex-wrap:wrap; gap:6px; }
+.hist-tag {
+  font-size:0.65rem; font-family:var(--mono); font-weight:500;
+  padding:3px 8px; border-radius:4px;
+  background:var(--surface2); color:var(--text3);
+}
+.hist-empty {
+  text-align:center; padding:40px 20px; color:var(--text3);
+  font-size:0.85rem;
+}
+.hist-trend { display:inline-flex; align-items:center; gap:3px; font-size:0.7rem; font-family:var(--mono); font-weight:600; }
+.hist-trend.up { color:var(--pass); }
+.hist-trend.down { color:var(--fail); }
+.hist-trend.stable { color:var(--text3); }
+
+/* \uc0\u9472 \u9472  Search Bar \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472  */
+.search-bar { position:relative; margin-bottom:12px; }
+.search-bar input { width:100%; padding:10px 14px 10px 36px; }
+.search-bar::before {
+  content:'\uc0\u55357 \u56589 '; position:absolute; left:12px; top:50%; transform:translateY(-50%);
+  font-size:0.75rem; pointer-events:none;
+}
+
+/* \uc0\u9472 \u9472  Filter Row \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472  */
+.filter-row { display:flex; gap:6px; margin-bottom:12px; flex-wrap:wrap; }
+.filter-chip {
+  padding:6px 12px; border-radius:20px;
+  background:var(--surface2); border:1px solid var(--border);
+  color:var(--text2); font-size:0.7rem; font-weight:600;
+  cursor:pointer; transition:all 0.15s; white-space:nowrap;
+  font-family:var(--sans);
+}
+.filter-chip.active { background:var(--accent-soft); color:var(--accent); border-color:var(--accent); }
+.filter-chip:active { transform:scale(0.95); }
+
+/* \uc0\u9472 \u9472  Utility \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472  */
+.hidden { display:none !important; }
+.mt-8 { margin-top:8px; }
+.mt-16 { margin-top:16px; }
+.mb-14 { margin-bottom:14px; }
+.pb-100 { padding-bottom:100px; }
+.tc { text-align:center; }
+
+::-webkit-scrollbar { width:4px; }
+::-webkit-scrollbar-track { background:transparent; }
+::-webkit-scrollbar-thumb { background:var(--surface3); border-radius:4px; }
+</style>
+</head>
+<body>
+
+<!-- \uc0\u9552 \u9552 \u9552  HEADER \u9552 \u9552 \u9552  -->
+<header class="header">
+  <div class="header-left">
+    <div class="header-logo">A+</div>
+    <div>
+      <div class="header-brand">OWNDAYS</div>
+      <div class="header-sub">GOOD APPEARANCE v5</div>
+    </div>
+  </div>
+  <div class="header-right" id="headerUser">Loading...</div>
+</header>
+
+<!-- \uc0\u9552 \u9552 \u9552  STEPPER \u9552 \u9552 \u9552  -->
+<div class="stepper">
+  <div class="step-dots">
+    <div class="step-dot" id="dot0"></div>
+    <div class="step-dot" id="dot1"></div>
+    <div class="step-dot" id="dot2"></div>
+    <div class="step-dot" id="dot3"></div>
+    <div class="step-dot" id="dot4"></div>
+  </div>
+  <div class="step-info">
+    <div class="step-label" id="stepLabel">HOME</div>
+    <div class="step-counter" id="stepCounter">1 / 5</div>
+  </div>
+</div>
+
+<!-- \uc0\u9552 \u9552 \u9552  LOADING \u9552 \u9552 \u9552  -->
+<div class="loading" id="loadingOverlay">
+  <div class="spinner"></div>
+  <div class="loading-msg" id="loadingText">Loading...</div>
+</div>
+
+<!-- \uc0\u9552 \u9552 \u9552  STEP 0: HOME (Tabs: New / History) \u9552 \u9552 \u9552  -->
+<div class="container" id="step0">
+  <div class="tabs">
+    <button class="tab-btn active" id="tabNew" onclick="switchTab('new')">+ New Evaluation</button>
+    <button class="tab-btn" id="tabHistory" onclick="switchTab('history')">\uc0\u55357 \u56523  History</button>
+  </div>
+
+  <!-- Tab: New Evaluation -->
+  <div id="tabNewContent">
+    <div class="card fade-up">
+      <div class="card-head">
+        <div class="card-icon blue">\uc0\u55357 \u56523 </div>
+        <div class="card-title">Evaluation Setup</div>
+      </div>
+    <div class="field">
+      <label class="field-label">Branch</label>
+      <div class="select-wrap">
+        <select id="selBranch" class="input">
+          <option value="">— Select Branch —</option>
+          <option value="Central Ayutthaya">Central Ayutthaya</option>
+          <option value="Central Chanthaburi">Central Chanthaburi</option>
+          <option value="Central Chiangmai">Central Chiangmai</option>
+          <option value="Central Chiangmai Airport">Central Chiangmai Airport</option>
+          <option value="Central Chiangrai">Central Chiangrai</option>
+          <option value="Central Eastville">Central Eastville</option>
+          <option value="Central Hatyai">Central Hatyai</option>
+          <option value="Central Khonkaen">Central Khonkaen</option>
+          <option value="Central Krabi">Central Krabi</option>
+          <option value="Central Lampang">Central Lampang</option>
+          <option value="Central Mahachai">Central Mahachai</option>
+          <option value="Central Nakhon Pathom">Central Nakhon Pathom</option>
+          <option value="Central Nakhon Si">Central Nakhon Si</option>
+          <option value="Central Phitsanulok">Central Phitsanulok</option>
+          <option value="Central Phuket Floresta">Central Phuket Floresta</option>
+          <option value="Central Pinklao">Central Pinklao</option>
+          <option value="Central Rama 2">Central Rama 2</option>
+          <option value="Central Rama 3">Central Rama 3</option>
+          <option value="Central Rama 9">Central Rama 9</option>
+          <option value="Central Ramindra">Central Ramindra</option>
+          <option value="Central Rayong">Central Rayong</option>
+          <option value="Central Salaya">Central Salaya</option>
+          <option value="Central Samui">Central Samui</option>
+          <option value="Central Si Racha">Central Si Racha</option>
+          <option value="Central Udon">Central Udon</option>
+          <option value="Central Village (Outlet)">Central Village (Outlet)</option>
+          <option value="Central Westgate">Central Westgate</option>
+          <option value="Central Westville">Central Westville</option>
+          <option value="CentralWorld">CentralWorld</option>
+          <option value="Charn At The Avenue">Charn At The Avenue</option>
+          <option value="Donki Mall Thonglor">Donki Mall Thonglor</option>
+          <option value="Esplanade Ratchada">Esplanade Ratchada</option>
+          <option value="Fashion Island">Fashion Island</option>
+          <option value="Gateway Bangsue">Gateway Bangsue</option>
+          <option value="Gaysorn Village Premium Store">Gaysorn Village Premium Store</option>
+          <option value="ICONSIAM">ICONSIAM</option>
+          <option value="Imperial World Samrong">Imperial World Samrong</option>
+          <option value="Lotus's Mall Makro Sathon">Lotus's Mall Makro Sathon</option>
+          <option value="Makro Sri Ayutthaya">Makro Sri Ayutthaya</option>
+          <option value="Marche Thonglor">Marche Thonglor</option>
+          <option value="Market Village Huahin">Market Village Huahin</option>
+          <option value="Maya Chiangmai">Maya Chiangmai</option>
+          <option value="MEGA Bangna">MEGA Bangna</option>
+          <option value="One Bangkok">One Bangkok</option>
+          <option value="Outlet Square Muang Thong Thani">Outlet Square Muang Thong Thani</option>
+          <option value="Park Silom">Park Silom</option>
+          <option value="Robinson Latkrabang">Robinson Latkrabang</option>
+          <option value="Robinson Lifestyle Burirum">Robinson Lifestyle Burirum</option>
+          <option value="Robinson Lifestyle Chachoengsao">Robinson Lifestyle Chachoengsao</option>
+          <option value="Robinson Lifestyle Chonburi">Robinson Lifestyle Chonburi</option>
+          <option value="Robinson Lifestyle Kanchanaburi">Robinson Lifestyle Kanchanaburi</option>
+          <option value="Robinson Lifestyle Saraburi">Robinson Lifestyle Saraburi</option>
+          <option value="Robinson Lifestyle Suphanburi">Robinson Lifestyle Suphanburi</option>
+          <option value="Robinson Lifestyle Trang">Robinson Lifestyle Trang</option>
+          <option value="Robinson Ratchaburi">Robinson Ratchaburi</option>
+          <option value="Seacon Bangkae">Seacon Bangkae</option>
+          <option value="Seacon Square">Seacon Square</option>
+          <option value="Siam Center">Siam Center</option>
+          <option value="Siam Premium Outlets">Siam Premium Outlets</option>
+          <option value="Siam Square One">Siam Square One</option>
+          <option value="Terminal 21 Pattaya">Terminal 21 Pattaya</option>
+          <option value="Terminal 21 Rama 3">Terminal 21 Rama 3</option>
+          <option value="The Glass Market Bangna">The Glass Market Bangna</option>
+          <option value="The Mall Bang Kapi">The Mall Bang Kapi</option>
+          <option value="The Mall Bangkae">The Mall Bangkae</option>
+          <option value="The Mall Korat">The Mall Korat</option>
+          <option value="True Digital Park">True Digital Park</option>
+          <option value="V-Square Plaza Nakhon Sawan">V-Square Plaza Nakhon Sawan</option>
+          <option value="Zpell @ Future Park">Zpell @ Future Park</option>
+          <option value="Head Office (HQ)">Head Office (HQ)</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="field">
+      <label class="field-label">Staff ID</label>
+      <input type="text" id="txtStaffId" class="input" placeholder="\uc0\u3648 \u3594 \u3656 \u3609  2786">
+    </div>
+
+    <div class="field">
+      <label class="field-label">Staff Name</label>
+      <input type="text" id="txtStaffName" class="input" placeholder="\uc0\u3585 \u3619 \u3629 \u3585 \u3648 \u3593 \u3614 \u3634 \u3632 \u3594 \u3639 \u3656 \u3629 \u3648 \u3621 \u3656 \u3609  \u3648 \u3594 \u3656 \u3609  Jame">
+    </div>
+
+    <div class="field">
+      <label class="field-label">Grade</label>
+      <div class="select-wrap">
+        <select id="selGrade" class="input" onchange="onGradeChange()">
+          <option value="">— Select Grade —</option>
+          <option value="NJJ">NJJ</option>
+          <option value="Junior">Junior</option>
+          <option value="Senior">Senior</option>
+          <option value="Manager">Manager</option>
+          <option value="__other__">Other (\uc0\u3650 \u3611 \u3619 \u3604 \u3619 \u3632 \u3610 \u3640 )</option>
+        </select>
+      </div>
+      <div id="gradeOtherWrap" style="display:none;margin-top:8px;">
+        <input type="text" id="txtGradeOther" class="input" placeholder="\uc0\u3619 \u3632 \u3610 \u3640  Grade \u3648 \u3594 \u3656 \u3609  Specialist, Area Manager">
+      </div>
+    </div>
+
+    <div class="field">
+      <label class="field-label">Area</label>
+      <div class="select-wrap">
+        <select id="selChecker" class="input" onchange="onCheckerChange()">
+          <option value="">— Select Area —</option>
+          <option value="Mega Store">Mega Store</option>
+          <option value="Chock - Central Area (Pupil)">Chock - Central Area (Pupil)</option>
+          <option value="Aom - Metropolitan (Juji)">Aom - Metropolitan (Juji)</option>
+          <option value="Chock - Metropolitan (Ton)">Chock - Metropolitan (Ton)</option>
+          <option value="Chock - Northern Area (Mink)">Chock - Northern Area (Mink)</option>
+          <option value="Aom - Eastern Area (Bow)">Aom - Eastern Area (Bow)</option>
+          <option value="Aom - Southern Area (Mon)">Aom - Southern Area (Mon)</option>
+          <option value="Aom - Northeast Area (Champ)">Aom - Northeast Area (Champ)</option>
+          <option value="Chock - Western Area (Meelap)">Chock - Western Area (Meelap)</option>
+          <option value="__other__">Other (\uc0\u3619 \u3632 \u3610 \u3640 \u3594 \u3639 \u3656 \u3629 )</option>
+        </select>
+      </div>
+      <div id="checkerOtherWrap" style="display:none;margin-top:8px;">
+        <input type="text" id="txtCheckerOther" class="input" placeholder="\uc0\u3619 \u3632 \u3610 \u3640  Area \u3648 \u3594 \u3656 \u3609  Aom - Special Area (Name)">
+      </div>
+    </div>
+
+    <div class="field">
+      <label class="field-label">Checker by</label>
+      <div class="select-wrap">
+        <select id="selCheckerBy" class="input" onchange="onCheckerByChange()">
+          <option value="">— Select Checker —</option>
+          <option value="Peanut (Regional TH,KH,LA)">Peanut (Regional TH,KH,LA)</option>
+          <option value="Jame (Regional TH,KH,LA)">Jame (Regional TH,KH,LA)</option>
+          <option value="Jib (Optical & Service)">Jib (Optical &amp; Service)</option>
+          <option value="Judy (Sales & Service)">Judy (Sales &amp; Service)</option>
+          <option value="Dr.Fair (Optometry & Service)">Dr.Fair (Optometry &amp; Service)</option>
+          <option value="Pui (Sales & Service)">Pui (Sales &amp; Service)</option>
+          <option value="Jajah (Optical & Service)">Jajah (Optical &amp; Service)</option>
+          <option value="Jets (Sales & Service)">Jets (Sales &amp; Service)</option>
+          <option value="Kio (Optical & Service)">Kio (Optical &amp; Service)</option>
+          <option value="Toy (Optical & Service)">Toy (Optical &amp; Service)</option>
+          <option value="Kwang (Optical & Service)">Kwang (Optical &amp; Service)</option>
+          <option value="Nueng (Sales & Service)">Nueng (Sales &amp; Service)</option>
+          <option value="Trin (Sales & Service)">Trin (Sales &amp; Service)</option>
+          <option value="Tonpalm (Sales & Service)">Tonpalm (Sales &amp; Service)</option>
+          <option value="Mark (Optical & Service)">Mark (Optical &amp; Service)</option>
+          <option value="Dr.Benz (Optometry & Service)">Dr.Benz (Optometry &amp; Service)</option>
+          <option value="Dr.Milk (Optometry & Service)">Dr.Milk (Optometry &amp; Service)</option>
+          <option value="Dr.Lookaew (Optometry & Service)">Dr.Lookaew (Optometry &amp; Service)</option>
+          <option value="__other__">Other (\uc0\u3619 \u3632 \u3610 \u3640 \u3594 \u3639 \u3656 \u3629  \u3649 \u3621 \u3632  position)</option>
+        </select>
+      </div>
+      <div id="checkerByOtherWrap" style="display:none;margin-top:8px;">
+        <input type="text" id="txtCheckerByOther" class="input" placeholder="\uc0\u3619 \u3632 \u3610 \u3640 \u3594 \u3639 \u3656 \u3629  \u3649 \u3621 \u3632  position \u3648 \u3594 \u3656 \u3609  Somchai (Store Manager)">
+      </div>
+    </div>
+
+    <div class="field">
+      <label class="field-label">Evaluation Date</label>
+      <input type="date" id="selDate" class="input">
+    </div>
+  </div>
+  <button class="btn btn-primary" onclick="goToStep2()">Start Evaluation \uc0\u8594 </button>
+  </div><!-- /tabNewContent -->
+
+  <!-- Tab: History -->
+  <div id="tabHistoryContent" class="hidden">
+    <div class="search-bar">
+      <input type="text" id="histSearch" class="input" placeholder="Search staff name or ID..." oninput="searchHistory(this.value)">
+    </div>
+    <div class="filter-row">
+      <button class="filter-chip active" data-filter="all" onclick="filterHistory('all', this)">All</button>
+      <button class="filter-chip" data-filter="today" onclick="filterHistory('today', this)">Today</button>
+      <button class="filter-chip" data-filter="week" onclick="filterHistory('week', this)">This Week</button>
+      <button class="filter-chip" data-filter="month" onclick="filterHistory('month', this)">This Month</button>
+    </div>
+    <div id="historyList">
+      <div class="hist-empty">Loading history...</div>
+    </div>
+  </div><!-- /tabHistoryContent -->
+</div><!-- /step0 -->
+
+<!-- \uc0\u9552 \u9552 \u9552  STEP 1: FILL CHECKLIST \u9552 \u9552 \u9552  -->
+<div class="container hidden pb-100" id="step1">
+  <div id="staffInfoBar"></div>
+  <div id="checklistBody"></div>
+</div>
+
+<!-- Progress Float -->
+<div class="prog-float" id="progFloat">
+  <div class="prog-row">
+    <span class="prog-text" id="progCount">0 / 0</span>
+    <span class="prog-text" id="progPct">0%</span>
+  </div>
+  <div class="prog-track"><div class="prog-fill" id="progFill"></div></div>
+  <button class="btn btn-primary mt-8" id="btnReview" onclick="goToStep3()" disabled>Review Evaluation \uc0\u8594 </button>
+</div>
+
+<!-- \uc0\u9552 \u9552 \u9552  STEP 2: REVIEW \u9552 \u9552 \u9552  -->
+<div class="container hidden" id="step2">
+  <div id="reviewContent"></div>
+  <button class="btn btn-primary mb-14" onclick="submitEvaluation()" id="btnSubmit">\uc0\u10003  Submit Evaluation</button>
+  <button class="btn btn-secondary" onclick="backToStep1()">\uc0\u8592  Back to Edit</button>
+</div>
+
+<!-- \uc0\u9552 \u9552 \u9552  STEP 3: DONE \u9552 \u9552 \u9552  -->
+<div class="container hidden" id="step3">
+  <div id="doneContent"></div>
+</div>
+
+<!-- \uc0\u9552 \u9552 \u9552  STEP 4: DETAIL VIEW \u9552 \u9552 \u9552  -->
+<div class="container hidden" id="step4">
+  <div id="detailContent"></div>
+  <button class="btn btn-secondary mt-16" onclick="setStep(0)">\uc0\u8592  Back to Home</button>
+</div>
+
+<script>
+// \uc0\u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 
+// GOOD APPEARANCE CHECKLIST v5 — Client Logic
+// Multi-Entry + History Tracking + Optimized Backend
+// \uc0\u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 
+
+// \uc0\u9472 \u9472  Checklist Definition with Google Form Criteria \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 
+// ** \uc0\u3586 \u3657 \u3629 \u3617 \u3641 \u3621 \u3592 \u3634 \u3585  Google Form: Brand Image + Service Experience **
+
+const CHECKLIST_DEF = {
+  brandImage: {
+    label: 'Brand Image Standard',
+    items: [
+      {
+        id: 'B01', category: 'Uniform', label: 'Blazer', type: 'passfail',
+        detail: '<strong>Blazer</strong> must be clean and well-presented.<br>When wearing a blazer, the inner shirt must be a black polo or a black crew-neck t-shirt.<br>Do not pull sleeves up to the middle of the arm.<p class="note">* Black crew-neck t-shirt: Material is cotton. The inner shirt must be made of smooth, wrinkle-free fabric. If the inner shirt is too long, it must be tucked into the trousers (No patterns are permitted).</p>'
+      },
+      {
+        id: 'B02', category: 'Uniform', label: 'Polo', type: 'passfail',
+        detail: '<strong>Polo</strong> must be clean and well-presented.<br>All 4 buttons of the polo shirt must be buttoned.<p class="note">* Polo shirts that are excessively long must be tucked into the trousers at all times.</p>'
+      },
+      {
+        id: 'B03', category: 'Uniform', label: 'Pockets', type: 'passfail',
+        detail: '<strong>Pockets</strong> — Do not place pens, glasses, clothing, or any other items in the chest pockets of blazers and polo shirts.'
+      },
+      {
+        id: 'B04', category: 'Uniform', label: 'Name Tag', type: 'passfail',
+        detail: '<strong>Name Tag</strong> must be in good condition and clean. Must be worn on the opposite side of the shirt pocket.<br>The tag should align horizontally with the top edge of the pocket and not be positioned too high or too low.'
+      },
+      {
+        id: 'B05', category: 'Uniform', label: 'Glasses', type: 'passfail',
+        detail: '<strong>Glasses</strong> must be kept clean and free of any pen marks.'
+      },
+      {
+        id: 'B06', category: 'Uniform', label: 'Glasses with Blazer', type: 'passfail',
+        detail: '<strong>With Blazer</strong> — If wearing glasses, wear them properly.<br>If not wearing your glasses, store them neatly in your personal locker.'
+      },
+      {
+        id: 'B07', category: 'Uniform', label: 'Glasses with Polo', type: 'passfail',
+        detail: '<strong>With Polo</strong> — If wearing glasses, wear them properly.<br>If not wearing your glasses, hang them on the second button from the bottom of the polo.'
+      },
+      {
+        id: 'B08', category: 'Uniform', label: 'Microfiber Cloth', type: 'passfail',
+        detail: '<strong>Cloth</strong> must be in good condition and clean, odor-free, and ready for use at all times.'
+      },
+      {
+        id: 'B09', category: 'Uniform', label: 'Gold Badge Pin', type: 'passfail',
+        detail: '<strong>Pin arrangement</strong> — Pins must be in good condition and arranged in the correct order.<br>When wearing a blazer shirt, the Language pin must be placed at the bottom, the Gold badge pin in the middle, and the Grade pin at the top.<p class="note">* If the language pin is not worn, the badge pin must be attached starting from the lowest hole.</p>'
+      },
+      {
+        id: 'B10', category: 'Uniform', label: 'Grade Pin', type: 'passfail',
+        detail: '<strong>Grade Pin</strong> — Must be in good condition and arranged in the correct order following the standard pin placement.'
+      },
+      {
+        id: 'B11', category: 'Uniform', label: 'Language Pin', type: 'passfail',
+        detail: '<strong>Language Pin</strong> — Must be placed at the bottom position when wearing a blazer. If not worn, other pins shift down accordingly.'
+      },
+      {
+        id: 'B12', category: 'Appearance', label: 'Hair', type: 'passfail',
+        detail: '<strong>Hair</strong> must be neat, with no hair covering the face, not frizzy, and without visibly greasy or oily appearance.'
+      },
+      {
+        id: 'B13', category: 'Appearance', label: 'Hair Dye', type: 'passfail',
+        detail: '<strong>Hair Dye</strong> — Hair color is permitted only in accordance with the approved color chart. Hair highlights are not permitted.<p class="note">* New growth must not exceed 2 cm for men or 5 cm for women.</p>'
+      },
+      {
+        id: 'B14', category: 'Appearance', label: 'Hijabs', type: 'passfail',
+        detail: '<strong>Hijabs</strong> — Permitted in black, navy blue, brown, dark gray, pastel, or earth tones. White is allowed if kept clean.'
+      },
+      {
+        id: 'B15', category: 'Appearance', label: 'Hair Accessories', type: 'passfail',
+        detail: '<strong>Hair Accessories</strong> — Hair ties must not be spiral-shaped and must be black, brown, or navy. Fancy hair clips are not permitted.<p class="note">* The thickness of hair ties must not exceed 1 cm.</p>'
+      },
+      {
+        id: 'B16', category: 'Appearance', label: 'Male – Face', type: 'passfail',
+        detail: '<strong>Male</strong> must maintain a neat and clean facial appearance. Light, natural-looking makeup is permitted.<p class="note">* Facial hair, including mustaches and beards, is not permitted.</p>'
+      },
+      {
+        id: 'B17', category: 'Appearance', label: 'Female – Makeup', type: 'passfail',
+        detail: '<strong>Female</strong> must wear natural-look makeup; excessively bright or flashy makeup is not permitted. No makeup is not permitted.'
+      },
+      {
+        id: 'B18', category: 'Appearance', label: 'Nails – Male', type: 'passfail',
+        detail: '<strong>Nails</strong> must be short (not extending past the fingertips) and clean.<br><strong>Male:</strong> Clear or syrup-tone healthy nail polish is permitted. Nail art and decorative accessories are strictly prohibited.'
+      },
+      {
+        id: 'B19', category: 'Appearance', label: 'Nails – Female', type: 'passfail',
+        detail: '<strong>Nails</strong> must be short and clean.<br><strong>Female:</strong> Colors must be polite (nude tones, gel, marble, ombr'e9, shimmer, or syrup types) and not too flashy. Powdered Pearl Nails, Mirror Nails, glitter, nail art and decorative accessories are strictly prohibited.<p class="note">* If colored nails show regrowth exceeding 3 mm at the nail root, must be removed or redone.</p>'
+      },
+      {
+        id: 'B20', category: 'Appearance', label: 'Tattoo', type: 'passfail',
+        detail: '<strong>Tattoo</strong> — Visible tattoos are allowed in only 1 spot with a maximum size of 3'd73 cm. Larger tattoos must be covered with a black arm sleeve. Permitted below the collarbone; tattoos on the neck or behind ears are not permitted.<p class="note">* Tattoos related to cults or beliefs must not be visible outside the uniform.</p>'
+      },
+      {
+        id: 'B21', category: 'Appearance', label: 'Pants', type: 'passfail',
+        detail: '<strong>Pants</strong> — Permitted in conservative colors or earth/nude tones, with a maximum of four pockets (2 front and 2 back). Fabric types such as textured cotton or denim are allowed, provided they are not torn, ripped, or stained. Pants must be plain, clean, neatly pressed, and free of wrinkles. Logos, patterns, embroidery, and rips are not permitted. Trouser hems may be folded, but the seam and thread colors must not be overly contrasting.<p class="note">* Jumpsuits, sportswear fabrics, animal fur, glossy leather, and wide-legged yukata pants are not permitted.</p>'
+      },
+      {
+        id: 'B22', category: 'Appearance', label: 'Skirts', type: 'passfail',
+        detail: '<strong>Skirts</strong> — Permitted in conservative colors or earth/nude tones. Allowed if longer than knee-length. If shorter, leggings must be worn.<p class="note">* Leggings are permitted in black only.</p>'
+      },
+      {
+        id: 'B23', category: 'Appearance', label: 'Shoes', type: 'passfail',
+        detail: '<strong>Shoes</strong> must be in good condition and clean. Only closed-heel shoes are permitted. Trendy or colorful shoes are allowed, but should not be overly contrasting in color.<p class="note">* High-ankle shoes are not permitted as they may interfere with work performance.</p>'
+      },
+      {
+        id: 'B24', category: 'Appearance', label: 'Socks', type: 'passfail',
+        detail: '<strong>Socks</strong> must be in polite colors, such as pastel or earth tones. Small patterns, including logos or brand names, are permitted, provided they do not exceed 3'd73 cm in size.<p class="note">* Loud, bold, or fashionable prints (leopard print, character designs, checkered, polka dot, striped patterns) are strictly prohibited.</p>'
+      },
+      {
+        id: 'B25', category: 'Appearance', label: 'Body Hygiene', type: 'passfail',
+        detail: '<strong>Body Hygiene</strong> — Proper personal hygiene must be maintained at all times, particularly regarding cigarette odor, bad breath, and body odor.'
+      },
+      {
+        id: 'B26', category: 'Appearance', label: 'Earrings', type: 'passfail',
+        detail: '<strong>Earrings</strong> — Only female staff are permitted to wear earrings. Only minimal-style earrings are allowed. Female staff may wear hoops with a maximum diameter of 1 cm. One item is permitted on each side. Male are not allowed to wear any earrings.<p class="note">* Any temporary stud earrings, whether clear or colored, are not permitted.</p>'
+      },
+      {
+        id: 'B27', category: 'Appearance', label: 'Rings', type: 'passfail',
+        detail: '<strong>Rings</strong> — Only minimal-style rings are permitted, with a maximum of two rings in total (one on each hand or both on one hand). The Width and Height of rings must not exceed 7 mm.'
+      },
+      {
+        id: 'B28', category: 'Appearance', label: 'Bracelets + Watch', type: 'passfail',
+        detail: '<strong>Bracelets + Watch</strong> — Only minimal styles are permitted. A maximum of two items in total is allowed (bracelets and/or watch combined). One per wrist; wearing two bracelets on the same wrist is not permitted. Neon style is not permitted. Bracelets with dangling parts are permitted, but the length must not exceed 1.5 cm for safety reasons.<p class="note">* Wrist cords or holy strings are not permitted.</p>'
+      },
+      {
+        id: 'B29', category: 'Appearance', label: 'Necklaces', type: 'passfail',
+        detail: '<strong>Necklaces</strong> must be minimal style. Only one necklace is permitted. Necklaces must be plain in color (gold, silver, rose gold, or black) and must not contain any colored stones. Religious necklaces are permitted, limited to one pendant only.<p class="note">* Wrist cords or holy strings are not permitted.</p>'
+      }
+    ]
+  },
+  serviceExperience: {
+    label: 'Service Experience Standard',
+    items: [
+      {
+        id: 'S01', category: 'Body Language', label: 'Hand Gesture', type: 'passfail',
+        detail: '<strong>Hand Gesture</strong> — Maintain an open-hand posture; do not cross arms or place hands in pockets. Use an open-hand gesture instead of pointing. When indicating objects at close range, use two fingers (the index and middle fingers).'
+      },
+      {
+        id: 'S02', category: 'Body Language', label: 'Smile', type: 'passfail',
+        detail: '<strong>Smile</strong> — Always put on smiles. Use a smile and maintain appropriate eye contact when greeting or speaking with customers.'
+      },
+      {
+        id: 'S03', category: 'Body Language', label: 'Manner & Behaviors', type: 'passfail',
+        detail: '<strong>Manner & Behaviors</strong> — Do not rub or scratch the face, neck, or hands. Do not touch or play with hair. Singing or humming is not allowed in the shop.'
+      },
+      {
+        id: 'S04', category: 'Professional Presence', label: 'Posture & Positioning', type: 'passfail',
+        detail: '<strong>Posture & Positioning</strong> — Do not block the store entrance. Moves around in the shop instead of standing in one place. When not attending to a customer, staff must actively look for tasks to perform, such as wiping merchandise in the showcases, tidying the shop, or rearranging the display. Do not gather in groups to chat. Do not appear absentminded.<p class="note">* Eating and drinking are allowed in the staff room only, not to be recognised by customers.</p>'
+      },
+      {
+        id: 'S05', category: 'Professional Presence', label: 'Standing Posture', type: 'passfail',
+        detail: '<strong>Standing Posture</strong> — Stand still with the back straight and professionally. Do not put your weight on either foot but keep balance on both feet. Do not shake or fidget the legs or bounce on the feet. Do not lean against the walls/equipment or rest your elbows on the table.'
+      },
+      {
+        id: 'S06', category: 'Professional Presence', label: 'Sitting Posture', type: 'passfail',
+        detail: '<strong>Sitting Posture</strong> — Do not sit on the floor in any cases. Working posture in a low position: when conversing with customers seated on a sofa, staff must adopt a polite posture by placing one knee raised while keeping the other foot firmly on the floor. Staff must sit politely and professionally, maintaining an upright posture with both feet placed properly on the floor.<p class="note">* When sitting on a chair during the eye examination — do not slouch, cross legs excessively, or adopt relaxed postures that may appear unprofessional.</p>'
+      },
+      {
+        id: 'S07', category: 'Professional Presence', label: 'Product Handling', type: 'passfail',
+        detail: '<strong>Product Handling</strong> — Always use both hands when presenting products to customers and when passing or receiving items. A black tray must be used as the first priority when handling customers\' glasses. (If no black tray is available, place it only on the cloth.) If a product must be held with one hand, the other hand must be placed neatly alongside. Customers\' existing glasses must always be placed on a tray.<p class="note">* Never place glasses directly on tables or hold them with bare hands.</p>'
+      },
+      {
+        id: 'S08', category: 'Greeting & Sending', label: 'Sending Customers Off', type: 'passfail',
+        detail: '<strong>Sending Customers Off</strong> — When a customer leaves the shop, see them off politely. All staff should acknowledge departing customers, even if they were not directly serving them.'
+      },
+      {
+        id: 'S09', category: 'Customer Engagement', label: 'Initiative', type: 'scale',
+        detail: '<strong>Initiative</strong> — Evaluate whether staff proactively approaches and assists customers without being prompted.<br><strong>0</strong> = No initiative shown<br><strong>1</strong> = Some initiative, needs improvement<br><strong>2</strong> = Consistently proactive and helpful'
+      },
+      {
+        id: 'S10', category: 'Customer Engagement', label: 'Empathy', type: 'scale',
+        detail: '<strong>Empathy</strong> — Evaluate whether staff shows genuine understanding and care for customer needs.<br><strong>0</strong> = No empathy shown<br><strong>1</strong> = Some empathy, needs improvement<br><strong>2</strong> = Consistently empathetic and understanding'
+      },
+      {
+        id: 'S11', category: 'Customer Engagement', label: 'Confidence with Politeness', type: 'scale',
+        detail: '<strong>Confidence with Politeness</strong> — Evaluate whether staff communicates with both confidence and courtesy.<br><strong>0</strong> = Lacks confidence or politeness<br><strong>1</strong> = Moderate confidence/politeness<br><strong>2</strong> = Excellent confidence with polite manner'
+      },
+      {
+        id: 'S12', category: 'Customer Engagement', label: 'Customer Interaction', type: 'scale',
+        detail: '<strong>Customer Interaction</strong> — Evaluate overall quality of engagement with customers throughout their visit.<br><strong>0</strong> = Poor interaction<br><strong>1</strong> = Adequate, needs improvement<br><strong>2</strong> = Excellent customer engagement'
+      },
+      {
+        id: 'S13', category: 'Communication Skills', label: 'Clarity', type: 'scale',
+        detail: '<strong>Clarity</strong> — Speak clearly using an appropriate pace and tone of voice. Avoid a shaky or trembling voice; maintain a calm and steady tone.<br><strong>0</strong> = Unclear communication<br><strong>1</strong> = Moderate clarity<br><strong>2</strong> = Clear and professional'
+      },
+      {
+        id: 'S14', category: 'Communication Skills', label: 'Language', type: 'scale',
+        detail: '<strong>Language</strong> — Always use polite and respectful language when communicating.<br><strong>0</strong> = Impolite or inappropriate language<br><strong>1</strong> = Mostly polite, some lapses<br><strong>2</strong> = Consistently polite and respectful'
+      },
+      {
+        id: 'S15', category: 'Active Listening & Response', label: 'Listening', type: 'scale',
+        detail: '<strong>Listening</strong> — Practice active listening and refrain from interrupting others.<br><strong>0</strong> = Poor listening, frequent interruptions<br><strong>1</strong> = Adequate listening<br><strong>2</strong> = Excellent active listening'
+      },
+      {
+        id: 'S16', category: 'Greeting & Sending', label: 'Echo', type: 'scale',
+        detail: '<strong>Echo Greeting</strong> — Whenever a customer enters the shop, greet them by saying "Welcome to OWNDAYS" while looking at them, using a warm, welcoming, and slightly echoing tone. Practice "Echo Greetings" among colleagues at all times — a sequence of greetings where you follow your colleague(s).<p class="note">* This is not necessary while attending to a customer.</p><br><strong>0</strong> = No greeting<br><strong>1</strong> = Partial greeting<br><strong>2</strong> = Full echo greeting consistently'
+      },
+      {
+        id: 'S17', category: 'Greeting & Sending', label: 'Thank You', type: 'scale',
+        detail: '<strong>Thank You</strong> — When a customer leaves the shop, see them off by saying "Thank you very much," even if they were only browsing. All staff should thank customers, even if they were not directly serving them.<br><strong>0</strong> = No thank you<br><strong>1</strong> = Inconsistent<br><strong>2</strong> = Consistent "Thank you" to all leaving customers'
+      },
+      {
+        id: 'S18', category: 'Communication Skills', label: 'Calling', type: 'scale',
+        detail: '<strong>Calling</strong> — <strong>Incoming:</strong> "Hello. Thank you for calling. OWNDAYS (outlet) this is [your name] here. How can I assist you?"<br><strong>Outgoing:</strong> "Hello. I\'m ....... calling from OWNDAYS (outlet). Could I speak to Mr./Ms. (recipient) please?" Inform about glasses ready for collection with shop operating hours.<p class="note">* Staff do not hang up abruptly. Wait for the customer to end the call first. If the customer does not hang up within 5 seconds, politely ask for permission before ending the call.</p><br><strong>0</strong> = Incorrect phone etiquette<br><strong>1</strong> = Partial compliance<br><strong>2</strong> = Full phone etiquette observed'
+      }
+    ]
+  }
+};
+
+// \uc0\u9472 \u9472  State \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 
+let currentUser = null;
+let config = null;
+let checklist = CHECKLIST_DEF;
+let scores = {};
+let selectedStaff = null;
+let historyData = [];
+let historyFiltered = [];
+
+const GRADE_WEIGHTS = {
+  'NJJ':     { critical: 0.70, nonCritical: 0.30 },
+  'Junior':  { critical: 0.60, nonCritical: 0.40 },
+  'Senior':  { critical: 0.50, nonCritical: 0.50 },
+  'Manager': { critical: 0.50, nonCritical: 0.50 }
+};
+const DEFAULT_WEIGHTS = { critical: 0.50, nonCritical: 0.50 };
+
+// \uc0\u9472 \u9472  Init \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 
+function init() {
+  document.getElementById('selDate').value = new Date().toISOString().split('T')[0];
+  setStep(0);
+
+  if (typeof google !== 'undefined' && google.script) {
+    showLoading('Loading...');
+    google.script.run
+      .withSuccessHandler(function(user) {
+        currentUser = user;
+        document.getElementById('headerUser').innerHTML = user
+          ? esc(user.name) + '<br><span style="color:var(--accent)">' + esc(user.role) + '</span>'
+          : 'Unknown';
+        hideLoading();
+        loadHistory();
+      })
+      .withFailureHandler(handleError)
+      .getCurrentUser();
+  } else {
+    document.getElementById('headerUser').innerHTML = 'Standalone<br><span style="color:var(--accent)">Preview</span>';
+    document.getElementById('historyList').innerHTML = '<div class="hist-empty">History available in production mode</div>';
+  }
+}
+
+// \uc0\u9472 \u9472  Checker Other toggle \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 
+function onCheckerChange() {
+  const sel = document.getElementById('selChecker');
+  const wrap = document.getElementById('checkerOtherWrap');
+  wrap.style.display = (sel.value === '__other__') ? 'block' : 'none';
+  if (sel.value !== '__other__') {
+    document.getElementById('txtCheckerOther').value = '';
+  }
+}
+
+function getCheckerValue() {
+  const sel = document.getElementById('selChecker').value;
+  if (sel === '__other__') {
+    return document.getElementById('txtCheckerOther').value.trim();
+  }
+  return sel;
+}
+
+// \uc0\u9472 \u9472  Checker By toggle \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 
+function onCheckerByChange() {
+  const sel = document.getElementById('selCheckerBy');
+  const wrap = document.getElementById('checkerByOtherWrap');
+  wrap.style.display = (sel.value === '__other__') ? 'block' : 'none';
+  if (sel.value !== '__other__') {
+    document.getElementById('txtCheckerByOther').value = '';
+  }
+}
+
+function getCheckerByValue() {
+  const sel = document.getElementById('selCheckerBy').value;
+  if (sel === '__other__') {
+    return document.getElementById('txtCheckerByOther').value.trim();
+  }
+  return sel;
+}
+
+// \uc0\u9472 \u9472  Grade Other toggle \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 
+function onGradeChange() {
+  const sel = document.getElementById('selGrade');
+  const wrap = document.getElementById('gradeOtherWrap');
+  wrap.style.display = (sel.value === '__other__') ? 'block' : 'none';
+  if (sel.value !== '__other__') {
+    document.getElementById('txtGradeOther').value = '';
+  }
+}
+
+function getGradeValue() {
+  const sel = document.getElementById('selGrade').value;
+  if (sel === '__other__') {
+    return document.getElementById('txtGradeOther').value.trim();
+  }
+  return sel;
+}
+
+function showLoading(msg) {
+  document.getElementById('loadingText').textContent = msg || 'Loading...';
+  document.getElementById('loadingOverlay').classList.add('show');
+}
+function hideLoading() { document.getElementById('loadingOverlay').classList.remove('show'); }
+function handleError(err) { hideLoading(); alert('Error: ' + (err.message || err)); }
+
+// \uc0\u9472 \u9472  Step Nav (5 steps: Home \u8594  Fill \u8594  Review \u8594  Done \u8594  Detail) \u9472 \u9472 
+const STEP_LABELS = ['HOME','FILL CHECKLIST','REVIEW','COMPLETE','DETAIL VIEW'];
+
+function setStep(n) {
+  ['step0','step1','step2','step3','step4'].forEach((id, i) => {
+    document.getElementById(id).classList.toggle('hidden', i !== n);
+  });
+  for (let i = 0; i < 5; i++) {
+    const dot = document.getElementById('dot' + i);
+    dot.classList.remove('active','done');
+    if (i < n) dot.classList.add('done');
+    if (i === n) dot.classList.add('active');
+  }
+  document.getElementById('stepLabel').textContent = STEP_LABELS[n];
+  document.getElementById('stepCounter').textContent = (n + 1) + ' / 5';
+  document.getElementById('progFloat').style.display = (n === 1) ? 'block' : 'none';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// \uc0\u9472 \u9472  Tab Switching \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 
+function switchTab(tab) {
+  document.getElementById('tabNew').classList.toggle('active', tab === 'new');
+  document.getElementById('tabHistory').classList.toggle('active', tab === 'history');
+  document.getElementById('tabNewContent').classList.toggle('hidden', tab !== 'new');
+  document.getElementById('tabHistoryContent').classList.toggle('hidden', tab !== 'history');
+  if (tab === 'history') loadHistory();
+}
+
+// \uc0\u9472 \u9472  History \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 
+function loadHistory() {
+  if (typeof google === 'undefined' || !google.script) return;
+  document.getElementById('historyList').innerHTML = '<div class="hist-empty" style="animation:pulse 1s infinite">Loading history...</div>';
+
+  google.script.run
+    .withSuccessHandler(function(result) {
+      historyData = result.sessions || [];
+      historyFiltered = [...historyData];
+      renderHistory();
+    })
+    .withFailureHandler(function() {
+      document.getElementById('historyList').innerHTML = '<div class="hist-empty">Failed to load history</div>';
+    })
+    .getHistory({ limit: 100 });
+}
+
+function renderHistory() {
+  const list = document.getElementById('historyList');
+  if (historyFiltered.length === 0) {
+    list.innerHTML = '<div class="hist-empty">No evaluations found</div>';
+    return;
+  }
+
+  let html = '';
+  historyFiltered.forEach(s => {
+    const color = s.totalScore >= 85 ? 'var(--pass)' : s.totalScore >= 50 ? 'var(--warn)' : 'var(--fail)';
+    const bgColor = s.totalScore >= 85 ? 'var(--pass-soft)' : s.totalScore >= 50 ? 'var(--warn-soft)' : 'var(--fail-soft)';
+    const dateStr = s.evalDate ? String(s.evalDate).substring(0, 10) : '';
+
+    html += '<div class="hist-card" onclick="viewSession(\'' + esc(s.sessionId) + '\',' + s.totalScore + ',' + s.brandImageScore + ',' + s.serviceScore + ',\'' + esc(s.staffName) + '\',\'' + esc(s.branch) + '\',\'' + esc(s.grade) + '\',\'' + esc(s.checker) + '\',\'' + dateStr + '\')">' +
+      '<div class="hist-top">' +
+        '<div class="hist-name">' + esc(s.staffName) + '</div>' +
+        '<div class="hist-score" style="color:' + color + ';background:' + bgColor + '">' + s.totalScore + '%</div>' +
+      '</div>' +
+      '<div class="hist-meta">' +
+        '<span class="hist-tag">' + esc(s.branch) + '</span>' +
+        '<span class="hist-tag">' + esc(s.grade) + '</span>' +
+        '<span class="hist-tag">' + esc(s.checker) + '</span>' +
+        '<span class="hist-tag">' + dateStr + '</span>' +
+        (s.failCount > 0 ? '<span class="hist-tag" style="color:var(--fail)">' + s.failCount + ' fail</span>' : '') +
+      '</div>' +
+    '</div>';
+  });
+  list.innerHTML = html;
+}
+
+function searchHistory(query) {
+  const q = query.toLowerCase().trim();
+  if (!q) { historyFiltered = [...historyData]; }
+  else {
+    historyFiltered = historyData.filter(s =>
+      s.staffName.toLowerCase().includes(q) ||
+      s.staffId.toLowerCase().includes(q) ||
+      s.branch.toLowerCase().includes(q) ||
+      s.checker.toLowerCase().includes(q)
+    );
+  }
+  renderHistory();
+}
+
+function filterHistory(period, btn) {
+  document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+
+  const now = new Date();
+  const todayStr = now.toISOString().split('T')[0];
+
+  if (period === 'all') {
+    historyFiltered = [...historyData];
+  } else if (period === 'today') {
+    historyFiltered = historyData.filter(s => String(s.evalDate).substring(0, 10) === todayStr);
+  } else if (period === 'week') {
+    const weekAgo = new Date(now); weekAgo.setDate(weekAgo.getDate() - 7);
+    historyFiltered = historyData.filter(s => new Date(s.evalDate) >= weekAgo);
+  } else if (period === 'month') {
+    const monthAgo = new Date(now); monthAgo.setMonth(monthAgo.getMonth() - 1);
+    historyFiltered = historyData.filter(s => new Date(s.evalDate) >= monthAgo);
+  }
+
+  // Also apply current search
+  const q = document.getElementById('histSearch').value.toLowerCase().trim();
+  if (q) {
+    historyFiltered = historyFiltered.filter(s =>
+      s.staffName.toLowerCase().includes(q) || s.staffId.toLowerCase().includes(q) ||
+      s.branch.toLowerCase().includes(q) || s.checker.toLowerCase().includes(q)
+    );
+  }
+  renderHistory();
+}
+
+function viewSession(sessionId, total, bi, se, name, branch, grade, checker, date) {
+  let html = '<div class="staff-bar mb-14" style="grid-template-columns:1fr 1fr">' +
+    '<div class="staff-bar-item"><div class="staff-bar-key">Name</div><div class="staff-bar-val">' + esc(name) + '</div></div>' +
+    '<div class="staff-bar-item"><div class="staff-bar-key">Branch</div><div class="staff-bar-val">' + esc(branch) + '</div></div>' +
+    '<div class="staff-bar-item"><div class="staff-bar-key">Grade</div><div class="staff-bar-val">' + esc(grade) + '</div></div>' +
+    '<div class="staff-bar-item"><div class="staff-bar-key">Area</div><div class="staff-bar-val">' + esc(checker) + '</div></div>' +
+    '<div class="staff-bar-item" style="grid-column:span 2"><div class="staff-bar-key">Date</div><div class="staff-bar-val">' + esc(date) + '</div></div>' +
+  '</div>';
+
+  const totalColor = total >= 85 ? 'var(--pass)' : total >= 50 ? 'var(--warn)' : 'var(--fail)';
+  html += '<div class="score-hero">' +
+    '<div class="score-big" style="color:'+totalColor+'">'+total+'<span class="score-unit">%</span></div>' +
+    '<div class="score-title">TOTAL SCORE</div>' +
+    '<div class="score-grid">' +
+      '<div class="score-cell"><div class="score-cell-val">'+bi+'%</div><div class="score-cell-lbl">Brand Image</div></div>' +
+      '<div class="score-cell"><div class="score-cell-val">'+se+'%</div><div class="score-cell-lbl">Service Exp.</div></div>' +
+    '</div></div>';
+
+  html += '<div class="card mt-16" id="detailItemsCard"><div class="card-head"><div class="card-icon orange">\uc0\u9889 </div><div class="card-title">Detail Items</div></div>' +
+    '<div style="text-align:center;padding:12px;color:var(--text3);font-size:0.78rem" id="detailItemsLoading">Loading details...</div></div>';
+
+  document.getElementById('detailContent').innerHTML = html;
+  setStep(4);
+
+  // Load detail from backend
+  if (typeof google !== 'undefined' && google.script) {
+    google.script.run
+      .withSuccessHandler(function(items) {
+        const card = document.getElementById('detailItemsCard');
+        if (!items || items.length === 0) {
+          document.getElementById('detailItemsLoading').innerHTML = '\uc0\u9989  All items passed — no detail records';
+          return;
+        }
+        let itemsHtml = '';
+        items.forEach(it => {
+          const badgeClass = it.score === 'Fail' ? 'fail' : it.score === '0' ? 's0' : it.score === 'N/A' ? '' : 's1';
+          const badgeText = it.score === 'N/A' ? 'N/A' : it.score === 'Fail' ? 'FAIL' : 'Score ' + it.score;
+          const badgeStyle = it.score === 'N/A' ? 'background:var(--warn-soft);color:var(--warn)' : '';
+          itemsHtml += '<div class="rev-item"><span class="rev-badge ' + badgeClass + '" style="' + badgeStyle + '">' + badgeText + '</span><div class="rev-info"><div class="rev-name">' + esc(it.itemId) + ' 'b7 ' + esc(it.label) + '</div>' +
+            (it.memo ? '<div class="rev-memo">"' + esc(it.memo) + '"</div>' : '') +
+            (it.photoUrl ? '<a href="' + esc(it.photoUrl) + '" target="_blank" style="font-size:0.65rem;color:var(--accent)">\uc0\u55357 \u56567  View Photo</a>' : '') +
+          '</div></div>';
+        });
+        document.getElementById('detailItemsLoading').innerHTML = itemsHtml;
+      })
+      .withFailureHandler(function() {
+        document.getElementById('detailItemsLoading').innerHTML = 'Failed to load details';
+      })
+      .getSessionDetail(sessionId);
+  }
+}
+
+// (Supervisor functions removed — now using Branch dropdown + Checker by)
+
+// \uc0\u9472 \u9472  Step 2: Build Checklist \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 
+function goToStep2() {
+  const branch = document.getElementById('selBranch').value;
+  const staffId = document.getElementById('txtStaffId').value.trim();
+  const staffName = document.getElementById('txtStaffName').value.trim();
+  const grade = getGradeValue();
+  const area = getCheckerValue();
+  const checkerBy = getCheckerByValue();
+  const evalDate = document.getElementById('selDate').value;
+
+  if (!branch) { alert('\uc0\u3585 \u3619 \u3640 \u3603 \u3634 \u3648 \u3621 \u3639 \u3629 \u3585  Branch'); return; }
+  if (!staffId) { alert('\uc0\u3585 \u3619 \u3640 \u3603 \u3634 \u3585 \u3619 \u3629 \u3585  Staff ID'); return; }
+  if (!staffName) { alert('\uc0\u3585 \u3619 \u3640 \u3603 \u3634 \u3585 \u3619 \u3629 \u3585 \u3594 \u3639 \u3656 \u3629 \u3648 \u3621 \u3656 \u3609 '); return; }
+  if (!grade) { alert('\uc0\u3585 \u3619 \u3640 \u3603 \u3634 \u3648 \u3621 \u3639 \u3629 \u3585  Grade'); return; }
+  if (!area) { alert('\uc0\u3585 \u3619 \u3640 \u3603 \u3634 \u3648 \u3621 \u3639 \u3629 \u3585  Area'); return; }
+  if (!checkerBy) { alert('\uc0\u3585 \u3619 \u3640 \u3603 \u3634 \u3648 \u3621 \u3639 \u3629 \u3585  Checker by'); return; }
+
+  selectedStaff = { staffId, name: staffName, email: '', role: 'Staff', grade, area, checkerBy, branch, date: evalDate };
+
+  document.getElementById('staffInfoBar').innerHTML =
+    '<div class="staff-bar" style="grid-template-columns:1fr 1fr">' +
+      '<div class="staff-bar-item"><div class="staff-bar-key">Name</div><div class="staff-bar-val">' + esc(staffName) + '</div></div>' +
+      '<div class="staff-bar-item"><div class="staff-bar-key">Branch</div><div class="staff-bar-val">' + esc(branch) + '</div></div>' +
+      '<div class="staff-bar-item"><div class="staff-bar-key">Grade</div><div class="staff-bar-val">' + esc(grade) + '</div></div>' +
+      '<div class="staff-bar-item"><div class="staff-bar-key">Area</div><div class="staff-bar-val">' + esc(area) + '</div></div>' +
+      '<div class="staff-bar-item"><div class="staff-bar-key">Checker</div><div class="staff-bar-val">' + esc(checkerBy) + '</div></div>' +
+      '<div class="staff-bar-item"><div class="staff-bar-key">Date</div><div class="staff-bar-val">' + esc(evalDate) + '</div></div>' +
+    '</div>';
+
+  scores = {};
+  buildChecklist();
+  setStep(1);
+  updateProgress();
+}
+
+function buildChecklist() {
+  const body = document.getElementById('checklistBody');
+  body.innerHTML = '';
+
+  ['brandImage', 'serviceExperience'].forEach(sectionKey => {
+    const section = checklist[sectionKey];
+
+    // Section header
+    const sh = document.createElement('div');
+    sh.className = 'sec-header';
+    sh.innerHTML = '<div class="sec-name">' + esc(section.label) + '</div>' +
+      '<div class="sec-badge" id="secScore_' + sectionKey + '">— %</div>';
+    body.appendChild(sh);
+
+    let lastCat = '';
+    section.items.forEach(item => {
+      if (item.category !== lastCat) {
+        lastCat = item.category;
+        const cl = document.createElement('div');
+        cl.className = 'cat-label';
+        cl.textContent = item.category;
+        body.appendChild(cl);
+      }
+
+      const div = document.createElement('div');
+      div.className = 'ci';
+      div.id = 'item_' + item.id;
+      div.dataset.section = sectionKey;
+      div.dataset.type = item.type;
+
+      let btns = '';
+      if (item.type === 'passfail') {
+        btns =
+          '<button class="sbtn" data-item="'+item.id+'" data-val="Pass" onclick="setScore(this)">Pass</button>' +
+          '<button class="sbtn" data-item="'+item.id+'" data-val="Fail" onclick="setScore(this)">Fail</button>' +
+          '<button class="sbtn" data-item="'+item.id+'" data-val="N/A" onclick="setScore(this)">N/A</button>';
+      } else {
+        btns =
+          '<button class="sbtn" data-item="'+item.id+'" data-val="0" onclick="setScore(this)">0</button>' +
+          '<button class="sbtn" data-item="'+item.id+'" data-val="1" onclick="setScore(this)">1</button>' +
+          '<button class="sbtn" data-item="'+item.id+'" data-val="2" onclick="setScore(this)">2</button>';
+      }
+
+      // Detail criteria from Google Form
+      const detailHtml = item.detail
+        ? '<div class="ci-detail" id="detail_'+item.id+'">' + item.detail + '</div>'
+        : '';
+
+      div.innerHTML =
+        '<div class="ci-top">' +
+          '<span class="ci-id">' + item.id + '</span>' +
+          '<span class="ci-label">' + esc(item.label) + '</span>' +
+          (item.detail ? '<button class="ci-info-btn" onclick="toggleDetail(\''+item.id+'\', this)" title="View criteria">i</button>' : '') +
+        '</div>' +
+        detailHtml +
+        '<div class="sbtn-row">' + btns + '</div>' +
+        '<div class="memo-wrap" id="memo_'+item.id+'">' +
+          '<textarea placeholder="Observable behavior memo..." oninput="updateMemo(\''+item.id+'\', this.value)"></textarea>' +
+          '<div class="memo-req" id="memoReq_'+item.id+'">\uc0\u9888  Memo is required for this score</div>' +
+          '<div class="photo-row">' +
+            '<label class="photo-btn">\uc0\u55357 \u56567  Photo<input type="file" accept="image/*" capture="environment" style="display:none" onchange="handlePhoto(\''+item.id+'\', this)"></label>' +
+            '<img id="preview_'+item.id+'" class="photo-preview">' +
+          '</div>' +
+        '</div>';
+
+      body.appendChild(div);
+    });
+  });
+}
+
+// \uc0\u9472 \u9472  Toggle Detail Panel \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 
+function toggleDetail(itemId, btn) {
+  const panel = document.getElementById('detail_' + itemId);
+  const isOpen = panel.classList.contains('open');
+  panel.classList.toggle('open');
+  btn.classList.toggle('open');
+  btn.textContent = isOpen ? 'i' : ''d7';
+}
+
+// \uc0\u9472 \u9472  Scoring \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 
+function setScore(btn) {
+  const itemId = btn.dataset.item;
+  const val = btn.dataset.val;
+  const itemDiv = document.getElementById('item_' + itemId);
+  const type = itemDiv.dataset.type;
+
+  const siblings = btn.parentElement.querySelectorAll('.sbtn');
+  siblings.forEach(b => b.className = 'sbtn');
+  const cssVal = val === 'N/A' ? 'na' : val.toLowerCase();
+  if (type === 'passfail') { btn.classList.add('sel-' + cssVal); }
+  else { btn.classList.add('sel-' + val); }
+
+  if (!scores[itemId]) scores[itemId] = {};
+  scores[itemId].score = val;
+
+  itemDiv.className = 'ci';
+  if (type === 'passfail') { itemDiv.classList.add('scored-' + cssVal); }
+  else { itemDiv.classList.add('scored-' + val); }
+
+  const memoWrap = document.getElementById('memo_' + itemId);
+  const needsMemo = (val === 'Fail' || val === '0');
+  if (needsMemo || val === '1') { memoWrap.classList.add('open'); }
+  else { memoWrap.classList.remove('open'); }
+  document.getElementById('memoReq_' + itemId).style.display = needsMemo ? 'block' : 'none';
+
+  updateProgress();
+  updateSectionScores();
+}
+
+function updateMemo(itemId, val) {
+  if (!scores[itemId]) scores[itemId] = {};
+  scores[itemId].memo = val;
+}
+
+function handlePhoto(itemId, input) {
+  if (!input.files || !input.files[0]) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    if (!scores[itemId]) scores[itemId] = {};
+    scores[itemId].photoData = e.target.result;
+    const preview = document.getElementById('preview_' + itemId);
+    preview.src = e.target.result;
+    preview.style.display = 'block';
+  };
+  reader.readAsDataURL(input.files[0]);
+}
+
+function updateProgress() {
+  const allItems = getAllItems();
+  const total = allItems.length;
+  const filled = allItems.filter(it => scores[it.id] && scores[it.id].score !== undefined).length;
+  const pct = total > 0 ? Math.round((filled / total) * 100) : 0;
+  document.getElementById('progCount').textContent = filled + ' / ' + total;
+  document.getElementById('progPct').textContent = pct + '%';
+  document.getElementById('progFill').style.width = pct + '%';
+  document.getElementById('btnReview').disabled = (filled < total);
+}
+
+function updateSectionScores() {
+  ['brandImage', 'serviceExperience'].forEach(key => {
+    const items = checklist[key].items;
+    const scoreEl = document.getElementById('secScore_' + key);
+    const scored = items.filter(it => scores[it.id] && scores[it.id].score !== undefined);
+    if (scored.length === 0) { scoreEl.textContent = '— %'; return; }
+
+    if (key === 'brandImage') {
+      const applicable = scored.filter(it => scores[it.id].score !== 'N/A');
+      const passed = applicable.filter(it => scores[it.id].score === 'Pass');
+      const rate = applicable.length > 0 ? Math.round((passed.length / applicable.length) * 100) : 0;
+      scoreEl.textContent = rate + '%';
+      applyScoreStyle(scoreEl, rate);
+    } else {
+      const weights = GRADE_WEIGHTS[selectedStaff.grade] || DEFAULT_WEIGHTS;
+      const critical = scored.filter(it => it.type === 'passfail');
+      const nonCrit = scored.filter(it => it.type === 'scale');
+      const critApplicable = critical.filter(it => scores[it.id].score !== 'N/A');
+      const critPass = critApplicable.filter(it => scores[it.id].score === 'Pass');
+      const critRate = critApplicable.length > 0 ? (critPass.length / critApplicable.length) * 100 : 0;
+      const ncScores = nonCrit.map(it => Number(scores[it.id].score) || 0);
+      const ncAvg = ncScores.length > 0 ? (ncScores.reduce((a,b) => a+b, 0) / (ncScores.length * 2)) * 100 : 0;
+      const total = Math.round((critRate * weights.critical) + (ncAvg * weights.nonCritical));
+      scoreEl.textContent = total + '%';
+      applyScoreStyle(scoreEl, total);
+    }
+  });
+}
+
+function applyScoreStyle(el, val) {
+  if (val >= 85) { el.style.background='var(--pass-soft)'; el.style.color='var(--pass)'; }
+  else if (val >= 50) { el.style.background='var(--warn-soft)'; el.style.color='var(--warn)'; }
+  else { el.style.background='var(--fail-soft)'; el.style.color='var(--fail)'; }
+}
+
+function getAllItems() {
+  const items = [];
+  if (!checklist) return items;
+  ['brandImage', 'serviceExperience'].forEach(key => {
+    checklist[key].items.forEach(it => items.push({ ...it, section: key }));
+  });
+  return items;
+}
+
+// \uc0\u9472 \u9472  Step 3: Review \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 
+function goToStep3() {
+  const allItems = getAllItems();
+  const missing = [];
+  allItems.forEach(it => {
+    const s = scores[it.id];
+    if (!s) return;
+    if ((s.score === 'Fail' || s.score === '0') && (!s.memo || !s.memo.trim())) {
+      missing.push(it.id + ' — ' + it.label);
+    }
+  });
+  if (missing.length > 0) { alert('\uc0\u9888  Mandatory memo missing for:\\n\\n' + missing.join('\\n')); return; }
+
+  const scoreData = allItems.map(it => ({ section: it.section, type: it.type, score: scores[it.id] ? scores[it.id].score : 'N/A' }));
+  const weights = GRADE_WEIGHTS[selectedStaff.grade] || DEFAULT_WEIGHTS;
+
+  const biItems = scoreData.filter(s => s.section === 'brandImage');
+  const biApplicable = biItems.filter(s => s.score !== 'N/A');
+  const biPass = biApplicable.filter(s => s.score === 'Pass').length;
+  const brandImageScore = biApplicable.length > 0 ? Math.round((biPass / biApplicable.length) * 100 * 100) / 100 : 0;
+
+  const seItems = scoreData.filter(s => s.section === 'serviceExperience');
+  const seCrit = seItems.filter(s => s.type === 'passfail');
+  const seNC = seItems.filter(s => s.type === 'scale');
+  const seCritAppl = seCrit.filter(s => s.score !== 'N/A');
+  const seCritRate = seCritAppl.length > 0 ? (seCritAppl.filter(s => s.score === 'Pass').length / seCritAppl.length) * 100 : 0;
+  const seNCScores = seNC.map(s => Number(s.score) || 0);
+  const seNCAvg = seNCScores.length > 0 ? (seNCScores.reduce((a,b) => a+b, 0) / (seNCScores.length * 2)) * 100 : 0;
+  const serviceScore = Math.round(((seCritRate * weights.critical) + (seNCAvg * weights.nonCritical)) * 100) / 100;
+  const totalScore = Math.round(((brandImageScore * 0.5) + (serviceScore * 0.5)) * 100) / 100;
+
+  let html = '';
+  html += '<div class="staff-bar mb-14" style="grid-template-columns:1fr 1fr">' +
+    '<div class="staff-bar-item"><div class="staff-bar-key">Name</div><div class="staff-bar-val">' + esc(selectedStaff.name) + '</div></div>' +
+    '<div class="staff-bar-item"><div class="staff-bar-key">Branch</div><div class="staff-bar-val">' + esc(selectedStaff.branch) + '</div></div>' +
+    '<div class="staff-bar-item"><div class="staff-bar-key">Grade</div><div class="staff-bar-val">' + esc(selectedStaff.grade) + '</div></div>' +
+    '<div class="staff-bar-item"><div class="staff-bar-key">Area</div><div class="staff-bar-val">' + esc(selectedStaff.area) + '</div></div>' +
+    '<div class="staff-bar-item"><div class="staff-bar-key">Checker</div><div class="staff-bar-val">' + esc(selectedStaff.checkerBy) + '</div></div>' +
+    '<div class="staff-bar-item"><div class="staff-bar-key">Date</div><div class="staff-bar-val">' + esc(selectedStaff.date) + '</div></div>' +
+  '</div>';
+
+  const totalColor = totalScore >= 85 ? 'var(--pass)' : totalScore >= 50 ? 'var(--warn)' : 'var(--fail)';
+  html += '<div class="score-hero">' +
+    '<div class="score-big" style="color:'+totalColor+'">'+totalScore+'<span class="score-unit">%</span></div>' +
+    '<div class="score-title">TOTAL SCORE</div>' +
+    '<div class="score-grid">' +
+      '<div class="score-cell"><div class="score-cell-val">'+brandImageScore+'%</div><div class="score-cell-lbl">Brand Image</div></div>' +
+      '<div class="score-cell"><div class="score-cell-val">'+serviceScore+'%</div><div class="score-cell-lbl">Service Exp.</div></div>' +
+    '</div></div>';
+
+  const flagged = allItems.filter(it => { const s = scores[it.id]; return s && (s.score === 'Fail' || s.score === '0' || s.score === '1'); });
+  if (flagged.length > 0) {
+    html += '<div class="card mt-16"><div class="card-head"><div class="card-icon orange">\uc0\u9889 </div><div class="card-title">Items Requiring Attention</div></div>';
+    flagged.forEach(it => {
+      const s = scores[it.id];
+      let badgeClass = s.score === 'Fail' ? 'fail' : s.score === '0' ? 's0' : 's1';
+      let badgeText = s.score === 'Fail' ? 'FAIL' : 'Score ' + s.score;
+      html += '<div class="rev-item"><span class="rev-badge '+badgeClass+'">'+badgeText+'</span><div class="rev-info"><div class="rev-name">'+it.id+' 'b7 '+esc(it.label)+'</div>'+(s.memo ? '<div class="rev-memo">"'+esc(s.memo)+'"</div>' : '')+'</div></div>';
+    });
+    html += '</div>';
+  } else {
+    html += '<div class="card mt-16 tc" style="padding:24px"><div style="font-size:1.4rem;margin-bottom:6px">\uc0\u55356 \u57225 </div><div style="color:var(--pass);font-weight:700;font-size:0.85rem">All items passed — great result!</div></div>';
+  }
+
+  document.getElementById('reviewContent').innerHTML = html;
+  document.getElementById('btnSubmit').disabled = false;
+  setStep(2);
+}
+
+function backToStep1() { setStep(1); }
+
+// \uc0\u9472 \u9472  Step 4: Submit \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 
+function submitEvaluation() {
+  if (typeof google === 'undefined' || !google.script) {
+    // Standalone preview mode
+    alert('\uc0\u9989  Preview mode — submission simulated!\\n\\nIn production, data will be saved to Google Sheets via Code.gs');
+    const mockResult = {
+      success: true,
+      sessionId: 'preview-' + Date.now(),
+      scores: calculateLocalScores()
+    };
+    showDone(mockResult);
+    return;
+  }
+
+  document.getElementById('btnSubmit').disabled = true;
+  showLoading('Submitting evaluation...');
+  const allItems = getAllItems();
+  const payload = {
+    staffId: selectedStaff.staffId, staffName: selectedStaff.name,
+    branch: selectedStaff.branch, area: selectedStaff.area,
+    checkerBy: selectedStaff.checkerBy,
+    grade: selectedStaff.grade, date: selectedStaff.date,
+    items: allItems.map(it => ({
+      section: it.section, category: it.category, itemId: it.id,
+      label: it.label, type: it.type,
+      score: scores[it.id] ? scores[it.id].score : 'N/A',
+      memo: scores[it.id] ? (scores[it.id].memo || '') : '',
+      photoData: scores[it.id] ? (scores[it.id].photoData || '') : ''
+    }))
+  };
+  google.script.run
+    .withSuccessHandler(function(result) {
+      hideLoading();
+      if (result.success) { showDone(result); }
+      else { alert('Submit failed: ' + (result.error || 'Unknown error')); document.getElementById('btnSubmit').disabled = false; }
+    })
+    .withFailureHandler(function(err) { hideLoading(); handleError(err); document.getElementById('btnSubmit').disabled = false; })
+    .submitChecklist(payload);
+}
+
+function calculateLocalScores() {
+  const allItems = getAllItems();
+  const scoreData = allItems.map(it => ({ section: it.section, type: it.type, score: scores[it.id] ? scores[it.id].score : 'N/A' }));
+  const weights = GRADE_WEIGHTS[selectedStaff.grade] || DEFAULT_WEIGHTS;
+  const biItems = scoreData.filter(s => s.section === 'brandImage');
+  const biApplicable = biItems.filter(s => s.score !== 'N/A');
+  const biPass = biApplicable.filter(s => s.score === 'Pass').length;
+  const brandImageScore = biApplicable.length > 0 ? Math.round((biPass / biApplicable.length) * 100 * 100) / 100 : 0;
+  const seItems = scoreData.filter(s => s.section === 'serviceExperience');
+  const seCrit = seItems.filter(s => s.type === 'passfail');
+  const seNC = seItems.filter(s => s.type === 'scale');
+  const seCritAppl = seCrit.filter(s => s.score !== 'N/A');
+  const seCritRate = seCritAppl.length > 0 ? (seCritAppl.filter(s => s.score === 'Pass').length / seCritAppl.length) * 100 : 0;
+  const seNCScores = seNC.map(s => Number(s.score) || 0);
+  const seNCAvg = seNCScores.length > 0 ? (seNCScores.reduce((a,b) => a+b, 0) / (seNCScores.length * 2)) * 100 : 0;
+  const serviceScore = Math.round(((seCritRate * weights.critical) + (seNCAvg * weights.nonCritical)) * 100) / 100;
+  const totalScore = Math.round(((brandImageScore * 0.5) + (serviceScore * 0.5)) * 100) / 100;
+  return { brandImageScore, serviceScore, totalScore };
+}
+
+function showDone(result) {
+  const s = result.scores;
+  const totalColor = s.totalScore >= 85 ? 'var(--pass)' : s.totalScore >= 50 ? 'var(--warn)' : 'var(--fail)';
+  let html = '<div class="tc" style="padding-top:20px">' +
+    '<div class="done-check"><svg viewBox="0 0 24 24" fill="none" stroke="var(--pass)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></div>' +
+    '<h2 style="font-size:1.3rem;font-weight:800;margin-bottom:4px">Evaluation Submitted</h2>' +
+    '<p style="color:var(--text3);font-size:0.78rem;font-family:var(--mono)">Session ' + String(result.sessionId).substring(0, 8) + '...</p></div>';
+  html += '<div class="score-hero">' +
+    '<div class="score-big" style="color:'+totalColor+'">'+s.totalScore+'<span class="score-unit">%</span></div>' +
+    '<div class="score-title">TOTAL SCORE</div>' +
+    '<div class="score-grid">' +
+      '<div class="score-cell"><div class="score-cell-val">'+s.brandImageScore+'%</div><div class="score-cell-lbl">Brand Image</div></div>' +
+      '<div class="score-cell"><div class="score-cell-val">'+s.serviceScore+'%</div><div class="score-cell-lbl">Service Exp.</div></div>' +
+    '</div></div>';
+  html += '<button class="btn btn-primary mt-16" onclick="startNew()">Start New Evaluation</button>';
+  html += '<button class="btn btn-secondary" onclick="switchTab(story\');setStep(0)">View History \uc0\u8594 </button>';
+  document.getElementById('doneContent').innerHTML = html;
+  setStep(3);
+}
+
+function startNew() {
+  scores = {}; selectedStaff = null;
+  document.getElementById('btnSubmit').disabled = false;
+  document.getElementById('selBranch').value = '';
+  document.getElementById('txtStaffId').value = '';
+  document.getElementById('txtStaffName').value = '';
+  document.getElementById('selGrade').value = '';
+  document.getElementById('txtGradeOther').value = '';
+  document.getElementById('gradeOtherWrap').style.display = 'none';
+  document.getElementById('selChecker').value = '';
+  document.getElementById('txtCheckerOther').value = '';
+  document.getElementById('checkerOtherWrap').style.display = 'none';
+  document.getElementById('selDate').value = new Date().toISOString().split('T')[0];
+  setStep(0);
+}
+
+function esc(str) { const d = document.createElement('div'); d.textContent = str || ''; return d.innerHTML; }
+
+// \uc0\u9472 \u9472  Boot \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 
+init();
+</script>
+</body>
+</html>

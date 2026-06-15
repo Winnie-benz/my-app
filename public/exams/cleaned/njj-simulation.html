@@ -1,0 +1,1399 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OWNDAYS Staff Simulation Test</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/pdf-lib/dist/pdf-lib.min.js"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: #f8f9fa;
+            color: #212529;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 900px;
+            margin: auto;
+            background: #ffffff;
+            padding: 30px;
+            border-radius: 10px;
+            border: 1px solid #dee2e6;
+        }
+        h1 {
+            color: #212529;
+            text-align: center;
+            border-bottom: 1px solid #dee2e6;
+            padding-bottom: 15px;
+            margin-bottom: 25px;
+        }
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .info-grid label {
+            font-weight: 600;
+            display: block;
+            margin-bottom: 5px;
+            color: #495057;
+            font-size: 0.9em;
+        }
+        .info-input {
+            width: 100%;
+            padding: 10px;
+            background-color: #ffffff;
+            border: 1px solid #ced4da;
+            border-radius: 5px;
+            color: #495057;
+            box-sizing: border-box;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .info-input:focus {
+            border-color: #80bdff;
+            outline: 0;
+            box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
+        }
+        .score-summary {
+            background-color: #000000;
+            border: 1px solid #000000;
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        #total-score-bar {
+            position: sticky;
+            top: 0;
+            z-index: 999;
+        }
+        #floating-score-circle {
+            position: fixed;
+            top: 80px;
+            right: 30px;
+            z-index: 1000;
+            width: 140px;
+            height: 140px;
+            border-radius: 50%;
+            background-color: #000;
+            color: #fff;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.25);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            transform: scale(0.8);
+            transition: opacity 0.3s ease, transform 0.3s ease;
+            pointer-events: none;
+        }
+        #floating-score-circle.visible {
+            opacity: 1;
+            transform: scale(1);
+            pointer-events: auto;
+        }
+        #floating-score-circle .circle-title {
+            font-size: 0.9em;
+            font-weight: normal;
+            margin-bottom: 5px;
+        }
+        #floating-score-circle .circle-value {
+            font-size: 1.6em;
+            font-weight: bold;
+        }
+        .score-summary-title {
+            font-size: 1.1em;
+            font-weight: bold;
+            color: #f8f9fa;
+            margin: 0;
+        }
+        .score-summary-value {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #ffffff;
+            margin: 0;
+            padding: 2px 10px;
+            border-radius: 5px;
+        }
+        .major-section {
+            margin-bottom: 30px;
+        }
+        .question {
+            background-color: #ffffff;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .question-title {
+            font-weight: bold;
+            font-size: 1.1em;
+            margin-bottom: 5px;
+            color: #343a40;
+        }
+        .question-description {
+            font-size: 0.95em;
+            color: #000000;
+            margin-bottom: 15px;
+        }
+        .options {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+        }
+        .options input[type="radio"],
+        .options input[type="checkbox"] {
+            display: none;
+        }
+        .options label {
+            cursor: pointer;
+            padding: 8px 25px;
+            border-radius: 5px;
+            transition: all 0.2s ease-in-out;
+            font-weight: bold;
+            text-align: center;
+        }
+        .pass-fail-label {
+            background-color: #000000;
+            border: 1px solid #000000;
+            color: #ffffff;
+        }
+        input[type="radio"][value="1"]:checked + .pass-fail-label {
+            background-color: #00ab25;
+            color: #ffffff;
+            border-color: #00ab25;
+        }
+        input[type="radio"][value="0"]:checked + .pass-fail-label {
+            background-color: #dc3545;
+            color: #ffffff;
+            border-color: #dc3545;
+        }
+        .checkbox-label {
+            background-color: #000000;
+            border: 1px solid #000000;
+            color: #ffffff;
+        }
+        input[type="checkbox"]:checked + .checkbox-label {
+            background-color: #007bff;
+            border-color: #007bff;
+            color: #ffffff;
+        }
+        .multi-choice-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+        }
+        .feedback-area {
+            width: 100%;
+            padding: 10px;
+            margin-top: 10px;
+            border: 1px solid #ced4da;
+            border-radius: 5px;
+            box-sizing: border-box;
+            font-family: inherit;
+            font-size: 0.95em;
+            min-height: 60px;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .feedback-area:focus {
+            border-color: #80bdff;
+            outline: 0;
+            box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
+        }
+        #export-pdf-btn {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            margin-top: 20px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        #export-pdf-btn:hover {
+            background-color: #218838;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container" id="pdf-content">
+    <h1>OWNDAYS Staff Simulation Test</h1>
+
+    <form id="checklist-form">
+        <div class="info-grid">
+            <div>
+                <label for="staff_name">STAFF NAME</label>
+                <input type="text" id="staff_name" class="info-input" placeholder="Enter Staff Name">
+            </div>
+            <div>
+                <label for="staff_id">STAFF ID</label>
+                <input type="text" inputmode="numeric" pattern="[0-9]*" id="staff_id" class="info-input" placeholder="Enter Staff ID" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+            </div>
+             <div>
+                <label for="branch">BRANCH</label>
+                <input type="text" id="branch" class="info-input" placeholder="Enter Branch">
+            </div>
+             <div>
+                <label for="trainer_name">TRAINER NAME</label>
+                <input type="text" id="trainer_name" class="info-input" placeholder="Enter Trainer Name">
+            </div>
+            <div>
+                <label for="test_date">Date</label>
+                <input type="date" id="test_date" class="info-input">
+            </div>
+            <div class="info-item" style="grid-column:1/-1">
+                <label>Round *</label>
+                <div style="display:flex;gap:20px;align-items:center;padding:10px 0">
+                    <label style="display:flex;align-items:center;gap:6px;font-weight:normal;cursor:pointer">
+                        <input type="radio" name="sim_round" value="1"> 1st Round
+                    </label>
+                    <label style="display:flex;align-items:center;gap:6px;font-weight:normal;cursor:pointer">
+                        <input type="radio" name="sim_round" value="2"> 2nd Round
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <div class="score-summary" id="total-score-bar">
+            <h3 class="score-summary-title">TOTAL SCORE</h3>
+            <p class="score-summary-value" id="total-score-display">0 / 0 (0.00%)</p>
+        </div>
+
+        <div class="major-section" id="section-comm" data-title="Customer Engagement & Communication">
+            <div class="score-summary">
+                 <h3 class="score-summary-title">Customer Engagement & Communication</h3>
+                 <p class="score-summary-value" id="section-comm-score">0 / 0 (0.00%)</p>
+            </div>
+
+            <div class="question-description">This evaluation point assesses the staff's ability to interact with customers in a manner
+that is attentive, polite, and engaging. It focuses on both verbal and non-verbal
+communication skills, which play a key role in building customer trust and satisfaction.
+            <h4>Responsible Trainers:</h4>
+            Sale Trainer: Customer Greeting, Initial Recommendation, Personalized Recommendation<br>
+            All Trainers: Communication & Body Language</div>
+
+             <div class="question">
+                <div class="question-title">1. Customer Greeting</div>
+                <div class="question-description">- Delivers a warm and clear greeting. <br>- Uses the appropriate script confidently.</div>
+                <div class="options">
+                    <input type="radio" id="q1_pass" name="q1" value="1"><label for="q1_pass" class="pass-fail-label">Pass</label>
+                    <input type="radio" id="q1_fail" name="q1" value="0"><label for="q1_fail" class="pass-fail-label">Fail</label>
+                </div>
+                <textarea id="feedback_q1" class="feedback-area" placeholder="Feedback..."></textarea>
+            </div>
+             <div class="question">
+                <div class="question-title">2. Initial Recommendation</div>
+                <div class="question-description">Introduces themselves as an OWNDAYS advisor to build trust.</div>
+                <div class="options">
+                    <input type="radio" id="q2_pass" name="q2" value="1"><label for="q2_pass" class="pass-fail-label">Pass</label>
+                    <input type="radio" id="q2_fail" name="q2" value="0"><label for="q2_fail" class="pass-fail-label">Fail</label>
+                </div>
+                <textarea id="feedback_q2" class="feedback-area" placeholder="Feedback..."></textarea>
+            </div>
+              <div class="question">
+                <div class="question-title">3. Initial Recommendation</div>
+                <div class="question-description">Ensures suggestions are aligned with the customer's needs.</div>
+                <div class="options">
+                    <input type="radio" id="q3_pass" name="q3" value="1"><label for="q3_pass" class="pass-fail-label">Pass</label>
+                    <input type="radio" id="q3_fail" name="q3" value="0"><label for="q3_fail" class="pass-fail-label">Fail</label>
+                </div>
+                <textarea id="feedback_q3" class="feedback-area" placeholder="Feedback..."></textarea>
+            </div>
+                   <div class="question">
+                <div class="question-title">4. Initial Recommendation</div>
+                <div class="question-description">Approaches the customer within 30 seconds of entering the store.</div>
+                <div class="options">
+                    <input type="radio" id="q4_pass" name="q4" value="1"><label for="q4_pass" class="pass-fail-label">Pass</label>
+                    <input type="radio" id="q4_fail" name="q4" value="0"><label for="q4_fail" class="pass-fail-label">Fail</label>
+                </div>
+                <textarea id="feedback_q4" class="feedback-area" placeholder="Feedback..."></textarea>
+            </div>
+                       <div class="question">
+                        <div class="question-title">5. Initial Recommendation</div>
+                        <div class="question-description">Introduces essential information : Clearly communicates the price of frames,
+lenses, and HMC in an easy-to-understand manner.</div>
+                        <div class="options">
+                            <input type="radio" id="q5_pass" name="q5" value="1"><label for="q5_pass" class="pass-fail-label">Pass</label>
+                            <input type="radio" id="q5_fail" name="q5" value="0"><label for="q5_fail" class="pass-fail-label">Fail</label>
+                        </div>
+                        <textarea id="feedback_q5" class="feedback-area" placeholder="Feedback..."></textarea>
+        </div>
+       <div class="question">
+                        <div class="question-title">6. Initial Recommendation</div>
+                        <div class="question-description">20-minute process : Glasses can be ready within 20 minutes after payment if the
+required lenses are in stock..</div>
+                        <div class="options">
+                            <input type="radio" id="q6_pass" name="q6" value="1"><label for="q6_pass" class="pass-fail-label">Pass</label>
+                            <input type="radio" id="q6_fail" name="q6" value="0"><label for="q6_fail" class="pass-fail-label">Fail</label>
+                        </div>
+                        <textarea id="feedback_q6" class="feedback-area" placeholder="Feedback..."></textarea>
+        </div>
+        <div class="question">
+                        <div class="question-title">7. Initial Recommendation</div>
+                        <div class="question-description">Closing statement : Ends the conversation appropriately before leaving the
+customer.</div>
+                        <div class="options">
+                            <input type="radio" id="q7_pass" name="q7" value="1"><label for="q7_pass" class="pass-fail-label">Pass</label>
+                            <input type="radio" id="q7_fail" name="q7" value="0"><label for="q7_fail" class="pass-fail-label">Fail</label>
+                        </div>
+                        <textarea id="feedback_q7" class="feedback-area" placeholder="Feedback..."></textarea>
+        </div>
+        <div class="question" >
+            <div class="question-title">Initial Recommendation Comment</div>
+            <textarea id="comment_initial_recommendation" class="feedback-area" placeholder="Feedback..."></textarea>
+</div>
+                           <div class="question">
+                        <div class="question-title">8. Personalized Recommendation</div>
+                        <div class="question-description">Approaches the customer within 3 minutes after the initial recommendation.</div>
+                        <div class="options">
+                            <input type="radio" id="q8_pass" name="q8" value="1"><label for="q8_pass" class="pass-fail-label">Pass</label>
+                            <input type="radio" id="q8_fail" name="q8" value="0"><label for="q8_fail" class="pass-fail-label">Fail</label>
+                        </div>
+                        <textarea id="feedback_q8" class="feedback-area" placeholder="Feedback..."></textarea>
+        </div>
+                       <div class="question">
+                        <div class="question-title">9. Personalized Recommendation</div>
+                        <div class="question-description">Effectively identifies individual customer needs.</div>
+                        <div class="options">
+                            <input type="radio" id="q9_pass" name="q9" value="1"><label for="q9_pass" class="pass-fail-label">Pass</label>
+                            <input type="radio" id="q9_fail" name="q9" value="0"><label for="q9_fail" class="pass-fail-label">Fail</label>
+                        </div>
+                        <textarea id="feedback_q9" class="feedback-area" placeholder="Feedback..."></textarea>
+        </div>
+          <div class="question">
+                        <div class="question-title">10. Personalized Recommendation</div>
+                        <div class="question-description">Recommends suitable products based on the customer's profile.</div>
+                        <div class="options">
+                            <input type="radio" id="q10_pass" name="q10" value="1"><label for="q10_pass" class="pass-fail-label">Pass</label>
+                            <input type="radio" id="q10_fail" name="q10" value="0"><label for="q10_fail" class="pass-fail-label">Fail</label>
+                        </div>
+                        <textarea id="feedback_q10" class="feedback-area" placeholder="Feedback..."></textarea>
+        </div>
+    <div class="question">
+                        <div class="question-title">11. Personalized Recommendation</div>
+                        <div class="question-description">Making contact: Able to initiate conversations naturally and communicate politely
+and professionally.</div>
+                        <div class="options">
+                            <input type="radio" id="q11_pass" name="q11" value="1"><label for="q11_pass" class="pass-fail-label">Pass</label>
+                            <input type="radio" id="q11_fail" name="q11" value="0"><label for="q11_fail" class="pass-fail-label">Fail</label>
+                        </div>
+                        <textarea id="feedback_q11" class="feedback-area" placeholder="Feedback..."></textarea>
+        </div>
+
+<div class="question">
+                        <div class="question-title">12. Personalized Recommendation</div>
+                        <div class="question-description">Discovering: Capable of uncovering customer needs and recommending products
+that align with their concerns or requirements.</div>
+                        <div class="options">
+                            <input type="radio" id="q12_pass" name="q12" value="1"><label for="q12_pass" class="pass-fail-label">Pass</label>
+                            <input type="radio" id="q12_fail" name="q12" value="0"><label for="q12_fail" class="pass-fail-label">Fail</label>
+                        </div>
+                        <textarea id="feedback_q12" class="feedback-area" placeholder="Feedback..."></textarea>
+        </div>
+        
+        <div class="question">
+                        <div class="question-title">13. Personalized Recommendation</div>
+                        <div class="question-description">Serving: Provides customers with options and clear reasons that match their
+needs. Communicates with confidence, clarity, and without pressuring the
+customer.</div>
+                        <div class="options">
+                            <input type="radio" id="q13_pass" name="q13" value="1"><label for="q13_pass" class="pass-fail-label">Pass</label>
+                            <input type="radio" id="q13_fail" name="q13" value="0"><label for="q13_fail" class="pass-fail-label">Fail</label>
+                        </div>
+                        <textarea id="feedback_q13" class="feedback-area" placeholder="Feedback..."></textarea>
+        </div>
+
+         <div class="question">
+                        <div class="question-title">14. Personalized Recommendation</div>
+                        <div class="question-description">Selecting a new pair of glasses: Engages in suggesting or helping the customer
+choose a new pair of glasses.</div>
+                        <div class="options">
+                            <input type="radio" id="q14_pass" name="q14" value="1"><label for="q14_pass" class="pass-fail-label">Pass</label>
+                            <input type="radio" id="q14_fail" name="q14" value="0"><label for="q14_fail" class="pass-fail-label">Fail</label>
+                        </div>
+                        <textarea id="feedback_q14" class="feedback-area" placeholder="Feedback..."></textarea>
+        </div>
+
+         <div class="question">
+                        <div class="question-title">Personalized Recommendation Comment</div>
+                        
+                        <textarea id="comment_personalized_recommendation" class="feedback-area" placeholder="Feedback..."></textarea>
+        </div>
+
+        </div>
+
+        <div class="major-section" id="section-prod" data-title="Product Knowledge & Pitching">
+             <div class="score-summary">
+                 <h3 class="score-summary-title">Product Knowledge & Pitching</h3>
+                 <p class="score-summary-value" id="section-prod-score">0 / 0 (0.00%)</p>
+            </div>
+            <div class="question-description">This evaluation point measures the staff's understanding of the products and their ability
+to confidently and clearly present them to customers. It evaluates how well the staff can
+match product features to customer needs and explain benefits in a way that supports
+decision-making.
+            <h4>Responsible Trainers:</h4>
+            Sale Trainer: Accuracy of Advice, Use of Feature–Benefit, Upselling Capability</div>
+
+             <div class="question">
+                <div class="question-title">15. Accuracy of Advice</div>
+                <div class="question-description">- Provides suitable product advice based on the customer's scenario or
+prescription. </br>- Ensures information is correct and relevant to the customer's needs.</div>
+                <div class="options">
+                    <input type="radio" id="q15_pass" name="q15" value="1"><label for="q15_pass" class="pass-fail-label">Pass</label>
+                    <input type="radio" id="q15_fail" name="q15" value="0"><label for="q15_fail" class="pass-fail-label">Fail</label>
+                </div>
+                <textarea id="feedback_q15" class="feedback-area" placeholder="Feedback..."></textarea>
+            </div>
+             <div class="question">
+                <div class="question-title">16. Use of Feature–Benefit</div>
+                <div class="question-description">Clearly explains product benefits (e.g., durability, comfort, price, lens quality).</br>
+Highlights features that add value from the customer's perspective.</div>
+                <div class="options">
+                    <input type="radio" id="q16_pass" name="q16" value="1"><label for="q16_pass" class="pass-fail-label">Pass</label>
+                    <input type="radio" id="q16_fail" name="q16" value="0"><label for="q16_fail" class="pass-fail-label">Fail</label>
+                </div>
+                <textarea id="feedback_q16" class="feedback-area" placeholder="Feedback..."></textarea>
+            </div>
+   <div class="question">
+                <div class="question-title">17. Use of Feature–Benefit</div>
+                <div class="question-description">Price: Able to explain product pricing accurately.</div>
+                <div class="options">
+                    <input type="radio" id="q28_pass" name="q28" value="1"><label for="q28_pass" class="pass-fail-label">Pass</label>
+                    <input type="radio" id="q28_fail" name="q28" value="0"><label for="q28_fail" class="pass-fail-label">Fail</label>
+                </div>
+                <textarea id="feedback_q28" class="feedback-area" placeholder="Feedback..."></textarea>
+            </div>
+
+          <div class="question">
+                <div class="question-title">18. Use of Feature–Benefit</div>
+                <div class="question-description">Frame Material: Able to explain the selling points of both non-metal and metal
+frames.</div>
+                <div class="options">
+                    <input type="radio" id="q17_pass" name="q17" value="1"><label for="q17_pass" class="pass-fail-label">Pass</label>
+                    <input type="radio" id="q17_fail" name="q17" value="0"><label for="q17_fail" class="pass-fail-label">Fail</label>
+                </div>
+                <textarea id="feedback_q17" class="feedback-area" placeholder="Feedback..."></textarea>
+            </div>
+
+          <div class="question">
+                <div class="question-title">19. Use of Feature–Benefit</div>
+                <div class="question-description">Lens: Able to accurately explain the selling points of each type of lens.</div>
+                <div class="options">
+                    <input type="radio" id="q18_pass" name="q18" value="1"><label for="q18_pass" class="pass-fail-label">Pass</label>
+                    <input type="radio" id="q18_fail" name="q18" value="0"><label for="q18_fail" class="pass-fail-label">Fail</label>
+                </div>
+                <textarea id="feedback_q18" class="feedback-area" placeholder="Feedback..."></textarea>
+            </div>
+        
+<div class="question" >
+            <div class="question-title">Use of Feature–Benefit Comment</div>
+            <textarea id="comment_feature_benefit" class="feedback-area" placeholder="Feedback..."></textarea>
+</div>
+
+
+   <div class="question">
+                <div class="question-title">20. Upselling Capability</div>
+                <div class="question-description">- Actively offers appropriate add-ons (e.g., lens upgrades, contact lenses, 2nd pair).</br>
+- Tailors upselling to match customer lifestyle or concerns.</div>
+                <div class="options">
+                    <input type="radio" id="q19_pass" name="q19" value="1"><label for="q19_pass" class="pass-fail-label">Pass</label>
+                    <input type="radio" id="q19_fail" name="q19" value="0"><label for="q19_fail" class="pass-fail-label">Fail</label>
+                </div>
+                <textarea id="feedback_q19" class="feedback-area" placeholder="Feedback..."></textarea>
+            </div>
+        
+    <div class="question">
+                <div class="question-title">21. Upselling Capability</div>
+                <div class="question-description">- Frame Top-Up: Able to offer a frame top-up (at least once).</div>
+                <div class="options">
+                    <input type="radio" id="q20_pass" name="q20" value="1"><label for="q20_pass" class="pass-fail-label">Pass</label>
+                    <input type="radio" id="q20_fail" name="q20" value="0"><label for="q20_fail" class="pass-fail-label">Fail</label>
+                </div>
+                <textarea id="feedback_q20" class="feedback-area" placeholder="Feedback..."></textarea>
+            </div>
+        
+
+ <div class="question">
+                <div class="question-title">22. Upselling Capability</div>
+                <div class="question-description">- Lens Top-Up: Able to recommend lens top-up options that match the customer's
+usage needs.</div>
+                <div class="options">
+                    <input type="radio" id="q21_pass" name="q21" value="1"><label for="q21_pass" class="pass-fail-label">Pass</label>
+                    <input type="radio" id="q21_fail" name="q21" value="0"><label for="q21_fail" class="pass-fail-label">Fail</label>
+                </div>
+                <textarea id="feedback_q21" class="feedback-area" placeholder="Feedback..."></textarea>
+            </div>
+        
+ <div class="question">
+                <div class="question-title">23. Upselling Capability</div>
+                <div class="question-description">- Promotion: Accurately explains current promotions and recommends the most
+valuable option for the customer based on the latest offers</div>
+                <div class="options">
+                    <input type="radio" id="q22_pass" name="q22" value="1"><label for="q22_pass" class="pass-fail-label">Pass</label>
+                    <input type="radio" id="q22_fail" name="q22" value="0"><label for="q22_fail" class="pass-fail-label">Fail</label>
+                </div>
+                <textarea id="feedback_q22" class="feedback-area" placeholder="Feedback..."></textarea>
+            </div>
+       <div class="question" >
+            <div class="question-title">Upselling Capability Comment</div>
+            <textarea id="comment_upselling" class="feedback-area" placeholder="Feedback..."></textarea>
+</div>
+</div>
+   <div class="major-section" id="section-oper" data-title="Operational Skill Handling">
+            <div class="score-summary">
+                 <h3 class="score-summary-title">Operational Skill Handling</h3>
+                 <p class="score-summary-value" id="section-oper-score">0 / 0 (0.00%)</p>
+            </div>
+
+            <div class="question-description">This evaluation topic assesses the staff's ability to operate essential tools, systems, and
+procedures accurately and efficiently during the sales or service process. It focuses on
+both tech
+            <h4>Responsible Trainers:</h4>
+            Sale Trainer: Registration Operation, POS/EDC Handling
+Optical Trainer: KB Measurement, Auto Refractor Usage, Dispensing & Frame Adjustment<br>
+Contact Lens Trainer: Contact Lens Operation<br>
+        All Trainers: Consultation Ability, Task Delegation, Policy Understanding, Scenario Handling,
+Empathy & Resolution</div>
+
+ <div class="question">
+                <div class="question-title">24. Registration Operation</div>
+                <div class="question-description">Follows the correct registration process completely and accurately.</div>
+                <div class="options">
+                    <input type="radio" id="q23_pass" name="q23" value="1"><label for="q23_pass" class="pass-fail-label">Pass</label>
+                    <input type="radio" id="q23_fail" name="q23" value="0"><label for="q23_fail" class="pass-fail-label">Fail</label>
+                </div>
+                <textarea id="feedback_q23" class="feedback-area" placeholder="Feedback..."></textarea>
+            </div>
+ <div class="question">
+                <div class="question-title">25. Registration Operation</div>
+                <div class="question-description">Inputs customer data without errors and in a timely manner.</div>
+                <div class="options">
+                    <input type="radio" id="q24_pass" name="q24" value="1"><label for="q24_pass" class="pass-fail-label">Pass</label>
+                    <input type="radio" id="q24_fail" name="q24" value="0"><label for="q24_fail" class="pass-fail-label">Fail</label>
+                </div>
+                <textarea id="feedback_q24" class="feedback-area" placeholder="Feedback..."></textarea>
+            </div>
+<div class="question">
+                <div class="question-title">26. Registration Operation</div>
+                <div class="question-description">Write down on Queue card :Sale, Lens , Vision , Tax/VAT , Promotion , C/L (making
+the information easy to understand.)</div>
+                <div class="options">
+                    <input type="radio" id="q25_pass" name="q25" value="1"><label for="q25_pass" class="pass-fail-label">Pass</label>
+                    <input type="radio" id="q25_fail" name="q25" value="0"><label for="q25_fail" class="pass-fail-label">Fail</label>
+                </div>
+                <textarea id="feedback_q25" class="feedback-area" placeholder="Feedback..."></textarea>
+            </div>
+
+<div class="question" >
+            <div class="question-title">Registration Operation Comment</div>
+            <textarea id="comment_registration" class="feedback-area" placeholder="Feedback..."></textarea>
+</div>
+
+<div class="question">
+                <div class="question-title">27. Consultation Ability</div>
+                <div class="question-description">- Recommends appropriate products in a professional manner. </br>
+- Matches customer needs with the right product features.</div>
+                <div class="options">
+                    <input type="radio" id="q26_pass" name="q26" value="1"><label for="q26_pass" class="pass-fail-label">Pass</label>
+                    <input type="radio" id="q26_fail" name="q26" value="0"><label for="q26_fail" class="pass-fail-label">Fail</label>
+                </div>
+                <textarea id="feedback_q26" class="feedback-area" placeholder="Feedback..."></textarea>
+            </div>
+
+<div class="question">
+                <div class="question-title">28. Consultation Ability</div>
+                <div class="question-description">- Suggests suitable products that address the customer's pain points. <br/>
+- Explains possible causes of customer problems and gives clear, professional
+advice.</div>
+                <div class="options">
+                    <input type="radio" id="q27_pass" name="q27" value="1"><label for="q27_pass" class="pass-fail-label">Pass</label>
+                    <input type="radio" id="q27_fail" name="q27" value="0"><label for="q27_fail" class="pass-fail-label">Fail</label>
+                </div>
+                <textarea id="feedback_q27" class="feedback-area" placeholder="Feedback..."></textarea>
+            </div>
+
+<!-- <div class="question">
+                <div class="question-title">28. Consultation Ability</div>
+                <div class="question-description">- Suggests suitable products that address the customer's pain points. <br/>
+- Explains possible causes of customer problems and gives clear, professional
+advice.</div>
+                <div class="options">
+                    <input type="radio" id="q28_pass" name="q28" value="1"><label for="q28_pass" class="pass-fail-label">Pass</label>
+                    <input type="radio" id="q28_fail" name="q28" value="0"><label for="q28_fail" class="pass-fail-label">Fail</label>
+                </div>
+                <textarea id="feedback_q28" class="feedback-area" placeholder="Feedback..."></textarea>
+            </div> -->
+
+
+<div class="question" >
+            <div class="question-title">Consultation Ability Comment</div>
+            <textarea id="comment_consultation" class="feedback-area" placeholder="Feedback..."></textarea>
+</div>
+
+<div class="question">
+                <div class="question-title">29. KB Measurement</div>
+                <div class="question-description">- Performs pupillary distance measurement with accuracy. <br/>
+- Uses proper tools and follows standard procedures.</div>
+                <div class="options">
+                    <input type="radio" id="q29_pass" name="q29" value="1"><label for="q29_pass" class="pass-fail-label">Pass</label>
+                    <input type="radio" id="q29_fail" name="q29" value="0"><label for="q29_fail" class="pass-fail-label">Fail</label>
+                </div>
+                <textarea id="feedback_q29" class="feedback-area" placeholder="Feedback..."></textarea>
+            </div>
+<div class="question">
+                <div class="question-title">30. KB Measurement</div>
+                <div class="question-description">- Inspects the customer's existing glasses to identify lens type (e.g., single vision,
+progressive, photochromic, high index).</div>
+                <div class="options">
+                    <input type="radio" id="q30_pass" name="q30" value="1"><label for="q30_pass" class="pass-fail-label">Pass</label>
+                    <input type="radio" id="q30_fail" name="q30" value="0"><label for="q30_fail" class="pass-fail-label">Fail</label>
+                </div>
+                <textarea id="feedback_q30" class="feedback-area" placeholder="Feedback..."></textarea>
+            </div>
+
+<div class="question">
+                <div class="question-title">31. Contact Lens Selling</div>
+                <div class="question-description">- Inform the customer about key selling points such as eye health benefits and
+current promotions.</div>
+                <div class="options">
+                    <input type="radio" id="q31_pass" name="q31" value="1"><label for="q31_pass" class="pass-fail-label">Pass</label>
+                    <input type="radio" id="q31_fail" name="q31" value="0"><label for="q31_fail" class="pass-fail-label">Fail</label>
+                </div>
+                <textarea id="feedback_q31" class="feedback-area" placeholder="Feedback..."></textarea>
+            </div>
+            <div class="question" data-group="contact-lens-prescreen">
+                <div class="question-title">32. Contact Lens Prescreen</div>
+                <div class="question-description">- Inform the customer how long they should wait after removing their lenses before
+an accurate eye exam can be performed: (
+Soft lens: 10–15 minutes. Hard lens: 1 day)</div>
+                <div class="options">
+                    <input type="radio" id="q32_pass" name="q32" value="1"><label for="q32_pass" class="pass-fail-label">Pass</label>
+                    <input type="radio" id="q32_fail" name="q32" value="0"><label for="q32_fail" class="pass-fail-label">Fail</label>
+                </div>
+                <textarea id="feedback_q32" class="feedback-area" placeholder="Feedback..."></textarea>
+            </div>
+   <div class="question" data-group="contact-lens-prescreen">
+                <div class="question-title">33. Ask for details about existing contact lens to identify the lens type (e.g., soft,
+hard, daily, monthly).</div>
+                <div class="options">
+                    <input type="radio" id="q33_pass" name="q33" value="1"><label for="q33_pass" class="pass-fail-label">Pass</label>
+                    <input type="radio" id="q33_fail" name="q33" value="0"><label for="q33_fail" class="pass-fail-label">Fail</label>
+                </div>
+                <textarea id="feedback_q33" class="feedback-area" placeholder="Feedback..."></textarea>
+            </div>
+ <div class="question" data-group="contact-lens-prescreen">
+                <div class="question-title">34. Ask the customer if they currently wear contact lenses or have previous
+experience using them.</div>
+                <div class="options">
+                    <input type="radio" id="q34_pass" name="q34" value="1"><label for="q34_pass" class="pass-fail-label">Pass</label>
+                    <input type="radio" id="q34_fail" name="q34" value="0"><label for="q34_fail" class="pass-fail-label">Fail</label>
+                </div>
+                <textarea id="feedback_q34" class="feedback-area" placeholder="Feedback..."></textarea>
+            </div>
+<div class="question">
+                <div class="question-title">35. Contact Lens Instruction</div>
+                <div class="question-description">- Clearly explain how to properly use and care for contact lenses, including
+essential dos and don'ts.</div>
+                <div class="options">
+                    <input type="radio" id="q35_pass" name="q35" value="1"><label for="q35_pass" class="pass-fail-label">Pass</label>
+                    <input type="radio" id="q35_fail" name="q35" value="0"><label for="q35_fail" class="pass-fail-label">Fail</label>
+                </div>
+                <textarea id="feedback_q35" class="feedback-area" placeholder="Feedback..."></textarea>
+            </div>
+<div class="question">
+                <div class="question-title">36. Auto Refractor Usage</div>
+                <div class="question-description">- Operates the machine professionally and efficiently, ensuring the customer is
+seated correctly with proper posture.<br/>
+- Ensures accurate results are captured and properly recorded.</div>
+                <div class="options">
+                    <input type="radio" id="q36_pass" name="q36" value="1"><label for="q36_pass" class="pass-fail-label">Pass</label>
+                    <input type="radio" id="q36_fail" name="q36" value="0"><label for="q36_fail" class="pass-fail-label">Fail</label>
+                </div>
+                <textarea id="feedback_q36" class="feedback-area" placeholder="Feedback..."></textarea>
+            </div>
+<div class="question">
+                <div class="question-title">37. POS/EDC Handling</div>
+                <div class="question-description">- Processes payments confidently using POS and card terminal (EDC).<br/>
+- Ensures transaction accuracy and provides receipts properly.</div>
+                <div class="options">
+                    <input type="radio" id="q37_pass" name="q37" value="1"><label for="q37_pass" class="pass-fail-label">Pass</label>
+                    <input type="radio" id="q37_fail" name="q37" value="0"><label for="q37_fail" class="pass-fail-label">Fail</label>
+                </div>
+                <textarea id="feedback_q37" class="feedback-area" placeholder="Feedback..."></textarea>
+            </div>
+<div class="question">
+                <div class="question-title">38. Task Delegation</div>
+                <div class="question-description">- Transfers responsibilities smoothly to team members.<br/>
+- Maintains a cooperative and efficient workflow.<br/>
+- Ensures work-related information is fully and clearly handed over to colleagues.
+</div>
+                <div class="options">
+                    <input type="radio" id="q38_pass" name="q38" value="1"><label for="q38_pass" class="pass-fail-label">Pass</label>
+                    <input type="radio" id="q38_fail" name="q38" value="0"><label for="q38_fail" class="pass-fail-label">Fail</label>
+                </div>
+                <textarea id="feedback_q38" class="feedback-area" placeholder="Feedback..."></textarea>
+            </div>
+<div class="question">
+                <div class="question-title">39. Dispensing</div>
+                <div class="question-description">- Demonstrates proper dispensing.
+</div>
+                <div class="options">
+                    <input type="radio" id="q39_pass" name="q39" value="1"><label for="q39_pass" class="pass-fail-label">Pass</label>
+                    <input type="radio" id="q39_fail" name="q39" value="0"><label for="q39_fail" class="pass-fail-label">Fail</label>
+                </div>
+                <textarea id="feedback_q39" class="feedback-area" placeholder="Feedback..."></textarea>
+            </div>
+<div class="question">
+                <div class="question-title">40. Dispensing</div>
+                <div class="question-description">- Follow OWNDAYS standard steps.</div>
+                <div class="options">
+                    <input type="radio" id="q40_pass" name="q40" value="1"><label for="q40_pass" class="pass-fail-label">Pass</label>
+                    <input type="radio" id="q40_fail" name="q40" value="0"><label for="q40_fail" class="pass-fail-label">Fail</label>
+                </div>
+                <textarea id="feedback_q40" class="feedback-area" placeholder="Feedback..."></textarea>
+            </div>
+<div class="question" data-group="frame-adjustment">
+                <div class="question-title">41. Frame adjustment</div>
+                <div class="question-description">- Performs basic frame adjustments for customer comfort.</div>
+                <div class="options">
+                    <input type="radio" id="q41_pass" name="q41" value="1"><label for="q41_pass" class="pass-fail-label">Pass</label>
+                    <input type="radio" id="q41_fail" name="q41" value="0"><label for="q41_fail" class="pass-fail-label">Fail</label>
+                </div>
+                <textarea id="feedback_q41" class="feedback-area" placeholder="Feedback..."></textarea>
+            </div>
+<div class="question" data-group="frame-adjustment">
+                <div class="question-title">42. Frame adjustment</div>
+                <div class="question-description">- Use correctly tool</div>
+                <div class="options">
+                    <input type="radio" id="q42_pass" name="q42" value="1"><label for="q42_pass" class="pass-fail-label">Pass</label>
+                    <input type="radio" id="q42_fail" name="q42" value="0"><label for="q42_fail" class="pass-fail-label">Fail</label>
+                </div>
+                <textarea id="feedback_q42" class="feedback-area" placeholder="Feedback..."></textarea>
+            </div>
+<div class="question" data-group="frame-adjustment">
+                <div class="question-title">43. Frame adjustment</div>
+                <div class="question-description">- Direct to the point</div>
+                <div class="options">
+                    <input type="radio" id="q43_pass" name="q43" value="1"><label for="q43_pass" class="pass-fail-label">Pass</label>
+                    <input type="radio" id="q43_fail" name="q43" value="0"><label for="q43_fail" class="pass-fail-label">Fail</label>
+                </div>
+                <textarea id="feedback_q43" class="feedback-area" placeholder="Feedback..."></textarea>
+            </div>
+<div class="question">
+                <div class="question-title">44. Warranty & After sales service</div>
+                <div class="question-description">- Provide clear and complete information.</div>
+                <div class="options">
+                    <input type="radio" id="q44_pass" name="q44" value="1"><label for="q44_pass" class="pass-fail-label">Pass</label>
+                    <input type="radio" id="q44_fail" name="q44" value="0"><label for="q44_fail" class="pass-fail-label">Fail</label>
+                </div>
+                <textarea id="feedback_q44" class="feedback-area" placeholder="Feedback..."></textarea>
+            </div>
+<div class="question">
+                <div class="question-title">45. Policy Understanding</div>
+                <div class="question-description">- Understands and explains policies (Tax Invoice)<br/>
+- Applies company guidelines appropriately.<br/>
+- Clearly informs customers about cashless payment , no refund policy and lens replacement.<br/>
+- Clearly informs customers about dispensing policy<br/>
+                </div>
+                <div class="options">
+                    <input type="radio" id="q45_pass" name="q45" value="1"><label for="q45_pass" class="pass-fail-label">Pass</label>
+                    <input type="radio" id="q45_fail" name="q45" value="0"><label for="q45_fail" class="pass-fail-label">Fail</label>
+                </div>
+                <textarea id="feedback_q45" class="feedback-area" placeholder="Feedback..."></textarea>
+            </div>
+<div class="question">
+                <div class="question-title">46. Scenario Handling</div>
+                <div class="question-description">- Responds appropriately to "what-if" customer scenarios.<br/>
+- Maintains professionalism under pressure<br/>
+- Answers questions with accurate information<br/>
+- Manages emotions well in stressful situations while staying professional<br/>
+                </div>
+                <div class="options">
+                    <input type="radio" id="q46_pass" name="q46" value="1"><label for="q46_pass" class="pass-fail-label">Pass</label>
+                    <input type="radio" id="q46_fail" name="q46" value="0"><label for="q46_fail" class="pass-fail-label">Fail</label>
+                </div>
+                <textarea id="feedback_q46" class="feedback-area" placeholder="Feedback..."></textarea>
+            </div>
+<div class="question">
+                <div class="question-title">47. Empathy & Resolution</div>
+                <div class="question-description">- Understand and shows care when customers have complaints or concern.<br/>
+- Gives helpful solutions while following brand standards.<br/>
+- Recommends products sincerely without pressuring the customer.<br/>
+- Respects the customer's decision and gives advice that shows understanding.<br/>
+- Can show empathy in the right situations.<br/>
+- Gives useful advice and suggests options that match the customer's needs.<br/>
+                </div>
+                <div class="options">
+                    <input type="radio" id="q47_pass" name="q47" value="1"><label for="q47_pass" class="pass-fail-label">Pass</label>
+                    <input type="radio" id="q47_fail" name="q47" value="0"><label for="q47_fail" class="pass-fail-label">Fail</label>
+                </div>
+                <textarea id="feedback_q47" class="feedback-area" placeholder="Feedback..."></textarea>
+            </div>
+<div class="question">
+                <div class="question-title">48. Glasses Cleaning & Maintenance</div>
+                <div class="question-description">- Uses proper tools and methods (e.g., cleaning solution, screwdriver, pliers) to clean and
+maintain glasses in line with customer expectations.
+                </div>
+                <div class="options">
+                    <input type="radio" id="q48_pass" name="q48" value="1"><label for="q48_pass" class="pass-fail-label">Pass</label>
+                    <input type="radio" id="q48_fail" name="q48" value="0"><label for="q48_fail" class="pass-fail-label">Fail</label>
+                </div>
+                <textarea id="feedback_q48" class="feedback-area" placeholder="Feedback..."></textarea>
+            </div>
+<div class="question">
+                <div class="question-title">49. Multitasking Skill</div>
+                <div class="question-description">- Able to manage several customer needs at the same time with efficiency, staying calm
+and organized under pressure to ensure smooth service.
+                </div>
+                <div class="options">
+                    <input type="radio" id="q49_pass" name="q49" value="1"><label for="q49_pass" class="pass-fail-label">Pass</label>
+                    <input type="radio" id="q49_fail" name="q49" value="0"><label for="q49_fail" class="pass-fail-label">Fail</label>
+                </div>
+                <textarea id="feedback_q49" class="feedback-area" placeholder="Feedback..."></textarea>
+            </div>
+
+</div>
+
+        <div class="major-section" id="section-pers" data-title="Personality Enhancement">
+             <div class="score-summary">
+                 <h3 class="score-summary-title">Personality </h3>
+                 <p class="score-summary-value" id="section-pers-score">0 / 0 (0.00%)</p>
+            </div>
+<div class="question-description">This section evaluates employees and helps them improve their personal presentation,
+communication style, confidence, and customer interaction skills, enabling them to
+provide better service and create a positive impression on customers.</div>
+
+<div class="question">
+                <div class="question-title">50. Soft Skill</div>
+                <div class="question-description">- Understand and shows care when customers have complaints or concern.<br/>
+- Gives helpful solutions while following brand standards.<br/>
+- Recommends products sincerely without pressuring the customer.<br/>
+- Respects the customer's decision and gives advice that shows understanding.<br/>
+- Can show empathy in the right situations.<br/>
+- Gives useful advice and suggests options that match the customer's needs.<br/>
+                </div>
+                <div class="options">
+                    <input type="radio" id="q50_pass" name="q50" value="1"><label for="q50_pass" class="pass-fail-label">Pass</label>
+                    <input type="radio" id="q50_fail" name="q50" value="0"><label for="q50_fail" class="pass-fail-label">Fail</label>
+                </div>
+                <textarea id="feedback_q50" class="feedback-area" placeholder="Feedback..."></textarea>
+            </div>
+<div class="question">
+                <div class="question-title">51. Customer Greeting by WELCOME TO OWNDAYS ECHO</div>
+                <div class="question-description">Welcome customers warmly.<br/>
+- "WELCOME TO OWNDAYS ECHO" sounds warm and appropriate.<br/>
+- "WELCOME TO OWNDAYS ECHO" with a smile, while turning towards the
+customers and pausing any other tasks.<br/>
+
+                </div>
+                <div class="options">
+                    <input type="radio" id="q51_pass" name="q51" value="1"><label for="q51_pass" class="pass-fail-label">Pass</label>
+                    <input type="radio" id="q51_fail" name="q51" value="0"><label for="q51_fail" class="pass-fail-label">Fail</label>
+                </div>
+                <textarea id="feedback_q51" class="feedback-area" placeholder="Feedback..."></textarea>
+            </div>
+<div class="question">
+                <div class="question-title">52. Send Customers Off</div>
+                <div class="question-description">
+- Say thank you politely with the gesture of Wai<br/>
+- See customers off the store.<br/>
+
+                </div>
+                <div class="options">
+                    <input type="radio" id="q52_pass" name="q52" value="1"><label for="q52_pass" class="pass-fail-label">Pass</label>
+                    <input type="radio" id="q52_fail" name="q52" value="0"><label for="q52_fail" class="pass-fail-label">Fail</label>
+                </div>
+                <textarea id="feedback_q52" class="feedback-area" placeholder="Feedback..."></textarea>
+            </div>
+
+<div class="question">
+                <div class="question-title">53. Body Language</div>
+                <div class="question-description">Hands: Keep your hands at belt level while listening to customers' needs<br/>
+Active Listening: Maintain eye contact with customers without making it feel
+forced.<br/>
+Calmness: Show a relaxed demeanor, avoiding signs of awkwardness.<br/>
+Feet: Position your feet toward the customer during the conversation.</div>
+                <div class="options multi-choice-grid">
+                    <input type="checkbox" id="c51_1" name="q53_1"><label for="c51_1" class="checkbox-label">Hands</label>
+                    <input type="checkbox" id="c51_2" name="q53_2"><label for="c51_2" class="checkbox-label">Active Listening</label>
+                    <input type="checkbox" id="c51_3" name="q53_3"><label for="c51_3" class="checkbox-label">Calmness</label>
+                    <input type="checkbox" id="c51_4" name="q53_4"><label for="c51_4" class="checkbox-label">Feet</label>
+                    
+                </div>
+                <textarea id="feedback_q53" class="feedback-area" placeholder="Feedback..."></textarea>
+            </div>
+<div class="question">
+                <div class="question-title">54. Voice Tone</div>
+                <div class="question-description">Warmth & Friendliness – Does the voice sound welcoming, approachable, and
+kind?<br/>
+Politeness & Respect – Is the tone courteous and professional, avoiding
+harshness or rudeness?<br/>
+Energy Level – Does the staff speak with enough enthusiasm to show interest,
+but not overly loud or aggressive?<br/>
+Clarity – Are words spoken clearly and at a steady pace, easy for customers to
+understand?
+Confidence – Does the tone project assurance and knowledge, without sounding
+arrogant?<br/></div>
+                <div class="options multi-choice-grid">
+                    <input type="checkbox" id="c52_1" name="q54_1"><label for="c52_1" class="checkbox-label">Warmth & Friendliness</label>
+                    <input type="checkbox" id="c52_2" name="q54_2"><label for="c52_2" class="checkbox-label">Politeness & Respect</label>
+                    <input type="checkbox" id="c52_3" name="q54_3"><label for="c52_3" class="checkbox-label">Energy Level</label>
+                    <input type="checkbox" id="c52_4" name="q54_4"><label for="c52_4" class="checkbox-label">Clarity</label>
+                    <input type="checkbox" id="c52_5" name="q54_5"><label for="c52_5" class="checkbox-label">Confidence</label>
+                </div>
+                <textarea id="feedback_q54" class="feedback-area" placeholder="Feedback..."></textarea>
+            </div>
+<div class="question">
+                <div class="question-title">55. Uniform Standard</div>
+                <div class="options multi-choice-grid">
+                    <input type="checkbox" id="c53_1" name="q55_1"><label for="c53_1" class="checkbox-label">Glassess</label>
+                    <input type="checkbox" id="c53_2" name="q55_2"><label for="c53_2" class="checkbox-label">Black Cloth</label>
+                    <input type="checkbox" id="c53_3" name="q55_3"><label for="c53_3" class="checkbox-label">Name Tag</label>
+                        <input type="checkbox" id="c53_4" name="q55_4"><label for="c53_4" class="checkbox-label">Polo/Blazer</label>
+                </div>
+                <textarea id="feedback_q55" class="feedback-area" placeholder="Feedback..."></textarea>
+            </div>
+
+
+            <div class="question">
+                <div class="question-title">56. Other Appearance Standard</div>
+                <div class="options multi-choice-grid">
+                    <input type="checkbox" id="c54_1" name="q56_1"><label for="c54_1" class="checkbox-label">Accessories</label>
+                    <input type="checkbox" id="c54_2" name="q56_2"><label for="c54_2" class="checkbox-label">Hair</label>
+                    <input type="checkbox" id="c54_3" name="q56_3"><label for="c54_3" class="checkbox-label">Nails</label>
+                    <input type="checkbox" id="c54_4" name="q56_4"><label for="c54_4" class="checkbox-label">Tattoo</label>
+                    <input type="checkbox" id="c54_5" name="q56_5"><label for="c54_5" class="checkbox-label">Socks</label>
+                    <input type="checkbox" id="c54_6" name="q56_6"><label for="c54_6" class="checkbox-label">Shoes</label>
+                    <input type="checkbox" id="c54_7" name="q56_7"><label for="c54_7" class="checkbox-label">Make up</label>
+                    <input type="checkbox" id="c54_8" name="q56_8"><label for="c54_8" class="checkbox-label">Body Odor</label>
+                </div>
+                <textarea id="feedback_q56" class="feedback-area" placeholder="Feedback..."></textarea>
+            </div>
+        
+
+        <div class="question">
+                <div class="question-title">57. Posture</div>
+                <div class="options multi-choice-grid">
+                    <input type="checkbox" id="c55_1" name="q57_1"><label for="c55_1" class="checkbox-label">Never be a doorman</label>
+                    <input type="checkbox" id="c55_2" name="q57_2"><label for="c55_2" class="checkbox-label">Use both hand when serving customer</label>
+                    <input type="checkbox" id="c55_3" name="q57_3"><label for="c55_3" class="checkbox-label">Always use black tray</label>
+                    <input type="checkbox" id="c55_4" name="q57_4"><label for="c55_4" class="checkbox-label">Sitting at lower position</label>
+                    
+                </div>
+                <textarea id="feedback_q57" class="feedback-area" placeholder="Feedback..."></textarea>
+            </div>
+
+        <div class="question">
+                <div class="question-title">58. TIME MANAGEMENT</div>
+                <!-- <div class="question-description">- Incoming Call<br/>
+- Outgoing Call</div> -->
+               <div class="options">
+                    <input type="radio" id="q58_pass" name="q58" value="1"><label for="q58_pass" class="pass-fail-label">Pass</label>
+                    <input type="radio" id="q58_fail" name="q58" value="0"><label for="q58_fail" class="pass-fail-label">Fail</label>
+                </div>
+                <textarea id="feedback_q58" class="feedback-area" placeholder="Feedback..."></textarea>
+            </div>
+        </div>
+    </form>
+
+
+
+
+<button id="export-pdf-btn">Submit & Export to PDF</button>
+</div>
+<script>
+    const localStorageKey = 'owndaysTestDraft';
+
+    function saveDraft() {
+        try {
+            const formData = {};
+            document.querySelectorAll('#checklist-form input, #checklist-form textarea').forEach(el => {
+                if (!el.id && !el.name) return;
+                if (el.type === 'radio') {
+                    if (el.checked) { formData[el.name] = el.value; }
+                } else if (el.type === 'checkbox') {
+                    formData[el.id] = el.checked;
+                } else {
+                    if(el.id) formData[el.id] = el.value;
+                }
+            });
+            localStorage.setItem(localStorageKey, JSON.stringify(formData));
+        } catch(e) {}
+    }
+
+    function loadDraft() {
+        try {
+            const savedData = localStorage.getItem(localStorageKey);
+            if (savedData) {
+                const formData = JSON.parse(savedData);
+                for (const key in formData) {
+                    const value = formData[key];
+                    const radioElements = document.querySelectorAll(`input[type="radio"][name="${key}"]`);
+                    if (radioElements.length > 0) {
+                        radioElements.forEach(radio => { if (radio.value === value) radio.checked = true; });
+                    } else {
+                        const element = document.getElementById(key);
+                        if (element) {
+                            if (element.type === 'checkbox') { element.checked = value; }
+                            else { element.value = value; }
+                        }
+                    }
+                }
+            }
+        } catch(e) {}
+    }
+
+    function clearDraft() {
+        try { localStorage.removeItem(localStorageKey); } catch(e) {}
+    }
+  
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.getElementById('checklist-form');
+        const exportBtn = document.getElementById('export-pdf-btn');
+
+        loadDraft();
+
+        function updateScores() {
+            let grandTotalScored = 0;
+            let grandTotalMax = 0;
+            const sections = document.querySelectorAll('.major-section');
+
+            sections.forEach(section => {
+                let sectionScored = 0;
+                let sectionMax = 0;
+
+                const contactLensGroup = section.querySelectorAll('[data-group="contact-lens-prescreen"]');
+                if (contactLensGroup.length > 0) {
+                    sectionMax += 1;
+                    let passCount = 0;
+                    contactLensGroup.forEach(q => {
+                        if (q.querySelector('input[type="radio"][value="1"]:checked')) {
+                            passCount++;
+                        }
+                    });
+                    if (passCount >= 2) {
+                        sectionScored += 1;
+                    }
+                }
+
+                const frameAdjustmentGroup = section.querySelectorAll('[data-group="frame-adjustment"]');
+                if (frameAdjustmentGroup.length > 0) {
+                    sectionMax += 1;
+                    let passCount = 0;
+                    frameAdjustmentGroup.forEach(q => {
+                        if (q.querySelector('input[type="radio"][value="1"]:checked')) {
+                            passCount++;
+                        }
+                    });
+                    if (passCount >= 2) {
+                        sectionScored += 1;
+                    }
+                }
+
+                const questions = section.querySelectorAll('.question');
+                questions.forEach(question => {
+                    if (question.dataset.group) {
+                        return; 
+                    }
+                    
+                    const radioButtons = question.querySelectorAll('input[type="radio"]');
+                    if (radioButtons.length > 0) {
+                        sectionMax += 1;
+                        const checkedRadio = question.querySelector('input[type="radio"]:checked');
+                        if (checkedRadio) {
+                            sectionScored += parseInt(checkedRadio.value, 10);
+                        }
+                    }
+
+                    const grid = question.querySelector('.multi-choice-grid');
+                    if (grid) {
+                        sectionMax += 1;
+                        const checkedCheckboxes = grid.querySelectorAll('input[type="checkbox"]:checked').length;
+                        
+                        const questionTitle = question.querySelector('.question-title')?.textContent.trim();
+                        const questionId = questionTitle ? questionTitle.split('.')[0] : null;
+
+                        let score = 0;
+                        if (questionId) {
+                            switch (questionId) {
+                                case '53':
+                                    if (checkedCheckboxes >= 3) score = 1;
+                                    break;
+                                case '54':
+                                    if (checkedCheckboxes >= 4) score = 1;
+                                    break;
+                                case '55':
+                                    if (checkedCheckboxes >= 4) score = 1;
+                                    break;
+                                case '56':
+                                    if (checkedCheckboxes >= 8) score = 1;
+                                    break;
+                                case '57':
+                                    if (checkedCheckboxes >= 4) score = 1;
+                                    break;
+                                default:
+                                    const totalCheckboxes = grid.querySelectorAll('input[type="checkbox"]').length;
+                                    if (totalCheckboxes > 0 && checkedCheckboxes === totalCheckboxes) {
+                                        score = 1;
+                                    }
+                                    break;
+                            }
+                        }
+                        sectionScored += score;
+                    }
+                });
+
+                const sectionScoreDisplay = document.getElementById(`${section.id}-score`);
+                if (sectionScoreDisplay) {
+                    const percentage = sectionMax > 0 ? (sectionScored / sectionMax * 100).toFixed(2) : "0.00";
+                    sectionScoreDisplay.textContent = `${sectionScored} / ${sectionMax} (${percentage}%)`;
+                }
+
+                grandTotalScored += sectionScored;
+                grandTotalMax += sectionMax;
+            });
+            
+            const totalScoreDisplay = document.getElementById('total-score-display');
+            const floatingScoreValue = document.getElementById('floating-score-value');
+            const totalPercentage = grandTotalMax > 0 ? (grandTotalScored / grandTotalMax * 100).toFixed(2) : "0.00";
+            
+            totalScoreDisplay.textContent = `${grandTotalScored} / ${grandTotalMax} (${totalPercentage}%)`;
+            
+            if (floatingScoreValue) {
+                floatingScoreValue.textContent = `${grandTotalScored} / ${grandTotalMax}`;
+            }
+        }
+        
+        form.addEventListener('input', () => {
+            updateScores();
+            saveDraft();
+        });
+        
+        exportBtn.addEventListener('click', generatePDF); 
+        
+        updateScores(); 
+
+        const totalScoreBar = document.getElementById('total-score-bar');
+        const floatingCircle = document.getElementById('floating-score-circle');
+
+        window.addEventListener('scroll', () => {
+            if (!totalScoreBar || !floatingCircle) return;
+            
+            if (window.scrollY > totalScoreBar.offsetTop + totalScoreBar.offsetHeight) {
+                floatingCircle.classList.add('visible');
+            } else {
+                floatingCircle.classList.remove('visible');
+            }
+        });
+    });
+
+    async function generatePDF() {
+        if (typeof PDFLib === 'undefined' || typeof html2canvas === 'undefined') {
+            alert('Error: Could not load the required libraries (pdf-lib, html2canvas).');
+            return;
+        }
+
+        const submitBtn = document.getElementById('export-pdf-btn');
+        const originalButtonText = submitBtn.innerText;
+        submitBtn.innerText = 'Generating PDF...';
+        submitBtn.disabled = true;
+
+        try {
+            const { PDFDocument, rgb, StandardFonts } = PDFLib;
+            const pdfDoc = await PDFDocument.create();
+            let page = pdfDoc.addPage();
+            const { width: pageWidth, height: pageHeight } = page.getSize();
+            const margin = 50;
+            let y = pageHeight - margin;
+
+            const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+            const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+            
+            const FONT_SIZES = {
+                MAIN_TITLE: 20, HEADER: 13, SCORE: 12, SUBHEADER: 11,
+                ITEM_TITLE: 10, INFO: 10, DESCRIPTION: 10, BUTTON: 10, FEEDBACK: 8.5
+            };
+
+            const lightBlue = rgb(220 / 255, 237 / 255, 250 / 255);
+            const darkText = rgb(0.1, 0.1, 0.1);
+            const lightText = rgb(0.4, 0.4, 0.4);
+            const lineColor = rgb(0.9, 0.9, 0.9);
+
+            const colorMap = {
+                pass: { bg: rgb(0 / 255, 171 / 255, 37 / 255), text: rgb(1, 1, 1) },
+                fail: { bg: rgb(220 / 255, 53 / 255, 69 / 255), text: rgb(1, 1, 1) },
+                checkbox: { bg: rgb(0 / 255, 123 / 255, 255 / 255), text: rgb(1, 1, 1) },
+                default: { bg: rgb(0.8, 0.8, 0.8), text: darkText }
+            };
+            
+            function checkPageBreak(requiredHeight) { if (y - requiredHeight < margin) { page = pdfDoc.addPage(); y = pageHeight - margin; } }
+            function wrapText(text, maxWidth, fontSize, textFont) { if (!text) return ['']; let lines = []; const cleanText = text.replace(/<br\s*\/?>/gi, '\n').replace(/<\/?h4>/gi, '').replace(/<\/?b>/gi, ''); cleanText.split('\n').forEach(p => { let words = p.trim().split(' '); let currentLine = ''; words.forEach(word => { const testLine = currentLine === '' ? word : `${currentLine} ${word}`; if (textFont.widthOfTextAtSize(testLine, fontSize) <= maxWidth) { currentLine = testLine; } else { lines.push(currentLine); currentLine = word; } }); lines.push(currentLine); }); return lines; }
+            
+            function drawHeaderBar(title, scoreText, options = {}) {
+                const { bgColor = lightBlue, textColor = darkText, titleSize = FONT_SIZES.HEADER, scoreSize = FONT_SIZES.SCORE } = options;
+                const barHeight = 30;
+                checkPageBreak(barHeight + 5);
+                page.drawRectangle({ x: margin, y: y - barHeight, width: pageWidth - margin * 2, height: barHeight, color: bgColor });
+                page.drawText(title, { x: margin + 15, y: y - (barHeight/2) - (titleSize/2) + 5, font: boldFont, size: titleSize, color: textColor });
+                const scoreTextWidth = boldFont.widthOfTextAtSize(scoreText, scoreSize);
+                page.drawText(scoreText, { x: pageWidth - margin - scoreTextWidth - 15, y: y - (barHeight/2) - (scoreSize/2) + 5, font: boldFont, size: scoreSize, color: textColor });
+                y -= barHeight + 5;
+            }
+
+            const title = "OWNDAYS Staff Simulation Test Report";
+            page.drawText(title, { x: (pageWidth - boldFont.widthOfTextAtSize(title, FONT_SIZES.MAIN_TITLE)) / 2, y: y, font: boldFont, size: FONT_SIZES.MAIN_TITLE });
+            y -= 40;
+            const staffName = document.getElementById('staff_name').value || 'N/A';
+            const staffId = document.getElementById('staff_id').value || 'N/A';
+            const branch = document.getElementById('branch').value || 'N/A';
+            const trainerName = document.getElementById('trainer_name').value || 'N/A';
+            const date = document.getElementById('test_date').value || new Date().toLocaleDateString('en-CA');
+            page.drawText(`Staff Name: ${staffName}`, { x: margin, y: y, font: font, size: FONT_SIZES.INFO });
+            page.drawText(`Staff ID: ${staffId}`, { x: margin + 250, y: y, font: font, size: FONT_SIZES.INFO });
+            y -= 15;
+            page.drawText(`Trainer Name: ${trainerName}`, { x: margin, y: y, font: font, size: FONT_SIZES.INFO });
+            page.drawText(`Branch: ${branch}`, { x: margin + 250, y: y, font: font, size: FONT_SIZES.INFO });
+            page.drawText(`Date: ${date}`, { x: pageWidth - margin - font.widthOfTextAtSize(`Date: ${date}`, FONT_SIZES.INFO), y: y + 15, font: font, size: FONT_SIZES.INFO });
+            y -= 30;
+
+            const scoreText = document.getElementById('total-score-display').textContent;
+            drawHeaderBar('TOTAL SCORE', scoreText);
+            
+            const collectQuestionData = (qEl) => { const titleEl = qEl.querySelector('.question-title'); const title = titleEl ? titleEl.textContent : 'Untitled Question'; const descriptionEl = qEl.querySelector('.question-description'); const description = descriptionEl ? descriptionEl.innerHTML.trim() : ''; const feedback = qEl.querySelector('.feedback-area')?.value.trim() || ''; let result = ''; let resultStyle = ''; let isMultiButton = false; let multiButtonResults = []; const selectedRadio = qEl.querySelector('input[type="radio"]:checked'); const checkboxes = qEl.querySelectorAll('input[type="checkbox"]'); if (selectedRadio) { result = selectedRadio.value === '1' ? 'Pass' : 'Fail'; resultStyle = selectedRadio.value === '1' ? 'pass' : 'fail'; } else if (checkboxes.length > 0) { const checkedCheckboxes = qEl.querySelectorAll('input[type="checkbox"]:checked'); if (checkedCheckboxes.length > 0) { isMultiButton = true; multiButtonResults = Array.from(checkedCheckboxes).map(cb => ({ text: cb.nextElementSibling.textContent.trim(), style: 'checkbox' })); } } return { title, description, result, resultStyle, isMultiButton, multiButtonResults, feedback }; };
+            
+            const drawSectionContent = async (items) => {
+                for (const item of items) {
+                    let requiredHeight = 15;
+                    const titleLines = wrapText(item.title, pageWidth - margin * 2 - 80, FONT_SIZES.ITEM_TITLE, boldFont);
+                    requiredHeight += titleLines.length * (FONT_SIZES.ITEM_TITLE + 2);
+                    
+                    let descriptionLines = [];
+                    if (item.description) {
+                        descriptionLines = wrapText(item.description, pageWidth - margin * 2 - 15, FONT_SIZES.DESCRIPTION, font);
+                        requiredHeight += descriptionLines.length * (FONT_SIZES.DESCRIPTION + 2) + 5;
+                    }
+                    if (item.multiButtonResults.length > 0) { requiredHeight += 30; }
+                    
+                    checkPageBreak(requiredHeight);
+                    const startY = y;
+                    
+                    y -= 5;
+                    titleLines.forEach(line => { page.drawText(line, { x: margin, y: y, font: boldFont, size: FONT_SIZES.ITEM_TITLE, lineHeight: FONT_SIZES.ITEM_TITLE + 2 }); y -= (FONT_SIZES.ITEM_TITLE + 2); });
+                    if (descriptionLines.length > 0) { y -= 5; descriptionLines.forEach(line => { page.drawText(line, { x: margin + 10, y: y, font: font, size: FONT_SIZES.DESCRIPTION, color: lightText, lineHeight: FONT_SIZES.DESCRIPTION + 2 }); y -= (FONT_SIZES.DESCRIPTION + 2); }); }
+                    
+                    if (item.isMultiButton && item.multiButtonResults.length > 0) {
+                        y -= 10;
+                        let currentX = margin;
+                        const buttonHeight = FONT_SIZES.BUTTON + 9;
+                        const buttonGap = 5;
+                        for(const btn of item.multiButtonResults) {
+                            const style = colorMap[btn.style] || colorMap.default;
+                            const textWidth = boldFont.widthOfTextAtSize(btn.text, FONT_SIZES.BUTTON);
+                            const btnWidth = textWidth + 16;
+                            if (currentX + btnWidth > pageWidth - margin) { y -= (buttonHeight + buttonGap); currentX = margin; checkPageBreak(buttonHeight + 5); }
+                            page.drawRectangle({ x: currentX, y: y - buttonHeight, width: btnWidth, height: buttonHeight, color: style.bg, borderRadius: 4 });
+                            page.drawText(btn.text, { x: currentX + 8, y: y - buttonHeight + 5, font: boldFont, size: FONT_SIZES.BUTTON, color: style.text });
+                            currentX += btnWidth + buttonGap;
+                        }
+                        y -= (buttonHeight + 5);
+                    } else if (item.result) {
+                        const style = colorMap[item.resultStyle];
+                        const fontSize = FONT_SIZES.BUTTON;
+                        const padding = { x: 8, y: 4 };
+                        const resultWidth = boldFont.widthOfTextAtSize(item.result, fontSize);
+                        const boxWidth = resultWidth + padding.x * 2;
+                        const boxHeight = fontSize + padding.y * 2;
+                        const boxX = pageWidth - margin - boxWidth;
+                        const boxY = startY - 5 - (titleLines.length * (FONT_SIZES.ITEM_TITLE + 2) / 2) - (boxHeight / 2);
+                        page.drawRectangle({ x: boxX, y: boxY, width: boxWidth, height: boxHeight, color: style.bg, borderRadius: 4 });
+                        page.drawText(item.result, { x: boxX + padding.x, y: boxY + padding.y, font: boldFont, size: fontSize, color: style.text });
+                    }
+
+                    if (item.feedback) {
+                        y -= 10;
+                        const feedbackEl = document.createElement('div');
+                        feedbackEl.style.width = '800px';
+                        feedbackEl.style.padding = '5px';
+                        feedbackEl.style.fontSize = `${FONT_SIZES.FEEDBACK * 2}px`;
+                        feedbackEl.style.fontFamily = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif';
+                        feedbackEl.style.color = 'rgb(50, 50, 50)';
+                        feedbackEl.style.whiteSpace = 'pre-wrap';
+                        feedbackEl.style.wordWrap = 'break-word';
+                        feedbackEl.innerText = `Feedback: ${item.feedback}`;
+                        feedbackEl.style.position = 'absolute';
+                        feedbackEl.style.left = '-9999px';
+                        document.body.appendChild(feedbackEl);
+
+                        const canvas = await html2canvas(feedbackEl, { scale: 2 });
+                        const imgDataUrl = canvas.toDataURL('image/png');
+                        document.body.removeChild(feedbackEl);
+
+                        const pngImageBytes = await fetch(imgDataUrl).then(res => res.arrayBuffer());
+                        const pdfImage = await pdfDoc.embedPng(pngImageBytes);
+                        const imgWidth = pageWidth - (margin * 2) - 15;
+                        const imgHeight = imgWidth * (pdfImage.height / pdfImage.width);
+
+                        checkPageBreak(imgHeight + 5);
+                        page.drawImage(pdfImage, { x: margin + 10, y: y - imgHeight, width: imgWidth, height: imgHeight });
+                        y -= imgHeight + 5;
+                    }
+                    
+                    page.drawLine({ start: { x: margin, y: y }, end: { x: pageWidth - margin, y: y }, thickness: 0.5, color: lineColor });
+                    y -= 15;
+                }
+            };
+
+            const sections = document.querySelectorAll('.major-section');
+            for (const sectionEl of sections) {
+                const sectionTitle = sectionEl.dataset.title || sectionEl.querySelector('.score-summary-title')?.textContent;
+                const sectionScoreText = sectionEl.querySelector('.score-summary-value')?.textContent;
+                const allQuestionsData = Array.from(sectionEl.querySelectorAll('.question')).map(collectQuestionData);
+
+                checkPageBreak(50);
+                y -= 15;
+                drawHeaderBar(sectionTitle, sectionScoreText, { titleSize: FONT_SIZES.SUBHEADER, scoreSize: FONT_SIZES.SUBHEADER });
+                y -= 5;
+                await drawSectionContent(allQuestionsData);
+            }
+            
+            const pdfBytes = await pdfDoc.save();
+            const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            const safeFileName = staffName.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+            link.download = `Simulation_Test-${safeFileName}-${date}.pdf`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(link.href);
+           
+            clearDraft();
+            document.getElementById('checklist-form').reset();
+            alert("PDF has been generated and the form has been cleared.");
+        
+            document.dispatchEvent(new Event('DOMContentLoaded'));
+
+        } catch (err) {
+            console.error("Failed to generate PDF:", err);
+            alert("An error occurred while generating the PDF. See the developer console (F12) for details.");
+        } finally {
+            submitBtn.innerText = originalButtonText;
+            submitBtn.disabled = false;
+        }
+    }
+</script>
+
+</body>
+</html>}

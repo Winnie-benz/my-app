@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OWNDAYS Exam Portal</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { height: 100%; overflow: hidden; font-family: sans-serif; background: #111; }
+    .top-bar {
+      background: #111;
+      color: #fff;
+      padding: 0 20px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      height: 52px;
+      border-bottom: 1px solid #333;
+    }
+    .top-bar label { font-size: 13px; color: #999; white-space: nowrap; }
+    .top-bar select {
+      padding: 7px 12px;
+      border-radius: 6px;
+      border: none;
+      font-size: 14px;
+      background: #fff;
+      cursor: pointer;
+      min-width: 260px;
+    }
+    .placeholder {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: calc(100vh - 52px);
+      color: #555;
+      font-size: 15px;
+      background: #1a1a1a;
+    }
+    iframe {
+      width: 100%;
+      height: calc(100vh - 52px);
+      border: none;
+      display: none;
+      background: #fff;
+    }
+  </style>
+</head>
+<body>
+  <div class="top-bar">
+    <label>Select Course:</label>
+    <select id="courseSelect" onchange="loadCourse(this.value)">
+      <option value="">-- Select a Course --</option>
+      <option value="njj-simulation.html">NJJ-Simulation Test</option>
+      <option value="1st-grade.html">1st Grade Simulation Test</option>
+      <option value="2nd-grade.html">2nd Grade Simulation Test</option>
+      <option value="3rd-grade.html">3rd Grade Simulation Test</option>
+      <option value="njj-checklist.html">NJJ Checklist</option>
+      <option value="mvc-checklist.html">MVC Checklist</option>
+      <option value="moc-checklist.html">MOC Checklist</option>
+    </select>
+  </div>
+  <div class="placeholder" id="placeholder">Please select a course above to begin.</div>
+  <iframe id="examFrame" allowfullscreen></iframe>
+
+  <script>
+    function loadCourse(filename) {
+      var frame = document.getElementById('examFrame');
+      var placeholder = document.getElementById('placeholder');
+      if (!filename) {
+        frame.style.display = 'none';
+        placeholder.style.display = 'flex';
+        frame.src = 'about:blank';
+        return;
+      }
+      placeholder.style.display = 'none';
+      frame.style.display = 'block';
+      frame.src = 'ready/' + filename;
+    }
+  </script>
+</body>
+</html>

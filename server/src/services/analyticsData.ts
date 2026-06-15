@@ -1,0 +1,229 @@
+import db from '../db/database'
+
+export interface BusinessSnapshot {
+  generatedAt: string
+  dataWarnings: string[]
+  overview: {
+    totalCustomers: number
+    totalOrders: number
+    totalRevenue: number
+    avgTicketSize: number
+    firstOrderDate: string | null
+    lastOrderDate: string | null
+    dataPeriodDays: number
+  }
+  customerDemographics: {
+    byGender: { gender: string; count: number }[]
+    bySource: { source: string; count: number }[]
+    byAgeGroup: { age_group: string; count: number }[]
+    missingBirthday: number
+  }
+  revenueByMonth: {
+    month: string
+    orderCount: number
+    revenue: number
+    avgTicket: number
+  }[]
+  orderStatus: { status: string; count: number }[]
+  paymentStatus: {
+    status: string
+    count: number
+    totalAmount: number
+  }[]
+  paymentMethods: { method: string; count: number; totalAmount: number }[]
+  lensTypeDistribution: { lensType: string; count: number }[]
+  inventoryAlerts: {
+    name: string
+    sku: string
+    stock: number
+    reorderPoint: number
+  }[]
+  topProducts: { name: string; sku: string; unitsSold: number }[]
+  marginSummary: {
+    totalRevenue: number
+    totalCost: number
+    grossProfit: number
+    grossMarginPct: number
+    ordersWithFullCost: number
+    totalOrders: number
+  }
+  outstandingPayments: {
+    count: number
+    totalOutstanding: number
+  }
+}
+
+export function getBusinessSnapshot(): BusinessSnapshot {
+  const warnings: string[] = []
+
+  // ── Overview ─────────────────────────────────────────────────────────────
+  const overview = db.prepare(`
+    SELECT
+      (SELECT COUNT(*) FROM customers) AS totalCustomers,
+      (SELECT COUNT(*) FROM purchases) AS totalOrders,
+      (SELECT COALESCE(SUM(total), 0) FROM purchases) AS totalRevenue,
+      (SELECT COALESCE(AVG(total), 0) FROM purchases) AS avgTicketSize,
+      (SELECT MIN(date) FROM purchases) AS firstOrderDate,
+      (SELECT MAX(date) FROM purchases) AS lastOrderDate
+  `).get() as any
+
+  const dataPeriodDays = overview.firstOrderDate
+    ? Math.round((new Date().getTime() - new Date(overview.firstOrderDate).getTime()) / 86400000)
+    : 0
+
+  if (overview.totalOrders === 0) warnings.push('ยังไม่มีข้อมูล orders — กำลังใช้ข้อมูลโครงสร้างเปล่า')
+  if (overview.totalCustomers === 0) warnings.push('ยังไม่มีข้อมูลลูกค้า')
+
+  // ── Customer Demographics ─────────────────────────────────────────────────
+  const byGender = db.prepare(`
+    SELECT gender, COUNT(*) AS count FROM customers GROUP BY gender ORDER BY count DESC
+  `).all() as any[]
+
+  const bySource = db.prepare(`
+    SELECT source, COUNT(*) AS count FROM customers GROUP BY source ORDER BY count DESC
+  `).all() as any[]
+
+  const byAgeGroup = db.prepare(`
+    SELECT
+      CASE
+        WHEN birthday = '' THEN 'ไม่ระบุ'
+        WHEN CAST(strftime('%Y','now') AS INTEGER) - CAST(strftime('%Y', birthday) AS INTEGER) < 20 THEN 'ต่ำกว่า 20'
+        WHEN CAST(strftime('%Y','now') AS INTEGER) - CAST(strftime('%Y', birthday) AS INTEGER) < 30 THEN '20-29'
+        WHEN CAST(strftime('%Y','now') AS INTEGER) - CAST(strftime('%Y', birthday) AS INTEGER) < 40 THEN '30-39'
+        WHEN CAST(strftime('%Y','now') AS INTEGER) - CAST(strftime('%Y', birthday) AS INTEGER) < 50 THEN '40-49'
+        WHEN CAST(strftime('%Y','now') AS INTEGER) - CAST(strftime('%Y', birthday) AS INTEGER) < 60 THEN '50-59'
+        ELSE '60+'
+      END AS age_group,
+      COUNT(*) AS count
+    FROM customers GROUP BY age_group ORDER BY count DESC
+  `).all() as any[]
+
+  const missingBirthday = db.prepare(
+    `SELECT COUNT(*) AS n FROM customers WHERE birthday = ''`
+  ).get() as any
+
+  if (missingBirthday.n > 0)
+    warnings.push(`ลูกค้า ${missingBirthday.n} คนไม่มีข้อมูลวันเกิด`)
+
+  // ── Monthly Revenue (last 6 months) ──────────────────────────────────────
+  const revenueByMonth = db.prepare(`
+    SELECT
+      strftime('%Y-%m', date) AS month,
+      COUNT(*) AS orderCount,
+      ROUND(SUM(total), 2) AS revenue,
+      ROUND(AVG(total), 2) AS avgTicket
+    FROM purchases
+    WHERE date >= date('now', '-6 months')
+    GROUP BY month ORDER BY month
+  `).all() as any[]
+
+  // ── Order Status ──────────────────────────────────────────────────────────
+  const orderStatus = db.prepare(`
+    SELECT order_status AS status, COUNT(*) AS count
+    FROM purchases GROUP BY order_status ORDER BY count DESC
+  `).all() as any[]
+
+  // ── Payment Status ────────────────────────────────────────────────────────
+  const paymentStatus = db.prepare(`
+    SELECT payment_status AS status, COUNT(*) AS count, ROUND(SUM(total), 2) AS totalAmount
+    FROM purchases GROUP BY payment_status ORDER BY count DESC
+  `).all() as any[]
+
+  // ── Payment Methods ───────────────────────────────────────────────────────
+  const paymentMethods = db.prepare(`
+    SELECT method, COUNT(*) AS count, ROUND(SUM(amount), 2) AS totalAmount
+    FROM payments GROUP BY method ORDER BY totalAmount DESC
+  `).all() as any[]
+
+  // ── Lens Type Distribution (from JSON) ────────────────────────────────────
+  const lensTypeDistribution = db.prepare(`
+    SELECT
+      COALESCE(json_extract(lens_data, '$.lens_type'), 'unknown') AS lensType,
+      COUNT(*) AS count
+    FROM purchases
+    WHERE json_extract(lens_data, '$.enabled') = 1
+    GROUP BY lensType ORDER BY count DESC
+  `).all() as any[]
+
+  // ── Inventory Alerts ──────────────────────────────────────────────────────
+  const inventoryAlerts = db.prepare(`
+    SELECT name, sku, stock_current AS stock, reorder_point AS reorderPoint
+    FROM products
+    WHERE stock_current <= reorder_point
+    ORDER BY stock_current ASC LIMIT 20
+  `).all() as any[]
+
+  // ── Top Products ──────────────────────────────────────────────────────────
+  const topProducts = db.prepare(`
+    SELECT p.name, p.sku,
+      COALESCE(SUM(CASE WHEN sm.type = 'out' THEN sm.qty ELSE 0 END), 0) AS unitsSold
+    FROM products p
+    LEFT JOIN stock_movements sm ON sm.product_id = p.id AND sm.type = 'out'
+    GROUP BY p.id ORDER BY unitsSold DESC LIMIT 10
+  `).all() as any[]
+
+  // ── Margin Summary ────────────────────────────────────────────────────────
+  const margin = db.prepare(`
+    SELECT
+      ROUND(SUM(total), 2) AS totalRevenue,
+      ROUND(SUM(COALESCE(cost_lens,0) + COALESCE(cost_frame,0) + COALESCE(cost_other,0)), 2) AS totalCost,
+      ROUND(SUM(total - COALESCE(cost_lens,0) - COALESCE(cost_frame,0) - COALESCE(cost_other,0)), 2) AS grossProfit,
+      COUNT(*) AS totalOrders,
+      COUNT(CASE WHEN cost_lens IS NOT NULL AND cost_frame IS NOT NULL AND cost_other IS NOT NULL THEN 1 END) AS ordersWithFullCost
+    FROM purchases
+  `).get() as any
+
+  const grossMarginPct = margin.totalRevenue > 0
+    ? Math.round((margin.grossProfit / margin.totalRevenue) * 100)
+    : 0
+
+  if (margin.ordersWithFullCost < margin.totalOrders)
+    warnings.push(`Orders ${margin.totalOrders - margin.ordersWithFullCost} รายการยังไม่มีข้อมูลต้นทุนครบ — margin อาจไม่แม่นยำ`)
+
+  // ── Outstanding Payments ──────────────────────────────────────────────────
+  const outstanding = db.prepare(`
+    SELECT COUNT(*) AS count,
+      ROUND(SUM(total - paid_amount), 2) AS totalOutstanding
+    FROM purchases
+    WHERE payment_status IN ('pending', 'partial')
+  `).get() as any
+
+  return {
+    generatedAt: new Date().toISOString(),
+    dataWarnings: warnings,
+    overview: {
+      totalCustomers: overview.totalCustomers,
+      totalOrders: overview.totalOrders,
+      totalRevenue: overview.totalRevenue,
+      avgTicketSize: Math.round(overview.avgTicketSize),
+      firstOrderDate: overview.firstOrderDate,
+      lastOrderDate: overview.lastOrderDate,
+      dataPeriodDays,
+    },
+    customerDemographics: {
+      byGender,
+      bySource,
+      byAgeGroup,
+      missingBirthday: missingBirthday.n,
+    },
+    revenueByMonth,
+    orderStatus,
+    paymentStatus,
+    paymentMethods,
+    lensTypeDistribution,
+    inventoryAlerts,
+    topProducts,
+    marginSummary: {
+      totalRevenue: margin.totalRevenue ?? 0,
+      totalCost: margin.totalCost ?? 0,
+      grossProfit: margin.grossProfit ?? 0,
+      grossMarginPct,
+      ordersWithFullCost: margin.ordersWithFullCost,
+      totalOrders: margin.totalOrders,
+    },
+    outstandingPayments: {
+      count: outstanding.count,
+      totalOutstanding: outstanding.totalOutstanding ?? 0,
+    },
+  }
+}

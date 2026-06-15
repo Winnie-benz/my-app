@@ -1,0 +1,6 @@
+{
+  "backupPath": "/Users/benz/my-app/server/data/backups/shop_20260612_143331450.db",
+  "requestedAt": "2026-06-14T13:05:41.411Z",
+  "safetyBackup": "shop_manual_20260614_200541402.db",
+  "dbPath": "/Users/benz/my-app/server/data/shop.db"
+}

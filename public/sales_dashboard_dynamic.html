@@ -1,0 +1,1582 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Sales Dashboard</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --bg: #0a0b0e;
+  --s1: #101217;
+  --s2: #181a22;
+  --s3: #1f2130;
+  --s4: #252838;
+  --border: #2a2d3e;
+  --text: #e8eaf0;
+  --muted: #6b7080;
+  --dim: #9096a8;
+  --feb: #8b6fd4;
+  --mar: #4a8fd0;
+  --apr: #d97a42;
+  --hit: #4caf82;
+  --miss: #e05a5a;
+  --rev: #e8b84b;
+}
+*,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
+body { background:var(--bg); color:var(--text); font-family:'Sarabun',sans-serif; font-size:14px; min-height:100vh; }
+.mono { font-family:'IBM Plex Mono',monospace; }
+
+/* ── Upload Panel ── */
+#upload-panel {
+  background:var(--s1);
+  border-bottom:1px solid var(--border);
+  padding:0;
+  position:sticky;
+  top:0;
+  z-index:100;
+}
+#upload-header {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:10px 20px;
+  cursor:pointer;
+  user-select:none;
+  gap:12px;
+}
+#upload-header h3 {
+  font-size:13px;
+  font-weight:600;
+  color:var(--dim);
+  letter-spacing:.05em;
+  text-transform:uppercase;
+}
+#upload-summary {
+  font-size:12px;
+  color:var(--muted);
+  flex:1;
+  padding-left:16px;
+}
+#upload-toggle {
+  background:none;
+  border:1px solid var(--border);
+  color:var(--dim);
+  border-radius:6px;
+  padding:3px 10px;
+  font-size:12px;
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  gap:4px;
+  transition:background .15s;
+}
+#upload-toggle:hover { background:var(--s3); }
+#upload-body {
+  padding:16px 20px 20px;
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:14px;
+}
+#upload-body.hidden { display:none; }
+
+.month-slot {
+  background:var(--s2);
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:14px;
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+.month-slot-header {
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+.month-color-dot {
+  width:10px;
+  height:10px;
+  border-radius:50%;
+  flex-shrink:0;
+}
+.month-slot-title {
+  font-size:12px;
+  font-weight:600;
+  color:var(--dim);
+  text-transform:uppercase;
+  letter-spacing:.06em;
+}
+.month-inputs {
+  display:grid;
+  grid-template-columns:1fr 80px;
+  gap:6px;
+  align-items:center;
+}
+.month-inputs label { font-size:11px; color:var(--muted); }
+.month-inputs input[type="text"] {
+  background:var(--s3);
+  border:1px solid var(--border);
+  border-radius:6px;
+  color:var(--text);
+  font-size:12px;
+  padding:4px 8px;
+  width:100%;
+  outline:none;
+  transition:border-color .15s;
+}
+.month-inputs input[type="text"]:focus { border-color:var(--dim); }
+.month-inputs input[type="color"] {
+  width:32px;
+  height:26px;
+  border:1px solid var(--border);
+  border-radius:6px;
+  background:var(--s3);
+  cursor:pointer;
+  padding:2px;
+}
+
+.drop-zone {
+  border:1.5px dashed var(--border);
+  border-radius:8px;
+  padding:12px 8px;
+  text-align:center;
+  cursor:pointer;
+  transition:border-color .15s, background .15s;
+  background:var(--s3);
+  position:relative;
+}
+.drop-zone:hover, .drop-zone.drag-over {
+  background:var(--s4);
+}
+.drop-zone input[type="file"] {
+  position:absolute;
+  inset:0;
+  opacity:0;
+  cursor:pointer;
+  width:100%;
+  height:100%;
+}
+.drop-zone-text {
+  font-size:11px;
+  color:var(--muted);
+  line-height:1.5;
+  pointer-events:none;
+}
+.drop-zone-text strong { display:block; font-size:12px; color:var(--dim); }
+
+.upload-status {
+  font-size:11px;
+  padding:4px 8px;
+  border-radius:6px;
+  text-align:center;
+  font-weight:500;
+}
+.upload-status.pending { background:var(--s4); color:var(--muted); }
+.upload-status.loading { background:rgba(74,143,208,.15); color:#4a8fd0; }
+.upload-status.done { background:rgba(76,175,130,.15); color:#4caf82; }
+.upload-status.error { background:rgba(224,90,90,.15); color:#e05a5a; }
+
+/* ── Modal ── */
+#modal-overlay {
+  display:none;
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.7);
+  z-index:500;
+  align-items:center;
+  justify-content:center;
+  padding:20px;
+}
+#modal-overlay.active { display:flex; }
+#modal-box {
+  background:var(--s2);
+  border:1px solid var(--border);
+  border-radius:14px;
+  width:100%;
+  max-width:780px;
+  max-height:90vh;
+  overflow-y:auto;
+  padding:24px;
+  display:flex;
+  flex-direction:column;
+  gap:18px;
+}
+#modal-title { font-size:16px; font-weight:700; color:var(--text); }
+#modal-subtitle { font-size:12px; color:var(--muted); margin-top:2px; }
+
+.preview-table-wrap {
+  overflow-x:auto;
+  border:1px solid var(--border);
+  border-radius:8px;
+}
+.preview-table {
+  border-collapse:collapse;
+  width:100%;
+  font-size:11px;
+}
+.preview-table th {
+  background:var(--s3);
+  padding:6px 10px;
+  text-align:left;
+  color:var(--dim);
+  font-weight:600;
+  white-space:nowrap;
+  border-bottom:1px solid var(--border);
+}
+.preview-table td {
+  padding:5px 10px;
+  border-bottom:1px solid rgba(42,45,62,.5);
+  color:var(--text);
+  white-space:nowrap;
+  max-width:120px;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
+.map-grid {
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(220px,1fr));
+  gap:10px;
+}
+.map-row { display:flex; flex-direction:column; gap:4px; }
+.map-row label { font-size:11px; color:var(--dim); font-weight:600; }
+.map-row .req { color:#e05a5a; margin-left:2px; }
+.map-row select {
+  background:var(--s3);
+  border:1px solid var(--border);
+  border-radius:6px;
+  color:var(--text);
+  font-size:12px;
+  padding:5px 8px;
+  outline:none;
+  cursor:pointer;
+}
+.map-row select:focus { border-color:var(--dim); }
+
+.modal-footer {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  padding-top:4px;
+}
+.remember-wrap {
+  display:flex;
+  align-items:center;
+  gap:6px;
+  font-size:12px;
+  color:var(--dim);
+  cursor:pointer;
+}
+.remember-wrap input[type="checkbox"] { cursor:pointer; accent-color:var(--mar); }
+.modal-buttons { display:flex; gap:8px; }
+.btn-cancel {
+  background:none;
+  border:1px solid var(--border);
+  color:var(--muted);
+  border-radius:8px;
+  padding:7px 18px;
+  font-size:13px;
+  cursor:pointer;
+  font-family:'Sarabun',sans-serif;
+  transition:background .15s;
+}
+.btn-cancel:hover { background:var(--s3); }
+.btn-confirm {
+  background:var(--mar);
+  border:none;
+  color:#fff;
+  border-radius:8px;
+  padding:7px 18px;
+  font-size:13px;
+  font-weight:600;
+  cursor:pointer;
+  font-family:'Sarabun',sans-serif;
+  transition:opacity .15s;
+}
+.btn-confirm:hover { opacity:.85; }
+
+/* ── No Data ── */
+#noDataMsg {
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  min-height:60vh;
+  gap:16px;
+  color:var(--muted);
+}
+#noDataMsg .nd-icon {
+  width:56px;
+  height:56px;
+  border:2px dashed var(--border);
+  border-radius:50%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+#noDataMsg h2 { font-size:18px; font-weight:600; color:var(--dim); }
+#noDataMsg p { font-size:13px; text-align:center; max-width:320px; line-height:1.7; }
+
+/* ── Dashboard ── */
+#dashboard { padding:20px; }
+
+.section-title {
+  font-size:11px;
+  font-weight:700;
+  color:var(--muted);
+  text-transform:uppercase;
+  letter-spacing:.08em;
+  margin-bottom:14px;
+}
+
+/* KPI row */
+.kpi-row {
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(200px,1fr));
+  gap:14px;
+  margin-bottom:20px;
+}
+.kpi-card {
+  background:var(--s1);
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:16px 18px;
+}
+.kpi-lbl {
+  font-size:11px;
+  color:var(--muted);
+  text-transform:uppercase;
+  letter-spacing:.06em;
+  margin-bottom:6px;
+}
+.kpi-val {
+  font-family:'IBM Plex Mono',monospace;
+  font-size:26px;
+  font-weight:600;
+}
+.kpi-sub {
+  font-size:11px;
+  color:var(--muted);
+  margin-top:4px;
+}
+.kv-m1 { color:var(--feb); }
+.kv-m2 { color:var(--mar); }
+.kv-m3 { color:var(--apr); }
+.kv-hit { color:var(--hit); }
+.kv-miss { color:var(--miss); }
+.kv-rev { color:var(--rev); }
+
+/* Charts row */
+.charts-row {
+  display:grid;
+  grid-template-columns:2fr 1fr;
+  gap:14px;
+  margin-bottom:20px;
+}
+.chart-card {
+  background:var(--s1);
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:18px;
+}
+.chart-card-title {
+  font-size:12px;
+  font-weight:600;
+  color:var(--dim);
+  margin-bottom:14px;
+  text-transform:uppercase;
+  letter-spacing:.06em;
+}
+.chart-canvas-wrap { position:relative; }
+
+/* 3-col chart row */
+.charts-3col {
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:14px;
+  margin-bottom:20px;
+}
+
+/* Product grid */
+.prod-grid {
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:14px;
+  margin-bottom:20px;
+}
+.prod-card {
+  background:var(--s1);
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:16px;
+}
+.prod-card-title {
+  font-size:11px;
+  color:var(--muted);
+  text-transform:uppercase;
+  letter-spacing:.06em;
+  margin-bottom:12px;
+}
+.prod-item {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:5px 0;
+  border-bottom:1px solid rgba(42,45,62,.5);
+}
+.prod-item:last-child { border-bottom:none; }
+.prod-item-name { font-size:12px; color:var(--dim); }
+.prod-item-val { font-family:'IBM Plex Mono',monospace; font-size:13px; font-weight:600; color:var(--text); }
+
+/* Rank lists */
+.rank-row {
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:14px;
+  margin-bottom:20px;
+}
+.rank-card {
+  background:var(--s1);
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:16px;
+}
+.rank-card-title {
+  font-size:11px;
+  color:var(--muted);
+  text-transform:uppercase;
+  letter-spacing:.06em;
+  margin-bottom:12px;
+}
+.rank-item {
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:6px 0;
+  border-bottom:1px solid rgba(42,45,62,.5);
+}
+.rank-item:last-child { border-bottom:none; }
+.rank-num {
+  font-family:'IBM Plex Mono',monospace;
+  font-size:11px;
+  color:var(--muted);
+  width:20px;
+  flex-shrink:0;
+}
+.rank-name { font-size:12px; flex:1; }
+.rank-val { font-family:'IBM Plex Mono',monospace; font-size:12px; font-weight:600; }
+.rank-vs { font-size:10px; margin-left:4px; }
+
+/* Table section */
+.table-toolbar {
+  display:flex;
+  align-items:center;
+  gap:10px;
+  margin-bottom:12px;
+  flex-wrap:wrap;
+}
+.table-search {
+  background:var(--s2);
+  border:1px solid var(--border);
+  border-radius:8px;
+  color:var(--text);
+  font-size:12px;
+  padding:6px 12px;
+  outline:none;
+  width:200px;
+  font-family:'Sarabun',sans-serif;
+}
+.table-search:focus { border-color:var(--dim); }
+.filter-btn {
+  background:var(--s2);
+  border:1px solid var(--border);
+  border-radius:8px;
+  color:var(--dim);
+  font-size:11px;
+  padding:5px 12px;
+  cursor:pointer;
+  font-family:'Sarabun',sans-serif;
+  transition:background .15s, border-color .15s;
+}
+.filter-btn:hover { background:var(--s3); }
+.filter-btn.active { border-color:var(--mar); color:var(--mar); background:rgba(74,143,208,.08); }
+
+.table-wrap {
+  background:var(--s1);
+  border:1px solid var(--border);
+  border-radius:12px;
+  overflow:hidden;
+  margin-bottom:20px;
+}
+.data-table {
+  border-collapse:collapse;
+  width:100%;
+  font-size:12px;
+}
+.data-table th {
+  background:var(--s2);
+  padding:9px 14px;
+  text-align:left;
+  font-size:10px;
+  font-weight:700;
+  color:var(--muted);
+  text-transform:uppercase;
+  letter-spacing:.06em;
+  border-bottom:1px solid var(--border);
+  cursor:pointer;
+  white-space:nowrap;
+  user-select:none;
+}
+.data-table th:hover { color:var(--text); }
+.data-table th.sorted { color:var(--mar); }
+.data-table td {
+  padding:9px 14px;
+  border-bottom:1px solid rgba(42,45,62,.4);
+  white-space:nowrap;
+}
+.data-table tr:last-child td { border-bottom:none; }
+.data-table tr:hover td { background:var(--s2); }
+.td-num { font-family:'IBM Plex Mono',monospace; text-align:right; }
+.td-pos { color:var(--hit); }
+.td-neg { color:var(--miss); }
+.badge-hit {
+  background:rgba(76,175,130,.15);
+  color:var(--hit);
+  border-radius:20px;
+  padding:2px 8px;
+  font-size:10px;
+  font-weight:600;
+}
+.badge-miss {
+  background:rgba(224,90,90,.15);
+  color:var(--miss);
+  border-radius:20px;
+  padding:2px 8px;
+  font-size:10px;
+  font-weight:600;
+}
+.sort-arrow { font-size:9px; margin-left:3px; }
+</style>
+</head>
+<body>
+
+<!-- ── Upload Panel ── -->
+<div id="upload-panel">
+  <div id="upload-header" onclick="toggleUpload()">
+    <h3>อัพโหลดข้อมูล</h3>
+    <div id="upload-summary">ยังไม่ได้อัพโหลด</div>
+    <button type="button" id="upload-toggle">
+      <span id="toggle-arrow">▲</span> ซ่อน
+    </button>
+  </div>
+  <div id="upload-body">
+    <!-- Month slots rendered by JS -->
+  </div>
+</div>
+
+<!-- ── Column Mapping Modal ── -->
+<div id="modal-overlay">
+  <div id="modal-box">
+    <div>
+      <div id="modal-title">จัดคอลัมน์ข้อมูล</div>
+      <div id="modal-subtitle"></div>
+    </div>
+    <div class="preview-table-wrap">
+      <table class="preview-table" id="modal-preview"></table>
+    </div>
+    <div>
+      <div class="section-title" style="margin-bottom:10px;">จับคู่คอลัมน์</div>
+      <div class="map-grid" id="modal-map-grid"></div>
+    </div>
+    <div class="modal-footer">
+      <label class="remember-wrap">
+        <input type="checkbox" id="remember-map" checked/>
+        ใช้กับทุกเดือน
+      </label>
+      <div class="modal-buttons">
+        <button type="button" class="btn-cancel" onclick="cancelModal()">ยกเลิก</button>
+        <button type="button" class="btn-confirm" onclick="confirmModal()">ยืนยัน</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── No Data Message ── -->
+<div id="noDataMsg">
+  <div class="nd-icon">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+      <path d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+    </svg>
+  </div>
+  <h2>ยังไม่มีข้อมูล</h2>
+  <p>อัพโหลดไฟล์ Excel สำหรับแต่ละเดือนด้านบน เพื่อเริ่มแสดงผล Dashboard</p>
+</div>
+
+<!-- ── Dashboard ── -->
+<div id="dashboard" style="display:none;">
+
+  <!-- KPI Cards -->
+  <div class="kpi-row" id="kpi-row">
+    <div class="kpi-card">
+      <div class="kpi-lbl" id="kpi-m1-lbl">Total Boxes · M1</div>
+      <div class="kpi-val kv-m1" id="kpi-m1-total">-</div>
+      <div class="kpi-sub" id="kpi-m1-rev-lbl">Revenue</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-lbl" id="kpi-m2-lbl">Total Boxes · M2</div>
+      <div class="kpi-val kv-m2" id="kpi-m2-total">-</div>
+      <div class="kpi-sub" id="kpi-m2-rev-lbl">Revenue</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-lbl" id="kpi-m3-lbl">Total Boxes · M3</div>
+      <div class="kpi-val kv-m3" id="kpi-m3-total">-</div>
+      <div class="kpi-sub" id="kpi-m3-rev-lbl">Revenue</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-lbl">Hit Target</div>
+      <div class="kpi-val kv-hit" id="kpi-hit">-</div>
+      <div class="kpi-sub" id="kpi-hit-sub">สาขา</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-lbl">Miss Target</div>
+      <div class="kpi-val kv-miss" id="kpi-miss">-</div>
+      <div class="kpi-sub" id="kpi-miss-sub">สาขา</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-lbl" id="kpi-rev-lbl">Total Revenue</div>
+      <div class="kpi-val kv-rev" id="kpi-rev-total">-</div>
+      <div class="kpi-sub" id="kpi-rev-sub">บาท</div>
+    </div>
+  </div>
+
+  <!-- Bar + Donut -->
+  <div class="charts-row">
+    <div class="chart-card">
+      <div class="chart-card-title">Boxes per Branch</div>
+      <div class="chart-canvas-wrap" style="height:260px;">
+        <canvas id="chart-bar"></canvas>
+      </div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-card-title">Product Mix (Latest)</div>
+      <div class="chart-canvas-wrap" style="height:260px;">
+        <canvas id="chart-donut"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3 gauges / small charts -->
+  <div class="charts-3col">
+    <div class="chart-card">
+      <div class="chart-card-title">Target Gauges</div>
+      <div id="target-gauges"></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-card-title">Monthly Trend</div>
+      <div class="chart-canvas-wrap" style="height:200px;">
+        <canvas id="chart-line"></canvas>
+      </div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-card-title">Revenue Trend</div>
+      <div class="chart-canvas-wrap" style="height:200px;">
+        <canvas id="chart-rev"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- MoM + Prod Grid -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px;">
+    <div class="chart-card">
+      <div class="chart-card-title">Month-over-Month Change</div>
+      <div class="chart-canvas-wrap" style="height:200px;">
+        <canvas id="chart-mom"></canvas>
+      </div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-card-title">Product Breakdown</div>
+      <div id="prod-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:4px;"></div>
+    </div>
+  </div>
+
+  <!-- Achievers + Misses -->
+  <div class="rank-row">
+    <div class="rank-card">
+      <div class="rank-card-title" id="rank-hit-title">Top Achievers (Latest Month)</div>
+      <div id="rank-achievers"></div>
+    </div>
+    <div class="rank-card">
+      <div class="rank-card-title" id="rank-miss-title">Most Below Target</div>
+      <div id="rank-misses"></div>
+    </div>
+  </div>
+
+  <!-- Branch Table -->
+  <div class="section-title">Branch Table</div>
+  <div class="table-toolbar">
+    <input type="text" class="table-search" id="tbl-search" placeholder="ค้นหาสาขา..." oninput="setSearch(this.value)"/>
+    <button type="button" class="filter-btn active" id="fb-all" onclick="setFilter('all')">ทั้งหมด</button>
+    <button type="button" class="filter-btn" id="fb-hit" onclick="setFilter('hit')">Hit Target</button>
+    <button type="button" class="filter-btn" id="fb-miss" onclick="setFilter('miss')">Miss Target</button>
+  </div>
+  <div class="table-wrap">
+    <table class="data-table" id="branch-table">
+      <thead id="branch-thead"></thead>
+      <tbody id="branch-tbody"></tbody>
+    </table>
+  </div>
+
+</div>
+
+<script>
+// ── App State ──
+const appState = {
+  months: [
+    { key:'m1', name:'มีนาคม',  shortName:'MAR', color:'#8b6fd4', loaded:false, branches:[] },
+    { key:'m2', name:'เมษายน',  shortName:'APR', color:'#4a8fd0', loaded:false, branches:[] },
+    { key:'m3', name:'พฤษภาคม', shortName:'MAY', color:'#d97a42', loaded:false, branches:[] },
+  ],
+  columnMap: null,
+  pendingUpload: null,
+};
+
+// Chart instances
+const charts = {};
+
+// Table state
+let sortKey = 'a_total';
+let sortDir = 'desc';
+let filterMode = 'all';
+let searchQ = '';
+let currentD = null;
+
+// ── Upload Panel ──
+let uploadExpanded = true;
+
+function toggleUpload() {
+  uploadExpanded = !uploadExpanded;
+  document.getElementById('upload-body').classList.toggle('hidden', !uploadExpanded);
+  const btn = document.getElementById('upload-toggle');
+  const arrow = document.getElementById('toggle-arrow');
+  btn.innerHTML = uploadExpanded
+    ? '<span id="toggle-arrow">▲</span> ซ่อน'
+    : '<span id="toggle-arrow">▼</span> แสดง';
+  updateUploadSummary();
+}
+
+function updateUploadSummary() {
+  const loaded = appState.months.filter(m => m.loaded).length;
+  const total = appState.months.length;
+  const el = document.getElementById('upload-summary');
+  if (!uploadExpanded) {
+    el.textContent = `${loaded}/${total} เดือน`;
+  } else {
+    el.textContent = loaded === 0 ? 'ยังไม่ได้อัพโหลด' : `อัพโหลดแล้ว ${loaded}/${total} เดือน`;
+  }
+}
+
+function renderUploadPanel() {
+  const body = document.getElementById('upload-body');
+  body.innerHTML = '';
+  appState.months.forEach((month, mi) => {
+    const slot = document.createElement('div');
+    slot.className = 'month-slot';
+    slot.id = `slot-${mi}`;
+    slot.style.setProperty('--m-color', month.color);
+    slot.innerHTML = `
+      <div class="month-slot-header">
+        <div class="month-color-dot" style="background:${month.color}"></div>
+        <div class="month-slot-title">Month ${mi+1}</div>
+      </div>
+      <div class="month-inputs">
+        <div>
+          <label>ชื่อเดือน</label>
+          <input type="text" value="${month.name}" oninput="updateMonthName(${mi},'name',this.value)" placeholder="มีนาคม"/>
+        </div>
+        <div>
+          <label>ชื่อย่อ</label>
+          <input type="text" value="${month.shortName}" oninput="updateMonthName(${mi},'shortName',this.value)" placeholder="MAR"/>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;margin-top:4px;">
+          <label style="flex:1;">สี</label>
+          <input type="color" value="${month.color}" oninput="updateMonthColor(${mi},this.value)"/>
+        </div>
+      </div>
+      <div class="drop-zone" id="drop-${mi}"
+           ondragover="onDragOver(event,${mi})"
+           ondragleave="onDragLeave(event,${mi})"
+           ondrop="onDrop(event,${mi})"
+           style="border-color:${month.color}33;">
+        <input type="file" accept=".xlsx,.xls,.csv" onchange="onFileSelect(event,${mi})"/>
+        <div class="drop-zone-text">
+          <strong>คลิกหรือลากไฟล์มาวาง</strong>
+          .xlsx / .xls / .csv
+        </div>
+      </div>
+      <div class="upload-status pending" id="status-${mi}">ยังไม่ได้อัพโหลด</div>
+    `;
+    body.appendChild(slot);
+  });
+}
+
+function updateMonthName(mi, field, val) {
+  appState.months[mi][field] = val;
+  updateUploadSummary();
+  if (appState.months.some(m => m.loaded)) {
+    renderDashboard();
+  } else {
+    updateHeaderLabels();
+  }
+}
+
+function updateMonthColor(mi, val) {
+  appState.months[mi].color = val;
+  const slot = document.getElementById(`slot-${mi}`);
+  slot.querySelector('.month-color-dot').style.background = val;
+  slot.querySelector('.drop-zone').style.borderColor = val + '33';
+  if (appState.months.some(m => m.loaded)) renderDashboard();
+}
+
+function onDragOver(e, mi) {
+  e.preventDefault();
+  document.getElementById(`drop-${mi}`).classList.add('drag-over');
+  document.getElementById(`drop-${mi}`).style.borderColor = appState.months[mi].color;
+}
+function onDragLeave(e, mi) {
+  document.getElementById(`drop-${mi}`).classList.remove('drag-over');
+  document.getElementById(`drop-${mi}`).style.borderColor = appState.months[mi].color + '33';
+}
+function onDrop(e, mi) {
+  e.preventDefault();
+  onDragLeave(e, mi);
+  const file = e.dataTransfer.files[0];
+  if (file) processFile(file, mi);
+}
+function onFileSelect(e, mi) {
+  const file = e.target.files[0];
+  if (file) processFile(file, mi);
+}
+
+function setStatus(mi, type, text) {
+  const el = document.getElementById(`status-${mi}`);
+  el.className = `upload-status ${type}`;
+  el.textContent = text;
+}
+
+function processFile(file, mi) {
+  setStatus(mi, 'loading', 'กำลังโหลด...');
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const data = new Uint8Array(e.target.result);
+      const wb = XLSX.read(data, { type:'array' });
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json(ws, { header:1, defval:'' });
+      if (rows.length < 2) {
+        setStatus(mi, 'error', 'ไฟล์ไม่มีข้อมูล');
+        return;
+      }
+      const headers = rows[0].map(h => String(h).trim());
+      const dataRows = rows.slice(1).filter(r => r.some(c => c !== ''));
+      setStatus(mi, 'loading', `${dataRows.length} แถว · กำลังตั้งค่า...`);
+      appState.pendingUpload = { monthIndex: mi, headers, dataRows };
+      if (appState.columnMap && document.getElementById('remember-map').checked) {
+        applyColumnMap(appState.columnMap);
+      } else {
+        openModal(mi, headers, dataRows);
+      }
+    } catch(err) {
+      setStatus(mi, 'error', 'อ่านไฟล์ไม่ได้: ' + err.message);
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+// ── Column Mapping Modal ──
+const FIELDS = [
+  { key:'branchName', label:'ชื่อสาขา', required:true,  keywords:['สาขา','branch','name','shop'] },
+  { key:'branchId',   label:'รหัสสาขา', required:false, keywords:['id','รหัส','code'] },
+  { key:'monthly',    label:'Monthly (qty)', required:false, keywords:['monthly','มันสลี','มันท์ลี'] },
+  { key:'daily',      label:'Daily (qty)',   required:false, keywords:['daily','เดลี','เดลี่'] },
+  { key:'color',      label:'Color (qty)',   required:false, keywords:['color','คัลเลอร์','colour'] },
+  { key:'total',      label:'รวม / Total boxes', required:false, keywords:['total','รวม','sum','boxes'] },
+  { key:'revenue',    label:'ยอดขาย / Revenue', required:false, keywords:['revenue','ยอด','บาท','thb','sales','amount'] },
+  { key:'target',     label:'เป้าหมาย / Target', required:false, keywords:['target','เป้า','goal'] },
+];
+
+function autoDetect(headers) {
+  const map = {};
+  const used = new Set();
+  FIELDS.forEach(f => {
+    const idx = headers.findIndex((h, i) => {
+      if (used.has(i)) return false;
+      const hl = h.toLowerCase();
+      return f.keywords.some(kw => hl.includes(kw.toLowerCase()));
+    });
+    if (idx >= 0) {
+      map[f.key] = String(idx);
+      used.add(idx);
+    } else {
+      map[f.key] = '';
+    }
+  });
+  return map;
+}
+
+function openModal(mi, headers, dataRows) {
+  const month = appState.months[mi];
+  document.getElementById('modal-title').textContent = `จัดคอลัมน์ข้อมูล — ${month.name}`;
+  document.getElementById('modal-subtitle').textContent =
+    `ไฟล์มี ${headers.length} คอลัมน์, ${dataRows.length} แถว`;
+
+  const detectedMap = autoDetect(headers);
+
+  // Preview table
+  const previewRows = dataRows.slice(0, 5);
+  let theadHtml = '<tr>' + headers.map(h => `<th>${h}</th>`).join('') + '</tr>';
+  let tbodyHtml = previewRows.map(r =>
+    '<tr>' + headers.map((_,i) => `<td>${r[i] !== undefined ? r[i] : ''}</td>`).join('') + '</tr>'
+  ).join('');
+  document.getElementById('modal-preview').innerHTML = `<thead>${theadHtml}</thead><tbody>${tbodyHtml}</tbody>`;
+
+  // Map grid
+  const optionsHtml = `<option value="">— ไม่ใช้ —</option>` +
+    headers.map((h, i) => `<option value="${i}">${h}</option>`).join('');
+  const grid = document.getElementById('modal-map-grid');
+  grid.innerHTML = FIELDS.map(f => `
+    <div class="map-row">
+      <label>${f.label}${f.required ? '<span class="req">*</span>' : ''}</label>
+      <select id="map-${f.key}">
+        ${optionsHtml}
+      </select>
+    </div>
+  `).join('');
+
+  // Set detected values
+  FIELDS.forEach(f => {
+    const sel = document.getElementById(`map-${f.key}`);
+    if (sel && detectedMap[f.key] !== '') sel.value = detectedMap[f.key];
+  });
+
+  document.getElementById('modal-overlay').classList.add('active');
+}
+
+function cancelModal() {
+  const { monthIndex } = appState.pendingUpload || {};
+  if (monthIndex !== undefined) setStatus(monthIndex, 'pending', 'ยังไม่ได้อัพโหลด');
+  appState.pendingUpload = null;
+  document.getElementById('modal-overlay').classList.remove('active');
+}
+
+function confirmModal() {
+  const map = {};
+  FIELDS.forEach(f => {
+    const sel = document.getElementById(`map-${f.key}`);
+    map[f.key] = sel ? sel.value : '';
+  });
+  if (!map.branchName && map.branchName !== '0') {
+    alert('กรุณาเลือกคอลัมน์ ชื่อสาขา');
+    return;
+  }
+  if (document.getElementById('remember-map').checked) {
+    appState.columnMap = map;
+  }
+  applyColumnMap(map);
+  document.getElementById('modal-overlay').classList.remove('active');
+}
+
+function applyColumnMap(map) {
+  const { monthIndex, headers, dataRows } = appState.pendingUpload;
+  const get = (row, key) => {
+    const idx = parseInt(map[key]);
+    if (isNaN(idx)) return undefined;
+    return row[idx];
+  };
+  const toNum = v => {
+    if (v === undefined || v === '') return 0;
+    const n = parseFloat(String(v).replace(/,/g,''));
+    return isNaN(n) ? 0 : n;
+  };
+
+  const branches = dataRows
+    .map(row => {
+      const name = String(get(row, 'branchName') || '').trim();
+      if (!name) return null;
+      const monthly = toNum(get(row, 'monthly'));
+      const daily   = toNum(get(row, 'daily'));
+      const color   = toNum(get(row, 'color'));
+      const rawTotal = toNum(get(row, 'total'));
+      const total = rawTotal > 0 ? rawTotal : monthly + daily + color;
+      return {
+        id:      String(get(row, 'branchId') || name).trim(),
+        name,
+        monthly,
+        daily,
+        color,
+        total,
+        revenue: toNum(get(row, 'revenue')),
+        target:  toNum(get(row, 'target')),
+      };
+    })
+    .filter(b => b !== null);
+
+  appState.months[monthIndex].branches = branches;
+  appState.months[monthIndex].loaded = true;
+  setStatus(monthIndex, 'done', `✓ ${branches.length} สาขา`);
+  updateUploadSummary();
+  appState.pendingUpload = null;
+  renderDashboard();
+}
+
+// ── buildD ──
+function buildD() {
+  const branchMap = new Map();
+  const prefixes = ['f','m','a'];
+
+  appState.months.forEach((month, mi) => {
+    const px = prefixes[mi];
+    month.branches.forEach(b => {
+      if (!branchMap.has(b.name)) {
+        branchMap.set(b.name, {
+          id: b.id || b.name, name: b.name,
+          f_m:0,f_d:0,f_c:0,f_total:0,f_rev:0,
+          m_m:0,m_d:0,m_c:0,m_total:0,m_rev:0,
+          a_m:0,a_d:0,a_c:0,a_total:0,a_rev:0,
+          target:0,
+        });
+      }
+      const br = branchMap.get(b.name);
+      br[`${px}_m`]     = b.monthly || 0;
+      br[`${px}_d`]     = b.daily   || 0;
+      br[`${px}_c`]     = b.color   || 0;
+      br[`${px}_total`] = b.total   || (b.monthly + b.daily + b.color);
+      br[`${px}_rev`]   = b.revenue || 0;
+      if (b.target > 0 && br.target === 0) br.target = b.target;
+    });
+  });
+
+  const branches = Array.from(branchMap.values()).map(b => ({
+    ...b,
+    diff_fm: b.m_total - b.f_total,
+    diff_ma: b.a_total - b.m_total,
+    vs_target: b.target > 0 ? b.a_total - b.target : 0,
+    hit_target: b.target > 0 && b.a_total >= b.target,
+  }));
+
+  let latestIdx = -1;
+  appState.months.forEach((m, i) => { if (m.loaded) latestIdx = i; });
+  const latestPx = ['f','m','a'][latestIdx] || 'a';
+
+  if (latestPx !== 'a') {
+    branches.forEach(b => {
+      b.vs_target = b.target > 0 ? b[`${latestPx}_total`] - b.target : 0;
+      b.hit_target = b.target > 0 && b[`${latestPx}_total`] >= b.target;
+    });
+  }
+
+  const sum = (arr, key) => arr.reduce((s,b) => s + (b[key] || 0), 0);
+  const fmt3 = n => n.toLocaleString('th-TH');
+
+  return {
+    feb_total: sum(branches,'f_total'),
+    mar_total: sum(branches,'m_total'),
+    apr_total: sum(branches,'a_total'),
+    feb_rev:   sum(branches,'f_rev'),
+    mar_rev:   sum(branches,'m_rev'),
+    apr_rev:   sum(branches,'a_rev'),
+    target_total: sum(branches,'target'),
+    hit_count:  branches.filter(b => b.target > 0 && b.hit_target).length,
+    miss_count: branches.filter(b => b.target > 0 && !b.hit_target).length,
+    feb_products: [sum(branches,'f_m'), sum(branches,'f_d'), sum(branches,'f_c')],
+    mar_products: [sum(branches,'m_m'), sum(branches,'m_d'), sum(branches,'m_c')],
+    apr_products: [sum(branches,'a_m'), sum(branches,'a_d'), sum(branches,'a_c')],
+    branches,
+    latestIdx,
+    latestPx,
+  };
+}
+
+// ── Helpers ──
+function fmtN(n) { return Math.round(n).toLocaleString('th-TH'); }
+function fmtRev(n) {
+  if (n >= 1e6) return (n/1e6).toFixed(2) + 'M';
+  if (n >= 1e3) return (n/1e3).toFixed(1) + 'K';
+  return Math.round(n).toLocaleString('th-TH');
+}
+function monthColors() {
+  return appState.months.map(m => m.color);
+}
+function mName(i) { return appState.months[i].shortName; }
+
+function destroyChart(key) {
+  if (charts[key]) { charts[key].destroy(); delete charts[key]; }
+}
+
+// ── KPI Update ──
+function updateKPIs(D) {
+  const m = appState.months;
+  const rev = [D.feb_rev, D.mar_rev, D.apr_rev];
+  const totals = [D.feb_total, D.mar_total, D.apr_total];
+  ['m1','m2','m3'].forEach((id, i) => {
+    const el = document.getElementById(`kpi-${id}-total`);
+    if (el) el.textContent = m[i].loaded ? fmtN(totals[i]) : '-';
+    const sub = document.getElementById(`kpi-${id}-rev-lbl`);
+    if (sub) sub.textContent = m[i].loaded ? `฿${fmtRev(rev[i])}` : '';
+  });
+  document.getElementById('kpi-hit').textContent = D.hit_count;
+  document.getElementById('kpi-miss').textContent = D.miss_count;
+  const latestRev = [D.feb_rev, D.mar_rev, D.apr_rev][D.latestIdx] || 0;
+  document.getElementById('kpi-rev-total').textContent = `฿${fmtRev(latestRev)}`;
+  document.getElementById('kpi-rev-sub').textContent = m[D.latestIdx].shortName;
+}
+
+// ── Header Labels ──
+function updateHeaderLabels() {
+  const m = appState.months;
+  ['m1','m2','m3'].forEach((id, i) => {
+    const lbl = document.getElementById(`kpi-${id}-lbl`);
+    if (lbl) lbl.textContent = `Total Boxes · ${m[i].shortName}`;
+  });
+  document.getElementById('kpi-rev-lbl').textContent = 'Latest Revenue';
+}
+
+// ── Bar Chart ──
+function renderBarChart(D) {
+  destroyChart('bar');
+  const ctx = document.getElementById('chart-bar').getContext('2d');
+  const branches = D.branches;
+  const labels = branches.map(b => b.name.length > 14 ? b.name.slice(0,13)+'…' : b.name);
+  const m = appState.months;
+  const datasets = [
+    m[0].loaded ? { label: m[0].shortName, data: branches.map(b => b.f_total), backgroundColor: m[0].color + 'cc', borderRadius:3 } : null,
+    m[1].loaded ? { label: m[1].shortName, data: branches.map(b => b.m_total), backgroundColor: m[1].color + 'cc', borderRadius:3 } : null,
+    m[2].loaded ? { label: m[2].shortName, data: branches.map(b => b.a_total), backgroundColor: m[2].color + 'cc', borderRadius:3 } : null,
+  ].filter(Boolean);
+
+  charts['bar'] = new Chart(ctx, {
+    type: 'bar',
+    data: { labels, datasets },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { labels: { color: '#9096a8', font: { size:11 } } } },
+      scales: {
+        x: { ticks: { color:'#6b7080', font:{ size:9 } }, grid:{ color:'#2a2d3e40' } },
+        y: { ticks: { color:'#6b7080', font:{ size:10 } }, grid:{ color:'#2a2d3e80' } },
+      },
+    },
+  });
+}
+
+// ── Donut Chart ──
+function renderDonutChart(D) {
+  destroyChart('donut');
+  const ctx = document.getElementById('chart-donut').getContext('2d');
+  const li = D.latestIdx;
+  const prods = [D.feb_products, D.mar_products, D.apr_products][li];
+  const total = prods.reduce((s,v) => s+v, 0);
+  if (total === 0) return;
+  charts['donut'] = new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      labels: ['Monthly','Daily','Color'],
+      datasets: [{
+        data: prods,
+        backgroundColor: ['#8b6fd4','#4a8fd0','#d97a42'],
+        borderWidth: 0,
+        hoverOffset: 6,
+      }],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      cutout: '65%',
+      plugins: {
+        legend: {
+          position: 'bottom',
+          labels: { color:'#9096a8', font:{ size:11 }, padding:12 },
+        },
+        tooltip: {
+          callbacks: {
+            label: ctx => ` ${ctx.label}: ${fmtN(ctx.parsed)} (${Math.round(ctx.parsed/total*100)}%)`,
+          },
+        },
+      },
+    },
+  });
+}
+
+// ── Target Gauges ──
+function renderTargetGauges(D) {
+  const wrap = document.getElementById('target-gauges');
+  wrap.innerHTML = '';
+  const loaded = appState.months.filter(m => m.loaded);
+  if (loaded.length === 0) return;
+
+  loaded.forEach((month, li) => {
+    const px = ['f','m','a'][appState.months.indexOf(month)];
+    const actual = D.branches.reduce((s,b) => s + b[`${px}_total`], 0);
+    const target = D.target_total;
+    const pct = target > 0 ? Math.min(actual/target, 1) : 0;
+    const pctLabel = target > 0 ? Math.round(actual/target*100) + '%' : 'N/A';
+    const color = pct >= 1 ? '#4caf82' : pct >= .8 ? '#e8b84b' : '#e05a5a';
+
+    const row = document.createElement('div');
+    row.style.cssText = 'margin-bottom:12px;';
+    row.innerHTML = `
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+        <span style="font-size:11px;color:${month.color};font-weight:600;">${month.shortName}</span>
+        <span style="font-size:11px;color:${color};font-family:'IBM Plex Mono',monospace;font-weight:600;">${pctLabel}</span>
+      </div>
+      <div style="height:6px;background:#2a2d3e;border-radius:3px;overflow:hidden;">
+        <div style="height:100%;width:${pct*100}%;background:${color};border-radius:3px;transition:width .4s;"></div>
+      </div>
+      <div style="display:flex;justify-content:space-between;margin-top:3px;">
+        <span style="font-size:10px;color:#6b7080;">${fmtN(actual)}</span>
+        <span style="font-size:10px;color:#6b7080;">/ ${fmtN(target)}</span>
+      </div>
+    `;
+    wrap.appendChild(row);
+  });
+}
+
+// ── Line Chart ──
+function renderLineChart(D) {
+  destroyChart('line');
+  const ctx = document.getElementById('chart-line').getContext('2d');
+  const m = appState.months;
+  const totals = [D.feb_total, D.mar_total, D.apr_total];
+  const loadedPoints = m.map((mo, i) => mo.loaded ? totals[i] : null);
+  const labels = m.map(mo => mo.shortName);
+
+  charts['line'] = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [{
+        label: 'Total Boxes',
+        data: loadedPoints,
+        borderColor: '#4a8fd0',
+        backgroundColor: '#4a8fd020',
+        fill: true,
+        tension: .3,
+        pointRadius: 5,
+        pointBackgroundColor: m.map(mo => mo.color),
+      }],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      spanGaps: false,
+      plugins: { legend: { display:false } },
+      scales: {
+        x: { ticks:{ color:'#6b7080', font:{ size:10 } }, grid:{ color:'#2a2d3e40' } },
+        y: { ticks:{ color:'#6b7080', font:{ size:10 } }, grid:{ color:'#2a2d3e80' } },
+      },
+    },
+  });
+}
+
+// ── Revenue Chart ──
+function renderRevChart(D) {
+  destroyChart('rev');
+  const ctx = document.getElementById('chart-rev').getContext('2d');
+  const m = appState.months;
+  const revs = [D.feb_rev, D.mar_rev, D.apr_rev];
+  const loadedRevs = m.map((mo, i) => mo.loaded ? revs[i] : null);
+
+  charts['rev'] = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: m.map(mo => mo.shortName),
+      datasets: [{
+        label: 'Revenue',
+        data: loadedRevs,
+        backgroundColor: m.map(mo => mo.color + 'bb'),
+        borderRadius: 4,
+      }],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display:false } },
+      scales: {
+        x: { ticks:{ color:'#6b7080', font:{ size:10 } }, grid:{ color:'#2a2d3e40' } },
+        y: {
+          ticks: {
+            color:'#6b7080', font:{ size:10 },
+            callback: v => v >= 1e6 ? (v/1e6).toFixed(1)+'M' : v >= 1e3 ? (v/1e3).toFixed(0)+'K' : v,
+          },
+          grid:{ color:'#2a2d3e80' },
+        },
+      },
+    },
+  });
+}
+
+// ── MoM Chart ──
+function renderMomChart(D) {
+  destroyChart('mom');
+  const ctx = document.getElementById('chart-mom').getContext('2d');
+  const branches = D.branches;
+  const m = appState.months;
+  const labels = branches.map(b => b.name.length > 12 ? b.name.slice(0,11)+'…' : b.name);
+  const datasets = [];
+
+  if (m[0].loaded && m[1].loaded) {
+    datasets.push({
+      label: `${m[0].shortName}→${m[1].shortName}`,
+      data: branches.map(b => b.diff_fm),
+      backgroundColor: branches.map(b => b.diff_fm >= 0 ? '#4caf8299' : '#e05a5a99'),
+      borderRadius: 3,
+    });
+  }
+  if (m[1].loaded && m[2].loaded) {
+    datasets.push({
+      label: `${m[1].shortName}→${m[2].shortName}`,
+      data: branches.map(b => b.diff_ma),
+      backgroundColor: branches.map(b => b.diff_ma >= 0 ? '#4a8fd099' : '#e8b84b99'),
+      borderRadius: 3,
+    });
+  }
+
+  if (datasets.length === 0) {
+    document.getElementById('chart-mom').parentElement.innerHTML =
+      '<div style="color:#6b7080;font-size:12px;text-align:center;padding:30px 0;">ต้องการข้อมูลอย่างน้อย 2 เดือน</div>';
+    return;
+  }
+
+  charts['mom'] = new Chart(ctx, {
+    type: 'bar',
+    data: { labels, datasets },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { labels:{ color:'#9096a8', font:{ size:10 } } } },
+      scales: {
+        x: { ticks:{ color:'#6b7080', font:{ size:8 } }, grid:{ color:'#2a2d3e40' } },
+        y: { ticks:{ color:'#6b7080', font:{ size:10 } }, grid:{ color:'#2a2d3e80' } },
+      },
+    },
+  });
+}
+
+// ── Product Grid ──
+function renderProdGrid(D) {
+  const grid = document.getElementById('prod-grid');
+  grid.innerHTML = '';
+  const m = appState.months;
+  const allProds = [
+    { name: m[0].shortName, prods: D.feb_products, loaded: m[0].loaded, color: m[0].color },
+    { name: m[1].shortName, prods: D.mar_products, loaded: m[1].loaded, color: m[1].color },
+    { name: m[2].shortName, prods: D.apr_products, loaded: m[2].loaded, color: m[2].color },
+  ];
+  const names = ['Monthly','Daily','Color'];
+
+  allProds.forEach(pm => {
+    if (!pm.loaded) return;
+    const card = document.createElement('div');
+    card.style.cssText = `background:var(--s3);border-radius:8px;padding:10px;`;
+    card.innerHTML = `
+      <div style="font-size:10px;color:${pm.color};font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;">${pm.name}</div>
+      ${names.map((n,i) => `
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:3px 0;border-bottom:1px solid #2a2d3e60;">
+          <span style="font-size:11px;color:#9096a8;">${n}</span>
+          <span style="font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;color:#e8eaf0;">${fmtN(pm.prods[i])}</span>
+        </div>
+      `).join('')}
+    `;
+    grid.appendChild(card);
+  });
+}
+
+// ── Achievers ──
+function renderAchievers(D) {
+  const wrap = document.getElementById('rank-achievers');
+  wrap.innerHTML = '';
+  const m = appState.months;
+  const li = D.latestIdx;
+  const px = ['f','m','a'][li];
+  document.getElementById('rank-hit-title').textContent =
+    `Top Achievers · ${m[li].shortName}`;
+
+  const hit = D.branches
+    .filter(b => b.target > 0 && b.hit_target)
+    .sort((a,b) => b[`${px}_total`] - a[`${px}_total`])
+    .slice(0, 8);
+
+  if (hit.length === 0) {
+    wrap.innerHTML = '<div style="color:#6b7080;font-size:12px;padding:8px 0;">ไม่มีสาขาที่ถึงเป้า</div>';
+    return;
+  }
+  hit.forEach((b, i) => {
+    const total = b[`${px}_total`];
+    const vs = b.vs_target;
+    const div = document.createElement('div');
+    div.className = 'rank-item';
+    div.innerHTML = `
+      <span class="rank-num">${i+1}</span>
+      <span class="rank-name">${b.name}</span>
+      <span class="rank-val" style="color:var(--hit);">${fmtN(total)}</span>
+      <span class="rank-vs td-pos">+${fmtN(vs)}</span>
+    `;
+    wrap.appendChild(div);
+  });
+}
+
+// ── Misses ──
+function renderMisses(D) {
+  const wrap = document.getElementById('rank-misses');
+  wrap.innerHTML = '';
+  const m = appState.months;
+  const li = D.latestIdx;
+  const px = ['f','m','a'][li];
+  document.getElementById('rank-miss-title').textContent =
+    `Most Below Target · ${m[li].shortName}`;
+
+  const miss = D.branches
+    .filter(b => b.target > 0 && !b.hit_target)
+    .sort((a,b) => a.vs_target - b.vs_target)
+    .slice(0, 8);
+
+  if (miss.length === 0) {
+    wrap.innerHTML = '<div style="color:#6b7080;font-size:12px;padding:8px 0;">ทุกสาขาถึงเป้าแล้ว</div>';
+    return;
+  }
+  miss.forEach((b, i) => {
+    const total = b[`${px}_total`];
+    const vs = b.vs_target;
+    const div = document.createElement('div');
+    div.className = 'rank-item';
+    div.innerHTML = `
+      <span class="rank-num">${i+1}</span>
+      <span class="rank-name">${b.name}</span>
+      <span class="rank-val" style="color:var(--miss);">${fmtN(total)}</span>
+      <span class="rank-vs td-neg">${fmtN(vs)}</span>
+    `;
+    wrap.appendChild(div);
+  });
+}
+
+// ── Table ──
+function setFilter(mode) {
+  filterMode = mode;
+  ['all','hit','miss'].forEach(f => {
+    document.getElementById(`fb-${f}`).classList.toggle('active', f === mode);
+  });
+  if (currentD) renderTable(currentD);
+}
+function setSearch(q) {
+  searchQ = q.toLowerCase();
+  if (currentD) renderTable(currentD);
+}
+function setSort(key) {
+  if (sortKey === key) {
+    sortDir = sortDir === 'desc' ? 'asc' : 'desc';
+  } else {
+    sortKey = key;
+    sortDir = 'desc';
+  }
+  if (currentD) renderTable(currentD);
+}
+
+function renderTable(D) {
+  const m = appState.months;
+  const thead = document.getElementById('branch-thead');
+  const tbody = document.getElementById('branch-tbody');
+
+  const cols = [
+    { key:'name',    label:'สาขา', sortable:true },
+    m[0].loaded ? { key:'f_total', label:m[0].shortName,  sortable:true, num:true, color:m[0].color } : null,
+    m[1].loaded ? { key:'m_total', label:m[1].shortName,  sortable:true, num:true, color:m[1].color } : null,
+    m[2].loaded ? { key:'a_total', label:m[2].shortName,  sortable:true, num:true, color:m[2].color } : null,
+    m[0].loaded && m[1].loaded ? { key:'diff_fm', label:`${m[0].shortName}→${m[1].shortName}`, sortable:true, num:true, diff:true } : null,
+    m[1].loaded && m[2].loaded ? { key:'diff_ma', label:`${m[1].shortName}→${m[2].shortName}`, sortable:true, num:true, diff:true } : null,
+    { key:'target',    label:'Target',    sortable:true, num:true },
+    { key:'vs_target', label:'vs Target', sortable:true, num:true, diff:true },
+    { key:'hit_target',label:'Status',    sortable:false },
+  ].filter(Boolean);
+
+  // Header
+  thead.innerHTML = '<tr>' + cols.map(c => {
+    const sorted = sortKey === c.key;
+    const arrow = sorted ? (sortDir === 'desc' ? '↓' : '↑') : '';
+    return `<th class="${sorted ? 'sorted' : ''}" ${c.sortable ? `onclick="setSort('${c.key}')"` : ''} style="${c.color ? `color:${c.color};` : ''}">
+      ${c.label}<span class="sort-arrow">${arrow}</span>
+    </th>`;
+  }).join('') + '</tr>';
+
+  // Filter + sort
+  let rows = D.branches.filter(b => {
+    if (searchQ && !b.name.toLowerCase().includes(searchQ)) return false;
+    if (filterMode === 'hit' && !b.hit_target) return false;
+    if (filterMode === 'miss' && b.hit_target) return false;
+    return true;
+  });
+  rows = rows.sort((a,b) => {
+    let va = a[sortKey], vb = b[sortKey];
+    if (typeof va === 'boolean') { va = va ? 1 : 0; vb = vb ? 1 : 0; }
+    if (typeof va === 'string') return sortDir === 'asc' ? va.localeCompare(vb,'th') : vb.localeCompare(va,'th');
+    return sortDir === 'asc' ? va - vb : vb - va;
+  });
+
+  tbody.innerHTML = rows.map(b => '<tr>' + cols.map(c => {
+    if (c.key === 'hit_target') {
+      return `<td>${b.hit_target ? '<span class="badge-hit">Hit</span>' : (b.target > 0 ? '<span class="badge-miss">Miss</span>' : '<span style="color:#6b7080;font-size:11px;">—</span>')}</td>`;
+    }
+    if (c.key === 'name') return `<td>${b.name}</td>`;
+    const val = b[c.key];
+    if (val === 0 && c.key !== 'target') return `<td class="td-num" style="color:#6b7080;">—</td>`;
+    if (c.diff) {
+      const cls = val > 0 ? 'td-pos' : val < 0 ? 'td-neg' : '';
+      const prefix = val > 0 ? '+' : '';
+      return `<td class="td-num ${cls}">${prefix}${fmtN(val)}</td>`;
+    }
+    return `<td class="td-num">${fmtN(val)}</td>`;
+  }).join('') + '</tr>').join('');
+
+  if (rows.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="${cols.length}" style="text-align:center;color:#6b7080;padding:24px;">ไม่พบข้อมูล</td></tr>`;
+  }
+}
+
+// ── Main Render ──
+function renderDashboard() {
+  const D = buildD();
+  currentD = D;
+  const loaded = appState.months.filter(m => m.loaded);
+
+  if (loaded.length === 0) {
+    document.getElementById('dashboard').style.display = 'none';
+    document.getElementById('noDataMsg').style.display = '';
+    return;
+  }
+  document.getElementById('dashboard').style.display = '';
+  document.getElementById('noDataMsg').style.display = 'none';
+
+  updateHeaderLabels();
+  updateKPIs(D);
+  renderBarChart(D);
+  renderDonutChart(D);
+  renderTargetGauges(D);
+  renderLineChart(D);
+  renderRevChart(D);
+  renderMomChart(D);
+  renderProdGrid(D);
+  renderAchievers(D);
+  renderMisses(D);
+  renderTable(D);
+}
+
+// ── Init ──
+renderUploadPanel();
+updateHeaderLabels();
+updateUploadSummary();
+</script>
+</body>
+</html>

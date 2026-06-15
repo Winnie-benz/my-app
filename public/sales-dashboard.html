@@ -1,0 +1,1097 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sales Dashboard – Year View</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Sarabun:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;-webkit-font-smoothing:antialiased;}
+body{
+  font-family:'Inter','Sarabun',-apple-system,sans-serif;
+  min-height:100vh; padding:24px 28px 64px; font-size:14px;
+  /* ── OWNDAYS Design Tokens ── */
+  --accent:#1A73E8; --accent-deep:#0D47A1; --accent-soft:#6FA8F0;
+  --accent-grad:linear-gradient(95deg,#E76A2A 0%,#E64A8E 35%,#8B5CF6 65%,#1A73E8 100%);
+  --bg:#FAF8FF;
+  --glass:rgba(255,255,255,.58); --glass-s:rgba(255,255,255,.72); --glass-t:rgba(255,255,255,.42);
+  --border:rgba(255,255,255,.68); --rim:rgba(255,255,255,.94); --sh:31,38,135;
+  /* Typography */
+  --tx:#0D0D0D; --tx2:#374151; --mu:#6B7280; --mu2:#9CA3AF;
+  /* Semantic data colors */
+  --green:#16a34a; --red:#dc2626; --tgt:#D97706; --mar:#1A73E8;
+  /* Surface tracks */
+  --track:rgba(0,0,0,.07); --bd:rgba(0,0,0,.07); --bd2:rgba(0,0,0,.13);
+  --s2:rgba(255,255,255,.4); --s3:rgba(0,0,0,.06);
+  background:var(--bg); color:var(--tx);
+}
+
+/* ── AURORA ── */
+.bg-aurora{position:fixed;inset:0;z-index:-2;overflow:hidden;pointer-events:none;background:var(--bg);}
+.blob{position:absolute;border-radius:50%;filter:blur(80px);opacity:.95;will-change:transform;}
+.blob-1{width:780px;height:780px;top:-180px;left:-160px;background:rgba(26,115,232,.35);animation:drift-1 42s ease-in-out infinite alternate;}
+.blob-2{width:700px;height:700px;top:30%;right:-200px;background:rgba(139,92,246,.22);animation:drift-2 50s ease-in-out infinite alternate;}
+.blob-3{width:640px;height:640px;bottom:-160px;left:20%;background:rgba(255,255,255,.55);animation:drift-3 38s ease-in-out infinite alternate;}
+.blob-4{width:560px;height:560px;top:55%;left:-100px;background:rgba(255,164,91,.18);animation:drift-4 46s ease-in-out infinite alternate;}
+@keyframes drift-1{0%{transform:translate(0,0) scale(1);}50%{transform:translate(120px,80px) scale(1.12);}100%{transform:translate(60px,160px) scale(.95);}}
+@keyframes drift-2{0%{transform:translate(0,0) scale(1);}50%{transform:translate(-160px,120px) scale(1.1);}100%{transform:translate(-80px,-60px) scale(1.05);}}
+@keyframes drift-3{0%{transform:translate(0,0) scale(1);}50%{transform:translate(140px,-100px) scale(1.15);}100%{transform:translate(-60px,-40px) scale(.92);}}
+@keyframes drift-4{0%{transform:translate(0,0) scale(1);}50%{transform:translate(180px,-80px) scale(1.08);}100%{transform:translate(80px,100px) scale(.96);}}
+.bg-dots{position:fixed;inset:0;z-index:-1;pointer-events:none;
+  background-image:radial-gradient(rgba(15,23,42,.055) 1px,transparent 1.5px);background-size:22px 22px;
+  -webkit-mask-image:radial-gradient(ellipse 80% 60% at 50% 40%,#000 50%,transparent 100%);
+  mask-image:radial-gradient(ellipse 80% 60% at 50% 40%,#000 50%,transparent 100%);}
+
+/* ── SHIMMER / GRAD-TEXT ── */
+@keyframes shimmer{0%{background-position:0% 50%;}100%{background-position:200% 50%;}}
+.grad-text{background:var(--accent-grad);background-size:200% 100%;
+  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+  animation:shimmer 8s linear infinite;display:inline-block;}
+
+/* ── GLASS MIXIN ── */
+.glass-card{background:var(--glass);border:1px solid var(--border);
+  backdrop-filter:blur(24px) saturate(180%);-webkit-backdrop-filter:blur(24px) saturate(180%);
+  box-shadow:0 1px 0 var(--rim) inset,0 8px 28px -12px rgba(var(--sh),.14);}
+
+/* ── UPLOAD PANEL ── */
+.up-panel{background:var(--glass);border:1px solid var(--border);border-radius:20px;margin-bottom:20px;overflow:hidden;
+  backdrop-filter:blur(24px) saturate(180%);-webkit-backdrop-filter:blur(24px) saturate(180%);
+  box-shadow:0 1px 0 var(--rim) inset,0 12px 32px -14px rgba(var(--sh),.12);}
+.up-hdr{display:flex;align-items:center;justify-content:space-between;padding:14px 22px;cursor:pointer;user-select:none;transition:background .15s;}
+.up-hdr:hover{background:rgba(0,0,0,.025);}
+.up-hdr-l{display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
+.up-title{font-size:13px;font-weight:700;color:var(--tx);}
+.up-sub{font-size:11px;color:var(--mu);font-weight:500;}
+.up-toggle{background:none;border:1px solid var(--bd2);border-radius:999px;color:var(--mu);
+  font-size:11px;padding:4px 13px;cursor:pointer;font-family:inherit;font-weight:600;transition:all .15s;}
+.up-toggle:hover{color:var(--tx);border-color:var(--accent);background:rgba(26,115,232,.06);}
+
+/* Month chips */
+.chips{display:flex;gap:6px;flex-wrap:wrap;padding:12px 22px 0;}
+.chip{display:flex;align-items:center;gap:7px;padding:5px 12px;border-radius:999px;
+  font-size:11px;font-weight:700;border:1px solid;backdrop-filter:blur(8px);}
+.chip-del{background:none;border:none;cursor:pointer;font-size:12px;line-height:1;padding:0;opacity:.5;color:inherit;}
+.chip-del:hover{opacity:1;}
+
+/* Add form */
+.up-body{padding:12px 22px 18px;}
+.up-add{display:grid;grid-template-columns:200px 1fr;gap:12px;align-items:start;}
+.up-add-left{display:flex;flex-direction:column;gap:8px;}
+.up-selects{display:flex;gap:6px;}
+.up-select{background:rgba(255,255,255,.7);border:1px solid var(--bd2);border-radius:8px;
+  padding:8px 10px;color:var(--tx);font-size:12px;font-family:inherit;font-weight:500;outline:none;cursor:pointer;
+  -webkit-appearance:none;appearance:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%236B7280'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 9px center;padding-right:26px;
+  box-shadow:0 1px 0 var(--rim) inset;}
+.up-select:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(26,115,232,.12);}
+.up-select.mo{flex:1;}
+.up-select.yr{width:82px;}
+.up-add-btn{background:var(--accent-grad);background-size:200% 100%;border:none;border-radius:999px;
+  padding:9px 18px;color:#fff;font-size:12px;font-family:inherit;font-weight:700;cursor:pointer;
+  animation:shimmer 8s linear infinite;transition:transform .2s,box-shadow .2s;
+  box-shadow:0 8px 20px -8px rgba(var(--sh),.4);}
+.up-add-btn:hover{transform:translateY(-2px);}
+.up-add-btn:disabled{opacity:.35;cursor:not-allowed;transform:none;}
+.up-drop{border:2px dashed var(--bd2);border-radius:12px;padding:18px 14px;
+  text-align:center;cursor:pointer;transition:all .15s;min-height:96px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  background:rgba(255,255,255,.3);}
+.up-drop:hover{border-color:var(--accent);background:rgba(26,115,232,.04);}
+.up-drop.drag-over{border-color:var(--accent);background:rgba(26,115,232,.07);}
+.up-drop.has-file{border-color:var(--green);border-style:solid;background:rgba(22,163,74,.05);}
+.up-drop-text{font-size:11px;color:var(--mu);font-weight:500;}
+.up-drop-sub{font-size:10px;color:var(--mu2);margin-top:3px;}
+.up-fname{font-size:10px;color:var(--green);margin-top:5px;font-weight:600;word-break:break-all;}
+.up-foot{display:flex;align-items:center;justify-content:space-between;
+  padding-top:12px;border-top:1px solid var(--bd);margin-top:14px;gap:12px;}
+.up-hint{font-size:11px;color:var(--mu);line-height:1.6;}
+.up-hint span{color:var(--tx2);font-weight:600;}
+.up-btns{display:flex;gap:8px;flex-shrink:0;}
+.up-tpl-btn{background:rgba(255,255,255,.6);border:1px solid var(--bd2);border-radius:999px;
+  padding:6px 14px;color:var(--mu);font-size:11px;font-family:inherit;font-weight:600;cursor:pointer;transition:all .15s;}
+.up-tpl-btn:hover{color:var(--tx);border-color:var(--accent);background:rgba(26,115,232,.06);}
+.up-clear-btn{background:none;border:1px solid rgba(220,38,38,.3);border-radius:999px;
+  padding:6px 14px;color:var(--red);font-size:11px;font-family:inherit;font-weight:600;cursor:pointer;opacity:.75;transition:opacity .15s;}
+.up-clear-btn:hover{opacity:1;}
+
+/* ── PLACEHOLDER ── */
+.placeholder{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:80px 20px;text-align:center;}
+.ph-icon{font-size:40px;margin-bottom:16px;opacity:.25;}
+.ph-text{font-size:15px;font-weight:600;color:var(--tx2);}
+.ph-sub{font-size:12px;color:var(--mu);margin-top:8px;}
+
+/* ── HEADER ── */
+.hdr{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:24px;padding-bottom:16px;border-bottom:1px solid var(--bd);}
+.hdr h1{font-size:24px;font-weight:800;letter-spacing:-.03em;color:var(--tx);}
+.hdr-sub{font-size:11px;color:var(--mu);margin-top:5px;font-weight:500;letter-spacing:.03em;}
+.tags{display:flex;gap:6px;flex-wrap:wrap;}
+.tag{font-size:10px;font-weight:700;padding:4px 11px;border-radius:999px;border:1px solid var(--bd2);
+  color:var(--mu);background:rgba(255,255,255,.5);letter-spacing:.03em;}
+.tag.g{border-color:rgba(22,163,74,.3);color:var(--green);background:rgba(22,163,74,.08);}
+.tag.r{border-color:rgba(220,38,38,.3);color:var(--red);background:rgba(220,38,38,.07);}
+.tag.y{border-color:rgba(217,119,6,.3);color:var(--tgt);background:rgba(217,119,6,.07);}
+
+/* ── KPI ── */
+.kpi-row{display:grid;gap:10px;margin-bottom:12px;}
+.kpi-5{grid-template-columns:repeat(5,1fr);}
+.kpi{background:var(--glass);border:1px solid var(--border);border-radius:14px;padding:15px 18px;
+  position:relative;overflow:hidden;
+  backdrop-filter:blur(20px) saturate(160%);-webkit-backdrop-filter:blur(20px) saturate(160%);
+  box-shadow:0 1px 0 var(--rim) inset,0 6px 18px -10px rgba(var(--sh),.12);}
+.kpi::after{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--c,var(--accent));}
+.kpi-lbl{font-size:10px;font-weight:700;letter-spacing:.07em;color:var(--mu);text-transform:uppercase;margin-bottom:7px;}
+.kpi-val{font-size:24px;font-weight:800;letter-spacing:-.025em;line-height:1;color:var(--c,var(--tx));}
+.kpi-sub{font-size:11px;color:var(--mu);margin-top:5px;}
+.kpi-badge{font-size:10px;font-weight:700;padding:2px 7px;border-radius:999px;margin-left:5px;display:inline-block;vertical-align:middle;}
+.kpi-badge.up{background:rgba(22,163,74,.12);color:var(--green);}
+.kpi-badge.dn{background:rgba(220,38,38,.08);color:var(--red);}
+.kpi-badge.nt{background:var(--s3);color:var(--mu);}
+
+/* ── CUMULATIVE BAR ── */
+.cumbar{background:var(--glass);border:1px solid var(--border);border-radius:16px;padding:18px 22px;
+  margin-bottom:12px;position:relative;overflow:hidden;
+  backdrop-filter:blur(24px) saturate(180%);-webkit-backdrop-filter:blur(24px) saturate(180%);
+  box-shadow:0 1px 0 var(--rim) inset,0 8px 24px -12px rgba(var(--sh),.12);}
+.cumbar::after{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--accent-grad);background-size:200% 100%;animation:shimmer 8s linear infinite;}
+.cumbar-inner{display:flex;align-items:center;gap:28px;}
+.cumbar-main{flex-shrink:0;}
+.cumbar-val{font-size:28px;font-weight:800;letter-spacing:-.03em;line-height:1;margin-top:5px;
+  background:var(--accent-grad);background-size:200% 100%;-webkit-background-clip:text;background-clip:text;
+  -webkit-text-fill-color:transparent;animation:shimmer 8s linear infinite;}
+.cumbar-right{flex:1;min-width:0;}
+.cum-stack{display:flex;height:10px;border-radius:6px;overflow:hidden;gap:2px;margin-bottom:9px;}
+.cum-stack>div{height:100%;}
+.cum-legend{display:flex;gap:16px;flex-wrap:wrap;}
+.cum-li{font-size:11px;font-weight:500;color:var(--mu);display:flex;align-items:center;gap:5px;}
+.cum-li b{color:var(--tx2);font-weight:700;}
+.cum-dot{width:8px;height:8px;border-radius:3px;flex-shrink:0;}
+
+/* ── CARDS ── */
+.g2{display:grid;gap:12px;margin-bottom:12px;}
+.g2-3{grid-template-columns:2fr 1.1fr 1.1fr;}
+.g2-2{grid-template-columns:1fr 1fr;}
+.g2-21{grid-template-columns:2fr 1fr;}
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:12px;}
+.card{background:var(--glass);border:1px solid var(--border);border-radius:16px;padding:20px;
+  backdrop-filter:blur(24px) saturate(180%);-webkit-backdrop-filter:blur(24px) saturate(180%);
+  box-shadow:0 1px 0 var(--rim) inset,0 8px 24px -12px rgba(var(--sh),.12);}
+.card-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.card-title{font-size:13px;font-weight:700;color:var(--tx);}
+.legend{display:flex;gap:10px;flex-wrap:wrap;}
+.li{display:flex;align-items:center;gap:4px;font-size:11px;color:var(--mu);font-weight:500;}
+.ld{width:8px;height:8px;border-radius:2px;flex-shrink:0;}
+
+/* ── GAUGE ── */
+.gauge-item{display:flex;flex-direction:column;gap:3px;margin-bottom:10px;}
+.gauge-lbl{display:flex;justify-content:space-between;font-size:11px;}
+.gauge-nm{color:var(--tx2);font-weight:500;}
+.gauge-n{font-weight:700;font-size:11px;}
+.gauge-track{height:5px;background:var(--track);border-radius:3px;overflow:hidden;}
+.gauge-fill{height:100%;border-radius:3px;}
+
+/* ── RANK ── */
+.rank-item{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--bd);}
+.rank-item:last-child{border-bottom:none;}
+.rank-n{font-size:10px;font-weight:700;color:var(--mu2);width:14px;flex-shrink:0;}
+.rank-info{flex:1;min-width:0;}
+.rank-name{font-size:12px;font-weight:600;color:var(--tx);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.rank-bar-wrap{display:flex;align-items:center;gap:4px;margin-top:3px;}
+.rank-track{flex:1;height:3px;background:var(--track);border-radius:2px;overflow:hidden;}
+.rank-fill{height:100%;border-radius:2px;}
+.rank-right{text-align:right;flex-shrink:0;}
+.rank-val{font-size:11px;font-weight:600;color:var(--mu);}
+.rank-chg{font-size:11px;font-weight:700;}
+
+/* ── HIT/MISS PANEL ── */
+.hm-pct{font-size:34px;font-weight:800;letter-spacing:-.025em;}
+.hm-bar-wrap{height:7px;background:var(--track);border-radius:4px;overflow:hidden;margin:6px 0;}
+.hm-bar{height:100%;border-radius:4px;}
+
+/* ── TABLE ── */
+.tbl-wrap{background:var(--glass);border:1px solid var(--border);border-radius:16px;padding:20px;margin-bottom:12px;
+  backdrop-filter:blur(24px) saturate(180%);-webkit-backdrop-filter:blur(24px) saturate(180%);
+  box-shadow:0 1px 0 var(--rim) inset,0 8px 24px -12px rgba(var(--sh),.12);}
+.tbl-controls{display:flex;align-items:center;gap:7px;flex-wrap:wrap;}
+.search{background:rgba(255,255,255,.7);border:1px solid var(--bd2);border-radius:999px;
+  padding:7px 14px;color:var(--tx);font-size:12px;font-family:inherit;outline:none;width:200px;
+  box-shadow:0 1px 0 var(--rim) inset;transition:border .15s,box-shadow .15s;}
+.search::placeholder{color:var(--mu2);}
+.search:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(26,115,232,.1),0 1px 0 var(--rim) inset;}
+.fbtn{background:rgba(255,255,255,.6);border:1px solid var(--bd2);border-radius:999px;
+  padding:5px 12px;color:var(--mu);font-size:11px;font-family:inherit;font-weight:600;cursor:pointer;transition:all .15s;}
+.fbtn:hover{border-color:var(--accent);color:var(--accent);background:rgba(26,115,232,.05);}
+.fbtn.active{border-color:var(--accent);color:var(--accent);background:rgba(26,115,232,.08);}
+.fbtn.ga.active{border-color:var(--green);color:var(--green);background:rgba(22,163,74,.08);}
+.fbtn.ra.active{border-color:var(--red);color:var(--red);background:rgba(220,38,38,.07);}
+.tbl-scroll{overflow-x:auto;margin-top:14px;}
+table{width:100%;border-collapse:collapse;font-size:12px;}
+thead th{font-size:10px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;
+  color:var(--mu);padding:0 8px 10px 0;text-align:right;border-bottom:1px solid var(--bd);
+  cursor:pointer;white-space:nowrap;transition:color .15s;}
+thead th:first-child{text-align:left;padding-left:0;}
+thead th:hover{color:var(--accent);}
+tbody tr{border-bottom:1px solid var(--bd);}
+tbody tr:last-child{border-bottom:none;}
+tbody tr:hover{background:rgba(255,255,255,.4);}
+td{padding:9px 8px 9px 0;text-align:right;color:var(--mu);font-variant-numeric:tabular-nums;white-space:nowrap;}
+td:first-child{text-align:left;color:var(--tx);font-weight:600;padding-right:10px;}
+.rk{color:var(--mu2);font-size:10px;font-weight:700;margin-right:6px;}
+.pill{display:inline-block;font-size:10px;font-weight:700;padding:2px 7px;border-radius:999px;}
+.pu{background:rgba(22,163,74,.1);color:var(--green);}
+.pd{background:rgba(220,38,38,.08);color:var(--red);}
+.pf{background:rgba(0,0,0,.06);color:var(--mu);}
+.no-rows{text-align:center;padding:28px 0;color:var(--mu);}
+
+/* ── FOOTER ── */
+.footer{margin-top:22px;padding-top:14px;border-top:1px solid var(--bd);
+  font-size:10px;font-weight:600;color:var(--mu);display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;}
+
+/* ── ACCESSIBILITY ── */
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;}}
+:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:4px;}
+</style>
+</head>
+<body>
+
+<!-- Aurora background -->
+<div class="bg-aurora" aria-hidden="true">
+  <div class="blob blob-1"></div>
+  <div class="blob blob-2"></div>
+  <div class="blob blob-3"></div>
+  <div class="blob blob-4"></div>
+</div>
+<div class="bg-dots" aria-hidden="true"></div>
+
+<!-- ── UPLOAD PANEL ── -->
+<div class="up-panel" id="upPanel">
+  <div class="up-hdr" onclick="togglePanel()">
+    <div class="up-hdr-l">
+      <span class="up-title">อัพโหลดข้อมูลยอดขาย</span>
+      <span class="up-sub" id="upSub">ยังไม่มีข้อมูล · อัพโหลดเพื่อเริ่มต้น</span>
+    </div>
+    <button type="button" class="up-toggle" id="upToggle" onclick="event.stopPropagation();togglePanel()">ซ่อน ▲</button>
+  </div>
+  <div id="upBody">
+    <div id="monthChips" class="chips"></div>
+    <div class="up-body">
+      <div class="up-add">
+        <div class="up-add-left">
+          <div class="up-selects">
+            <select class="up-select mo" id="addMonth" title="เลือกเดือน">
+              <option value="">── เดือน ──</option>
+              <option value="JAN">JAN – มกราคม</option>
+              <option value="FEB">FEB – กุมภาพันธ์</option>
+              <option value="MAR">MAR – มีนาคม</option>
+              <option value="APR">APR – เมษายน</option>
+              <option value="MAY">MAY – พฤษภาคม</option>
+              <option value="JUN">JUN – มิถุนายน</option>
+              <option value="JUL">JUL – กรกฎาคม</option>
+              <option value="AUG">AUG – สิงหาคม</option>
+              <option value="SEP">SEP – กันยายน</option>
+              <option value="OCT">OCT – ตุลาคม</option>
+              <option value="NOV">NOV – พฤศจิกายน</option>
+              <option value="DEC">DEC – ธันวาคม</option>
+            </select>
+            <select class="up-select yr" id="addYear" title="เลือกปี"></select>
+          </div>
+          <button type="button" class="up-add-btn" id="addBtn" onclick="addMonth()" disabled>+ เพิ่มเดือนนี้</button>
+        </div>
+        <div class="up-drop" id="addDrop" onclick="document.getElementById('addFile').click()"
+             ondragover="doDragOver(event)" ondragleave="doDragLeave()" ondrop="doDrop(event)">
+          <input type="file" id="addFile" accept=".xlsx,.xls,.csv" style="display:none" onchange="onFile(this)">
+          <div class="up-drop-text">วางไฟล์ Excel หรือคลิกเพื่อเลือก</div>
+          <div class="up-drop-sub">.xlsx · .xls · .csv</div>
+          <div class="up-fname" id="addFname"></div>
+        </div>
+      </div>
+      <div class="up-foot">
+        <div class="up-hint">รูปแบบ: <span>ID | ชื่อสาขา | Monthly | Daily | Color | Target</span> · บันทึกใน Browser (localStorage)</div>
+        <div class="up-btns">
+          <button type="button" class="up-tpl-btn" onclick="downloadTemplate()">Template</button>
+          <button type="button" class="up-clear-btn" onclick="clearAll()">ล้างข้อมูลทั้งหมด</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── DASHBOARD ── -->
+<div id="dashPlaceholder" class="placeholder">
+  <div class="ph-icon">📈</div>
+  <div class="ph-text">อัพโหลดข้อมูลเดือนแรก เพื่อเริ่มต้น Dashboard</div>
+  <div class="ph-sub">เพิ่มทีละเดือน · ข้อมูลสะสมอัตโนมัติ · ดูเทรนด์ทั้งปี</div>
+</div>
+
+<div id="dashContent" style="display:none;">
+  <div class="hdr">
+    <div>
+      <h1>Sales <span class="grad-text">Dashboard</span></h1>
+      <div class="hdr-sub" id="hdrSub"></div>
+    </div>
+    <div class="tags" id="hdrTags"></div>
+  </div>
+
+  <div class="kpi-row kpi-5" id="kpiLatest"></div>
+  <div class="kpi-row kpi-5" id="kpiYtd"></div>
+
+  <div class="cumbar" id="cumbar">
+    <div class="cumbar-inner">
+      <div class="cumbar-main">
+        <div class="kpi-lbl" id="cumLbl"></div>
+        <div class="cumbar-val" id="cumVal"></div>
+        <div class="kpi-sub" id="cumSub"></div>
+      </div>
+      <div class="cumbar-right">
+        <div class="cum-stack" id="cumStack"></div>
+        <div class="cum-legend" id="cumLegend"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="g2 g2-3">
+    <div class="card">
+      <div class="card-hdr">
+        <span class="card-title" id="trendTitle"></span>
+        <div class="legend" id="trendLegend"></div>
+      </div>
+      <div style="position:relative;height:240px;"><canvas id="trendChart"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-hdr"><span class="card-title">Hit vs Miss (เดือนล่าสุด)</span></div>
+      <div style="position:relative;height:130px;"><canvas id="donutChart"></canvas></div>
+      <div style="display:flex;gap:12px;justify-content:center;margin-top:9px;margin-bottom:14px;" id="donutLgd"></div>
+      <div style="border-top:1px solid var(--bd);padding-top:13px;">
+        <div class="kpi-lbl" id="vsLbl"></div>
+        <div style="text-align:center;margin:6px 0;">
+          <span class="hm-pct" id="tgtPct" style="color:var(--tgt);"></span>
+          <div style="font-size:11px;color:var(--mu);margin-top:3px;" id="tgtBoxes"></div>
+        </div>
+        <div class="hm-bar-wrap"><div class="hm-bar" id="tgtBar"></div></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-hdr"><span class="card-title" id="gaugeTitle"></span></div>
+      <div id="targetGauges"></div>
+    </div>
+  </div>
+
+  <div class="g2 g2-2">
+    <div class="card">
+      <div class="card-hdr"><span class="card-title" id="revTrendTitle"></span></div>
+      <div style="position:relative;height:200px;"><canvas id="revTrendChart"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-hdr">
+        <span class="card-title">Product Mix Trend</span>
+        <div class="legend">
+          <div class="li"><span class="ld" style="background:#8b6fd4;"></span>Monthly</div>
+          <div class="li"><span class="ld" style="background:#1A73E8;"></span>Daily</div>
+          <div class="li"><span class="ld" style="background:#E76A2A;"></span>Color</div>
+        </div>
+      </div>
+      <div style="position:relative;height:200px;"><canvas id="mixChart"></canvas></div>
+    </div>
+  </div>
+
+  <div class="g2 g2-21">
+    <div class="card">
+      <div class="card-hdr">
+        <span class="card-title">เทรนด์ Top 10 สาขา</span>
+        <span style="font-size:11px;color:var(--mu);font-weight:500;" id="branchTrendSub"></span>
+      </div>
+      <div style="position:relative;height:220px;"><canvas id="branchTrendChart"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-hdr"><span class="card-title">Hit Rate Trend</span></div>
+      <div style="position:relative;height:220px;"><canvas id="hitRateChart"></canvas></div>
+    </div>
+  </div>
+
+  <div class="g3">
+    <div class="card">
+      <div class="card-hdr"><span class="card-title" id="achTitle">🏆 Top Achievers</span></div>
+      <div id="achieverList"></div>
+    </div>
+    <div class="card">
+      <div class="card-hdr"><span class="card-title" id="missTitle">⚠️ Worst Misses</span></div>
+      <div id="missList"></div>
+    </div>
+    <div class="card">
+      <div class="card-hdr"><span class="card-title" id="momTitle">📈 MoM Change</span></div>
+      <div style="position:relative;height:220px;" id="momWrap"><canvas id="momChart"></canvas></div>
+    </div>
+  </div>
+
+  <div class="tbl-wrap">
+    <div class="card-hdr">
+      <span class="card-title" id="tblTitle">รายละเอียดทุกสาขา</span>
+      <div class="tbl-controls">
+        <input type="text" class="search" id="srch" placeholder="ค้นหาสาขา...">
+        <button type="button" class="fbtn active" onclick="setFilter('all',this)">ทั้งหมด</button>
+        <button type="button" class="fbtn ga" onclick="setFilter('hit',this)">✓ Hit</button>
+        <button type="button" class="fbtn ra" onclick="setFilter('miss',this)">✗ Miss</button>
+        <button type="button" class="fbtn" onclick="setSort('latest_total')">Latest ↓</button>
+        <button type="button" class="fbtn" onclick="setSort('vs_target')">vs Target</button>
+        <button type="button" class="fbtn" onclick="setSort('diff_mo')">MoM</button>
+      </div>
+    </div>
+    <div class="tbl-scroll">
+      <table>
+        <thead><tr id="tblHead"></tr></thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+    <div id="noRows" class="no-rows" style="display:none;">ไม่พบสาขาที่ค้นหา</div>
+  </div>
+
+  <div class="footer">
+    <span id="footLeft"></span>
+    <span id="footRight">Monthly ฿590 · Daily ฿790 · Color ฿360</span>
+  </div>
+</div>
+
+<script>
+// ─── CONSTANTS ────────────────────────────────────────────────
+const PRICES = {m:590, d:790, c:360};
+const DB_KEY  = 'sdash_v2';
+
+// 12-month color palette — works on light background
+const PALETTE = [
+  '#1A73E8','#8B5CF6','#E76A2A','#16a34a','#dc2626','#0891b2',
+  '#E64A8E','#D97706','#7C3AED','#a87047','#059669','#6070c0'
+];
+
+// Chart theme colors (light background)
+const CT = {
+  tick:  '#6B7280',
+  tick2: '#9CA3AF',
+  grid:  'rgba(0,0,0,.05)',
+  font:  {size:10, family:"'Inter','Sarabun',sans-serif"},
+  font11:{size:11, family:"'Inter','Sarabun',sans-serif"}
+};
+
+const MONTH_ORD = {
+  jan:1,january:1,'ม.ค.':1,มกราคม:1,
+  feb:2,february:2,'ก.พ.':2,กุมภาพันธ์:2,
+  mar:3,march:3,'มี.ค.':3,มีนาคม:3,
+  apr:4,april:4,'เม.ย.':4,เมษายน:4,
+  may:5,'พ.ค.':5,พฤษภาคม:5,
+  jun:6,june:6,'มิ.ย.':6,มิถุนายน:6,
+  jul:7,july:7,'ก.ค.':7,กรกฎาคม:7,
+  aug:8,august:8,'ส.ค.':8,สิงหาคม:8,
+  sep:9,september:9,'ก.ย.':9,กันยายน:9,
+  oct:10,october:10,'ต.ค.':10,ตุลาคม:10,
+  nov:11,november:11,'พ.ย.':11,พฤศจิกายน:11,
+  dec:12,december:12,'ธ.ค.':12,ธันวาคม:12
+};
+const SHORT_NAMES = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+
+// ─── STATE ────────────────────────────────────────────────────
+let DB    = loadDB();
+let CHS   = {};
+let pFile = null;
+let ST    = { sort:'latest_total', filter:'all', query:'' };
+
+// ─── STORAGE ─────────────────────────────────────────────────
+function loadDB() {
+  try { return JSON.parse(localStorage.getItem(DB_KEY)) || {months:[]}; }
+  catch { return {months:[]}; }
+}
+function saveDB() { localStorage.setItem(DB_KEY, JSON.stringify(DB)); }
+function getMonths() { return [...DB.months].sort((a,b)=>a.order-b.order); }
+
+// ─── PANEL ────────────────────────────────────────────────────
+let panelOpen = true;
+function togglePanel() {
+  panelOpen = !panelOpen;
+  document.getElementById('upBody').style.display = panelOpen ? '' : 'none';
+  document.getElementById('upToggle').textContent  = panelOpen ? 'ซ่อน ▲' : 'แสดง ▼';
+}
+
+// ─── DRAG & DROP ─────────────────────────────────────────────
+function doDragOver(e){e.preventDefault();document.getElementById('addDrop').classList.add('drag-over');}
+function doDragLeave(){document.getElementById('addDrop').classList.remove('drag-over');}
+function doDrop(e){e.preventDefault();doDragLeave();const f=e.dataTransfer.files[0];if(f)processFile(f);}
+function onFile(el){if(el.files[0])processFile(el.files[0]);}
+
+async function processFile(file) {
+  try {
+    const rows = await readExcel(file);
+    const branches = parseRows(rows);
+    pFile = { file, branches };
+    document.getElementById('addDrop').classList.add('has-file');
+    document.getElementById('addFname').textContent = file.name + ' · ' + branches.length + ' สาขา';
+    checkAddReady();
+  } catch(err) {
+    alert('อ่านไฟล์ไม่ได้: ' + err.message);
+    pFile = null;
+  }
+}
+
+// ─── ADD MONTH ────────────────────────────────────────────────
+function addMonth() {
+  if (!pFile) { alert('กรุณาเลือกไฟล์ก่อน'); return; }
+  const mo  = document.getElementById('addMonth').value;
+  const yr  = document.getElementById('addYear').value;
+  if (!mo)  { alert('กรุณาเลือกเดือน'); return; }
+  const label    = mo + ' ' + yr;
+  const short    = mo;
+  const monthNum = MONTH_ORD[mo.toLowerCase()] || 99;
+  const order    = (parseInt(yr) - 2000) * 12 + monthNum;
+  const branches = pFile.branches;
+
+  const existIdx = DB.months.findIndex(m => m.label === label);
+  if (existIdx >= 0) {
+    if (!confirm(`มีข้อมูล "${label}" อยู่แล้ว ต้องการแทนที่ไหม?`)) return;
+    DB.months.splice(existIdx, 1);
+  }
+
+  const withTgt = branches.filter(b => b.target > 0);
+  DB.months.push({
+    label, short, order,
+    colorIdx: (monthNum - 1) % 12,
+    filename: pFile.file.name,
+    uploadedAt: new Date().toISOString(),
+    total:        branches.reduce((s,b)=>s+b.total,0),
+    revenue:      branches.reduce((s,b)=>s+b.revenue,0),
+    target_total: branches.reduce((s,b)=>s+b.target,0),
+    hit_count:    withTgt.filter(b=>b.total>=b.target).length,
+    miss_count:   withTgt.filter(b=>b.total< b.target).length,
+    no_tgt_count: branches.filter(b=>b.target===0).length,
+    products: [
+      branches.reduce((s,b)=>s+b.monthly,0),
+      branches.reduce((s,b)=>s+b.daily,0),
+      branches.reduce((s,b)=>s+b.color,0)
+    ],
+    branches
+  });
+
+  saveDB();
+  resetAddForm();
+  refreshAll();
+}
+
+function removeMonth(label) {
+  if (!confirm(`ลบข้อมูล "${label}" ออก?`)) return;
+  DB.months = DB.months.filter(m => m.label !== label);
+  saveDB();
+  refreshAll();
+}
+
+function clearAll() {
+  if (!confirm('ล้างข้อมูลทั้งหมด?')) return;
+  DB = {months:[]};
+  saveDB();
+  document.getElementById('srch').value = '';
+  ST.query = '';
+  refreshAll();
+}
+
+function resetAddForm() {
+  pFile = null;
+  document.getElementById('addFile').value = '';
+  document.getElementById('addFname').textContent = '';
+  document.getElementById('addDrop').classList.remove('has-file','drag-over');
+  document.getElementById('addMonth').value = '';
+  document.getElementById('addYear').value = new Date().getFullYear();
+  document.getElementById('addBtn').disabled = true;
+}
+
+// ─── EXCEL READING ────────────────────────────────────────────
+function readExcel(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      try {
+        const wb = XLSX.read(new Uint8Array(e.target.result), {type:'array'});
+        const ws = wb.Sheets[wb.SheetNames[0]];
+        resolve(XLSX.utils.sheet_to_json(ws, {header:1, defval:''}));
+      } catch(err){reject(err);}
+    };
+    reader.onerror = () => reject(new Error('อ่านไฟล์ไม่ได้'));
+    reader.readAsArrayBuffer(file);
+  });
+}
+
+function detectCols(headers) {
+  const h = headers.map(s => String(s||'').toLowerCase().replace(/[\s_-]/g,''));
+  const find = (...kws) => h.findIndex(c => kws.some(k => c.includes(k)));
+  return {
+    id:      find('id','code','รหัส','branchid'),
+    name:    find('branch','name','สาขา','ชื่อ','store'),
+    monthly: find('monthly','monthlylens','odcvm','เดือน'),
+    daily:   find('daily','dailylens','odcvd','รายวัน'),
+    color:   find('color','colour','สี','colorlens'),
+    total:   find('total','รวม'),
+    revenue: find('revenue','ยอด','baht','thb','amount','sales','rev'),
+    target:  find('target','เป้า','tgt','goal','quota')
+  };
+}
+
+function parseRows(rows) {
+  if (!rows || rows.length < 2) throw new Error('ไฟล์ว่างหรือมีข้อมูลไม่พอ');
+  const cols = detectCols(rows[0]);
+  if (cols.name < 0 && cols.id < 0) throw new Error('ไม่พบคอลัมน์ชื่อสาขา (ต้องมี header: Branch Name หรือ สาขา)');
+  const out = [];
+  for (let i = 1; i < rows.length; i++) {
+    const r = rows[i];
+    if (!r || r.every(c=>c===''||c===null||c===undefined)) continue;
+    const id   = String(cols.id   >= 0 ? r[cols.id]   || '' : i).trim();
+    const name = String(cols.name >= 0 ? r[cols.name]  || '' : id).trim();
+    if (!name && !id) continue;
+    const m = toN(cols.monthly >= 0 ? r[cols.monthly] : 0);
+    const d = toN(cols.daily   >= 0 ? r[cols.daily]   : 0);
+    const c = toN(cols.color   >= 0 ? r[cols.color]   : 0);
+    const total   = cols.total   >= 0 ? (toN(r[cols.total])   || m+d+c) : m+d+c;
+    const revenue = cols.revenue >= 0 ? (toN(r[cols.revenue]) || calcRev(m,d,c)) : calcRev(m,d,c);
+    const target  = cols.target  >= 0 ? toN(r[cols.target]) : 0;
+    out.push({id:id||String(i), name:name||id, monthly:m, daily:d, color:c, total, revenue, target});
+  }
+  if (!out.length) throw new Error('ไม่พบข้อมูลในไฟล์');
+  return out;
+}
+
+function toN(v){return Math.round(Number(v)||0);}
+function calcRev(m,d,c){return m*PRICES.m + d*PRICES.d + c*PRICES.c;}
+
+// ─── LABEL PARSING ────────────────────────────────────────────
+function parseLabel(label) {
+  const s = label.toLowerCase().trim();
+  let order = 0;
+  for (const [k,v] of Object.entries(MONTH_ORD)) {
+    if (s.startsWith(k) || s.includes(' '+k) || s === k) { order = v; break; }
+  }
+  const short = order > 0 ? SHORT_NAMES[order-1] : label.split(' ')[0].toUpperCase().slice(0,3);
+  return {order: order||99, short};
+}
+
+// ─── BUILD BRANCH MATRIX ──────────────────────────────────────
+function buildMatrix(months) {
+  const allBranches = new Map();
+  months.forEach(mo => mo.branches.forEach(b => {
+    const k = b.name.toLowerCase().trim();
+    if (!allBranches.has(k)) allBranches.set(k, {id:b.id, name:b.name});
+  }));
+
+  return [...allBranches.values()].map(info => {
+    const k = info.name.toLowerCase().trim();
+    const byMonth = {};
+    months.forEach(mo => {
+      const b = mo.branches.find(x => x.name.toLowerCase().trim()===k || (x.id&&info.id&&x.id===info.id));
+      byMonth[mo.label] = b || null;
+    });
+
+    const latest = months[months.length-1];
+    const prev   = months.length >= 2 ? months[months.length-2] : null;
+    const la = byMonth[latest.label];
+    const pa = prev ? byMonth[prev.label] : null;
+
+    return {
+      id: info.id, name: info.name, byMonth,
+      latest_total: la ? la.total : 0,
+      latest_rev:   la ? la.revenue : 0,
+      target:       la ? la.target : 0,
+      hit_target:   la ? la.target>0 && la.total>=la.target : false,
+      vs_target:    la && la.target>0 ? la.total - la.target : 0,
+      diff_mo:      (la ? la.total : 0) - (pa ? pa.total : 0)
+    };
+  });
+}
+
+// ─── REFRESH ──────────────────────────────────────────────────
+function refreshAll() {
+  const months = getMonths();
+  renderChips(months);
+  updatePanelSub(months);
+  if (months.length === 0) {
+    document.getElementById('dashPlaceholder').style.display = '';
+    document.getElementById('dashContent').style.display = 'none';
+    return;
+  }
+  document.getElementById('dashPlaceholder').style.display = 'none';
+  document.getElementById('dashContent').style.display = '';
+  renderDashboard(months);
+}
+
+function renderChips(months) {
+  document.getElementById('monthChips').innerHTML = months.map(m => {
+    const col = PALETTE[m.colorIdx];
+    return `<span class="chip" style="color:${col};border-color:${col}44;background:${col}14;">${m.label}<button type="button" class="chip-del" onclick="removeMonth('${m.label}')" title="ลบ">✕</button></span>`;
+  }).join('');
+}
+
+function updatePanelSub(months) {
+  const n = months.length;
+  document.getElementById('upSub').textContent = n===0 ? 'ยังไม่มีข้อมูล'
+    : n + ' เดือน · ' + (months[0]?.short||'') + (n>1?' – '+months[n-1]?.short:'') + ' · คลิก ✕ เพื่อลบเดือน';
+}
+
+// ─── RENDER DASHBOARD ─────────────────────────────────────────
+function renderDashboard(months) {
+  const n = months.length;
+  const latest     = months[n-1];
+  const prev       = n >= 2 ? months[n-2] : null;
+  const ytdBoxes   = months.reduce((s,m)=>s+m.total,0);
+  const ytdRev     = months.reduce((s,m)=>s+m.revenue,0);
+  const withTgt    = latest.branches.filter(b=>b.target>0);
+  const tgtTotal   = withTgt.reduce((s,b)=>s+b.target,0);
+  const actTotal   = latest.total;
+  const tgtPct     = tgtTotal > 0 ? (actTotal/tgtTotal*100) : 0;
+  const momBoxes   = prev ? latest.total - prev.total : 0;
+  const momRev     = prev ? latest.revenue - prev.revenue : 0;
+  const momPct     = prev && prev.total > 0 ? ((momBoxes/prev.total)*100).toFixed(1) : null;
+  const firstLabel = months[0].short, lastLabel = latest.short;
+  const latestCol  = PALETTE[latest.colorIdx];
+
+  // ── Header
+  const yearStr = latest.label.match(/20\d\d/)?.[0] || '';
+  document.getElementById('hdrSub').textContent =
+    months.map(m=>m.short).join(' · ') + (yearStr?' · '+yearStr:'') + ' · ' + latest.branches.length + ' BRANCHES · YTD TRACKING';
+  document.getElementById('hdrTags').innerHTML =
+    `<span class="tag">${n}/12 เดือน</span>` +
+    `<span class="tag g">✓ HIT ${latest.hit_count}</span>` +
+    `<span class="tag r">✗ MISS ${latest.miss_count}</span>` +
+    (tgtTotal > 0 ? `<span class="tag y">${latest.short} ${tgtPct.toFixed(1)}%</span>` : '');
+
+  // ── KPI Latest
+  const momBadge = momPct !== null
+    ? `<span class="kpi-badge ${+momPct>=0?'up':'dn'}">${+momPct>=0?'▲':'▼'}${Math.abs(momPct)}%</span>` : '';
+  const momRevBadge = prev && prev.revenue > 0
+    ? `<span class="kpi-badge ${momRev>=0?'up':'dn'}">${momRev>=0?'▲':'▼'}${Math.abs(((momRev/prev.revenue)*100)).toFixed(1)}%</span>` : '';
+  document.getElementById('kpiLatest').innerHTML = [
+    kpiCard(latestCol, 'Latest – '+latest.label, commas(latest.total), 'กล่อง'+momBadge),
+    kpiCard(latestCol, 'Revenue – '+latest.label, '฿'+fmtM(latest.revenue), commas(latest.revenue)+' บาท'+momRevBadge),
+    kpiCard(tgtTotal>0?(tgtPct>=100?'#16a34a':'#dc2626'):'#9CA3AF', 'vs Target ('+latest.short+')', tgtTotal>0?tgtPct.toFixed(1)+'%':'—', tgtTotal>0?commas(actTotal)+'/'+commas(tgtTotal)+' boxes':'ไม่มีข้อมูลเป้า'),
+    kpiCard('#16a34a', 'Hit Target', latest.hit_count, 'จาก '+withTgt.length+' สาขาที่มีเป้า'),
+    kpiCard('#dc2626', 'Miss Target', latest.miss_count, prev?'MoM '+commas(momBoxes,true)+' boxes':'เดือนแรก')
+  ].join('');
+
+  // ── KPI YTD
+  const avgMo    = Math.round(ytdBoxes / n);
+  const avgRev   = Math.round(ytdRev / n);
+  const projBoxes = Math.round(avgMo * 12);
+  document.getElementById('kpiYtd').innerHTML = [
+    kpiCard('#16a34a', 'YTD Boxes ('+firstLabel+'–'+lastLabel+')', commas(ytdBoxes), n+' เดือนรวมกัน'),
+    kpiCard('#16a34a', 'YTD Revenue', '฿'+fmtM(ytdRev), commas(ytdRev)+' บาท'),
+    kpiCard('#1A73E8', 'เฉลี่ย / เดือน', commas(avgMo), '฿'+fmtM(avgRev)+' avg rev'),
+    kpiCard('#D97706', 'Projection (12M)', commas(projBoxes), 'จาก avg '+commas(avgMo)+'/เดือน'),
+    kpiCard('#9CA3AF', 'Months Loaded', n+'/12', SHORT_NAMES.slice(0,n).join(' · '))
+  ].join('');
+
+  // ── Cumulative bar
+  document.getElementById('cumLbl').textContent = 'Revenue สะสม YTD · ' + firstLabel + ' – ' + lastLabel;
+  document.getElementById('cumVal').textContent = '฿' + commas(ytdRev);
+  document.getElementById('cumSub').textContent = commas(ytdBoxes) + ' boxes · เฉลี่ย ฿' + fmtM(avgRev) + ' / เดือน';
+  const totalRev = ytdRev || 1;
+  document.getElementById('cumStack').innerHTML = months.map(m =>
+    `<div style="width:${(m.revenue/totalRev*100).toFixed(1)}%;background:${PALETTE[m.colorIdx]};flex-shrink:0;"></div>`
+  ).join('');
+  document.getElementById('cumLegend').innerHTML = months.map(m =>
+    `<div class="cum-li"><span class="cum-dot" style="background:${PALETTE[m.colorIdx]};"></span>${m.short} <b>฿${fmtM(m.revenue)}</b></div>`
+  ).join('');
+
+  // ── Year Trend Chart
+  document.getElementById('trendTitle').textContent = 'ยอดขายรายเดือน – Boxes Trend';
+  document.getElementById('trendLegend').innerHTML = months.length > 1
+    ? `<div class="li"><span class="ld" style="background:${latestCol};"></span>Latest: ${latest.short}</div>` : '';
+  dChart('trendChart', {
+    type:'bar',
+    data:{
+      labels: months.map(m=>m.short),
+      datasets:[
+        { label:'Boxes', data:months.map(m=>m.total),
+          backgroundColor:months.map(m=>PALETTE[m.colorIdx]+'cc'), borderRadius:5, borderSkipped:false },
+        { label:'Target', data:months.map(m=>m.target_total||null),
+          type:'line', borderColor:'#D97706', borderWidth:2, borderDash:[4,3],
+          pointRadius:3, pointBackgroundColor:'#D97706', fill:false, tension:0 }
+      ]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{display:false}, tooltip:{callbacks:{label:ctx=>` ${ctx.dataset.label}: ${commas(ctx.parsed.y??0)}`}}},
+      scales:{
+        x:{ticks:{color:CT.tick,font:CT.font11},grid:{display:false},border:{display:false}},
+        y:{beginAtZero:true,ticks:{color:CT.tick,font:CT.font,callback:v=>commas(v)},grid:{color:CT.grid},border:{display:false}}
+      }
+    }
+  });
+
+  // ── Donut + hit/miss
+  document.getElementById('donutLgd').innerHTML =
+    `<div class="li"><span class="ld" style="background:#16a34a;"></span>Hit (${latest.hit_count})</div>` +
+    `<div class="li"><span class="ld" style="background:#dc2626;"></span>Miss (${latest.miss_count})</div>` +
+    `<div class="li"><span class="ld" style="background:#9CA3AF;"></span>No Tgt (${latest.no_tgt_count})</div>`;
+  dChart('donutChart', {
+    type:'doughnut',
+    data:{labels:['Hit','Miss','No Target'],datasets:[{data:[latest.hit_count,latest.miss_count,latest.no_tgt_count],backgroundColor:['#16a34a','#dc2626','#9CA3AF'],borderWidth:0,hoverOffset:4}]},
+    options:{responsive:true,maintainAspectRatio:false,cutout:'62%',plugins:{legend:{display:false}}}
+  });
+  document.getElementById('vsLbl').textContent = latest.short + ' vs Target (รวมทุกสาขา)';
+  document.getElementById('tgtPct').textContent = tgtTotal > 0 ? tgtPct.toFixed(1)+'%' : '—';
+  document.getElementById('tgtBoxes').textContent = tgtTotal > 0 ? commas(actTotal)+' / '+commas(tgtTotal)+' boxes' : 'ไม่มีข้อมูล Target';
+  document.getElementById('tgtBar').style.cssText = `width:${Math.min(100,tgtPct).toFixed(1)}%;height:100%;border-radius:4px;background:${tgtPct>=100?'#16a34a':'#D97706'};`;
+
+  // ── Gauges
+  document.getElementById('gaugeTitle').textContent = '% เป้า รายสาขา – ' + latest.short + ' (worst 8)';
+  const wMiss = withTgt.filter(b=>b.total<b.target).sort((a,b)=>a.total/a.target-b.total/b.target).slice(0,8);
+  document.getElementById('targetGauges').innerHTML = wMiss.map(b=>{
+    const pct = Math.round(b.total/b.target*100);
+    const clr = pct>=80?'#D97706':'#dc2626';
+    return `<div class="gauge-item"><div class="gauge-lbl"><span class="gauge-nm">${b.name.length>22?b.name.slice(0,21)+'…':b.name}</span><span class="gauge-n" style="color:${clr};">${b.total}/${b.target} (${pct}%)</span></div><div class="gauge-track"><div class="gauge-fill" style="width:${Math.min(100,pct)}%;background:${clr};"></div></div></div>`;
+  }).join('') || '<div style="font-size:12px;color:var(--green);padding:10px 0;font-weight:600;">ทุกสาขา Hit Target 🎉</div>';
+
+  // ── Revenue Trend
+  document.getElementById('revTrendTitle').textContent = 'Revenue Trend – ' + firstLabel + ' to ' + lastLabel;
+  dChart('revTrendChart', {
+    type:'bar',
+    data:{labels:months.map(m=>m.short),datasets:[{data:months.map(m=>m.revenue),backgroundColor:months.map(m=>PALETTE[m.colorIdx]+'bb'),borderRadius:5,borderSkipped:false}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>` ฿${commas(ctx.parsed.y)}`}}},
+      scales:{x:{ticks:{color:CT.tick,font:CT.font11},grid:{display:false},border:{display:false}},
+        y:{beginAtZero:true,ticks:{color:CT.tick,font:CT.font,callback:v=>'฿'+fmtM(v)},grid:{color:CT.grid},border:{display:false}}}}
+  });
+
+  // ── Product Mix Trend
+  dChart('mixChart', {
+    type:'line',
+    data:{
+      labels:months.map(m=>m.short),
+      datasets:[
+        {label:'Monthly',data:months.map(m=>m.products[0]),borderColor:'#8b6fd4',borderWidth:2,pointRadius:3,fill:false,tension:.3},
+        {label:'Daily',  data:months.map(m=>m.products[1]),borderColor:'#1A73E8',borderWidth:2,pointRadius:3,fill:false,tension:.3},
+        {label:'Color',  data:months.map(m=>m.products[2]),borderColor:'#E76A2A',borderWidth:2,pointRadius:3,fill:false,tension:.3}
+      ]
+    },
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+      scales:{x:{ticks:{color:CT.tick,font:CT.font11},grid:{display:false},border:{display:false}},
+        y:{beginAtZero:true,ticks:{color:CT.tick,font:CT.font},grid:{color:CT.grid},border:{display:false}}}}
+  });
+
+  // ── Branch Trend (Top 10)
+  const matrix    = buildMatrix(months);
+  const top10     = [...matrix].sort((a,b)=>b.latest_total-a.latest_total).slice(0,10);
+  const tenColors = ['#8b6fd4','#1A73E8','#E76A2A','#16a34a','#dc2626','#0891b2','#E64A8E','#D97706','#7C3AED','#a87047'];
+  document.getElementById('branchTrendSub').textContent = 'top 10 by latest month';
+  dChart('branchTrendChart', {
+    type:'line',
+    data:{labels:months.map(m=>m.short),datasets:top10.map((b,i)=>({
+      label:b.name,
+      data:months.map(m=>b.byMonth[m.label]?.total??null),
+      borderColor:tenColors[i],borderWidth:2,pointRadius:3,fill:false,tension:.3,spanGaps:true
+    }))},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>` ${ctx.dataset.label}: ${ctx.parsed.y??'—'}`}}},
+      scales:{x:{ticks:{color:CT.tick,font:CT.font11},grid:{display:false},border:{display:false}},
+        y:{beginAtZero:true,ticks:{color:CT.tick,font:CT.font},grid:{color:CT.grid},border:{display:false}}}}
+  });
+
+  // ── Hit Rate Trend
+  const hitRates = months.map(m => {
+    const wt = m.hit_count + m.miss_count;
+    return wt > 0 ? +(m.hit_count/wt*100).toFixed(1) : 0;
+  });
+  dChart('hitRateChart', {
+    type:'line',
+    data:{labels:months.map(m=>m.short),datasets:[{label:'Hit Rate %',data:hitRates,borderColor:'#16a34a',backgroundColor:'rgba(22,163,74,.1)',borderWidth:2,pointRadius:4,fill:true,tension:.3}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>` Hit Rate: ${ctx.parsed.y}%`}}},
+      scales:{x:{ticks:{color:CT.tick,font:CT.font11},grid:{display:false},border:{display:false}},
+        y:{min:0,max:100,ticks:{color:CT.tick,font:CT.font,callback:v=>v+'%'},grid:{color:CT.grid},border:{display:false}}}}
+  });
+
+  // ── Achievers & Misses
+  document.getElementById('achTitle').textContent = '🏆 Top Achievers – ' + latest.short;
+  document.getElementById('missTitle').textContent = '⚠️ Worst Misses – ' + latest.short;
+  const hits   = matrix.filter(b=>b.hit_target).sort((a,b)=>b.vs_target-a.vs_target).slice(0,8);
+  const misses = matrix.filter(b=>b.target>0&&!b.hit_target).sort((a,b)=>a.vs_target-b.vs_target).slice(0,8);
+  function rankHTML(list, isHit) {
+    if (!list.length) return `<div style="padding:10px 0;font-size:12px;color:var(--mu);font-weight:500;">${isHit?'ยังไม่มี Hit':'ทุกสาขา Hit Target 🎉'}</div>`;
+    return list.map((b,i)=>{
+      const pct = b.target>0 ? Math.round(b.latest_total/b.target*100) : 0;
+      const clr = isHit ? '#16a34a' : '#dc2626';
+      return `<div class="rank-item"><span class="rank-n">${i+1}</span><div class="rank-info"><div class="rank-name">${b.name}</div><div class="rank-bar-wrap"><div class="rank-track"><div class="rank-fill" style="width:${Math.min(100,pct)}%;background:${clr};"></div></div><span style="font-size:10px;font-weight:600;color:var(--mu2);">${pct}%</span></div></div><div class="rank-right"><div class="rank-val">${b.latest_total}/${b.target}</div><div class="rank-chg" style="color:${clr};">${isHit?'+':''}${b.vs_target}</div></div></div>`;
+    }).join('');
+  }
+  document.getElementById('achieverList').innerHTML = rankHTML(hits,true);
+  document.getElementById('missList').innerHTML     = rankHTML(misses,false);
+
+  // ── MoM Chart
+  document.getElementById('momTitle').textContent = prev
+    ? '📈 MoM Change – ' + prev.short + ' → ' + latest.short
+    : '📈 MoM Change (ต้องการ 2 เดือน)';
+
+  const momWrap = document.getElementById('momWrap');
+  if (CHS.momChart) { CHS.momChart.destroy(); delete CHS.momChart; }
+  momWrap.innerHTML = '<canvas id="momChart"></canvas>';
+
+  if (prev) {
+    const sorted = [...matrix]
+      .filter(b => b.byMonth[prev.label] || b.byMonth[latest.label])
+      .filter(b => b.diff_mo !== 0)
+      .sort((a,b) => b.diff_mo - a.diff_mo);
+
+    if (sorted.length === 0) {
+      momWrap.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:220px;font-size:12px;color:var(--mu);font-weight:500;">ยอดขายทุกสาขาเท่ากัน — ไม่มีการเปลี่ยนแปลง</div>';
+    } else {
+      momWrap.innerHTML = '<canvas id="momChart"></canvas>';
+      const top    = sorted.slice(0,5);
+      const bottom = sorted.slice(-5).reverse().filter(b=>!top.includes(b));
+      const momData = [...top,...bottom];
+      dChart('momChart', {
+        type:'bar',
+        data:{
+          labels: momData.map(b=>b.name.length>14?b.name.slice(0,13)+'…':b.name),
+          datasets:[{
+            data: momData.map(b=>b.diff_mo),
+            backgroundColor: momData.map(b=>b.diff_mo>0?'rgba(22,163,74,.85)':'rgba(220,38,38,.75)'),
+            borderRadius:4, borderSkipped:false
+          }]
+        },
+        options:{
+          responsive:true, maintainAspectRatio:false, indexAxis:'y',
+          plugins:{legend:{display:false}, tooltip:{callbacks:{label:ctx=>` ${ctx.parsed.x>0?'+':''}${ctx.parsed.x} boxes`}}},
+          scales:{
+            x:{ticks:{color:CT.tick,font:CT.font}, grid:{color:CT.grid}, border:{display:false}},
+            y:{ticks:{color:CT.tick2,font:CT.font}, grid:{display:false}, border:{display:false}}
+          }
+        }
+      });
+    }
+  } else {
+    momWrap.innerHTML =
+      '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:220px;gap:8px;color:var(--mu);text-align:center;">' +
+      '<div style="font-size:28px;opacity:.2;">📊</div>' +
+      '<div style="font-size:12px;color:var(--tx2);font-weight:600;">อัพโหลดเดือนที่ 2 เพื่อดู MoM</div>' +
+      '<div style="font-size:11px;color:var(--mu);">เทียบ ' + latest.short + ' กับเดือนก่อนหน้า</div>' +
+      '</div>';
+  }
+
+  // ── Table
+  document.getElementById('tblTitle').textContent = 'รายละเอียดทุกสาขา · ' + months.map(m=>m.short).join(' · ');
+  document.getElementById('tblHead').innerHTML =
+    `<th style="text-align:left;min-width:160px;">สาขา</th>` +
+    months.map(m=>`<th onclick="setSort('m_${m.label}')" style="color:${PALETTE[m.colorIdx]};" title="${m.label}">${m.short}</th>`).join('') +
+    `<th onclick="setSort('target')">Target</th><th onclick="setSort('vs_target')">vs เป้า</th><th>% เป้า</th><th onclick="setSort('diff_mo')">MoM</th><th onclick="setSort('latest_rev')">Revenue</th>`;
+
+  ST.matrix = matrix;
+  ST.months = months;
+  renderTable();
+
+  document.getElementById('footLeft').textContent =
+    'Sales Dashboard · ' + months.map(m=>m.short).join('·') + ' · ' + latest.branches.length + ' Branches';
+
+  if (panelOpen && months.length > 0) togglePanel();
+}
+
+// ─── TABLE ────────────────────────────────────────────────────
+function setFilter(m,btn) {
+  ST.filter = m;
+  document.querySelectorAll('.fbtn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderTable();
+}
+function setSort(k) { ST.sort = k; renderTable(); }
+
+function renderTable() {
+  const {matrix, months, sort, filter} = ST;
+  if (!matrix) return;
+  const q = document.getElementById('srch').value.toLowerCase();
+
+  let rows = matrix.filter(b => {
+    if (q && !b.name.toLowerCase().includes(q) && !b.id.toLowerCase().includes(q)) return false;
+    if (filter==='hit')  return b.target>0 && b.hit_target;
+    if (filter==='miss') return b.target>0 && !b.hit_target;
+    return true;
+  });
+
+  if (sort.startsWith('m_')) {
+    const lbl = sort.slice(2);
+    rows.sort((a,b)=>(b.byMonth[lbl]?.total||0)-(a.byMonth[lbl]?.total||0));
+  } else {
+    rows.sort((a,b)=>(b[sort]||0)-(a[sort]||0));
+  }
+
+  const tb = document.getElementById('tbody');
+  const nr = document.getElementById('noRows');
+  if (!rows.length) { tb.innerHTML=''; nr.style.display=''; return; }
+  nr.style.display = 'none';
+
+  tb.innerHTML = rows.map((r,i) => {
+    const tpct = r.target>0 ? Math.round(r.latest_total/r.target*100) : null;
+    const tStr = tpct!=null
+      ? `<span style="font-size:10px;font-weight:700;color:${tpct>=100?'#16a34a':tpct>=80?'#D97706':'#dc2626'};">${tpct}%</span>`
+      : '<span style="color:var(--mu2)">—</span>';
+    const vt  = r.target>0 ? (r.hit_target?`<span class="pill pu">+${r.vs_target}</span>`:`<span class="pill pd">${r.vs_target}</span>`) : `<span class="pill pf">—</span>`;
+    const pmo = r.diff_mo>0?`<span class="pill pu">+${r.diff_mo}</span>`:r.diff_mo<0?`<span class="pill pd">${r.diff_mo}</span>`:`<span class="pill pf">±0</span>`;
+    const moCells = months.map(m => {
+      const v = r.byMonth[m.label]?.total;
+      return v!=null ? `<td style="color:${PALETTE[m.colorIdx]};font-weight:600;">${v}</td>` : `<td style="color:var(--mu2);">—</td>`;
+    }).join('');
+    return `<tr><td><span class="rk">${i+1}</span>${r.name}</td>${moCells}<td style="color:var(--tgt);font-weight:600;">${r.target||'—'}</td><td>${vt}</td><td>${tStr}</td><td>${pmo}</td><td style="color:var(--mu);font-weight:600;">฿${commas(r.latest_rev)}</td></tr>`;
+  }).join('');
+}
+
+document.getElementById('srch').addEventListener('input', renderTable);
+
+// ─── CHART HELPER ─────────────────────────────────────────────
+function dChart(id, cfg) {
+  if (CHS[id]) { CHS[id].destroy(); delete CHS[id]; }
+  const el = document.getElementById(id);
+  if (!el) return;
+  CHS[id] = new Chart(el, cfg);
+}
+
+// ─── FORMAT HELPERS ───────────────────────────────────────────
+function fmtM(v) {
+  if (v>=1000000) return (v/1000000).toFixed(2)+'M';
+  if (v>=1000)    return (v/1000).toFixed(0)+'K';
+  return String(v);
+}
+function commas(v, signed=false) {
+  const n = Math.round(v);
+  const s = Math.abs(n).toLocaleString();
+  if (signed) return (n>=0?'+':'-')+s;
+  return s;
+}
+function kpiCard(color, lbl, val, sub) {
+  return `<div class="kpi" style="--c:${color};"><div class="kpi-lbl">${lbl}</div><div class="kpi-val">${val}</div><div class="kpi-sub">${sub}</div></div>`;
+}
+
+// ─── TEMPLATE DOWNLOAD ────────────────────────────────────────
+function downloadTemplate() {
+  const ws = XLSX.utils.aoa_to_sheet([
+    ['ID','Branch Name','Monthly','Daily','Color','Target'],
+    ['201','MEGA bangna',47,60,27,90],
+    ['202','Example Branch',20,15,10,40],
+    ['203','Sample Store',12,8,5,25],
+  ]);
+  ws['!cols'] = [{wch:8},{wch:30},{wch:10},{wch:10},{wch:10},{wch:10}];
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Sales');
+  XLSX.writeFile(wb, 'sales_template.xlsx');
+}
+
+// ─── INIT ─────────────────────────────────────────────────────
+(function() {
+  const cur = new Date().getFullYear();
+  const sel = document.getElementById('addYear');
+  if (!sel) return;
+  for (let y = cur - 1; y <= cur + 2; y++) {
+    const opt = document.createElement('option');
+    opt.value = y; opt.textContent = y;
+    if (y === cur) opt.selected = true;
+    sel.appendChild(opt);
+  }
+})();
+
+function checkAddReady() {
+  const mo = document.getElementById('addMonth').value;
+  document.getElementById('addBtn').disabled = !mo || !pFile;
+}
+document.getElementById('addMonth').addEventListener('change', checkAddReady);
+
+refreshAll();
+</script>
+</body>
+</html>
