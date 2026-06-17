@@ -1,5 +1,7 @@
 # Optical Shop Management System
 
+> 🔄 **ทำงาน 2 เครื่อง (Air + Pro):** ก่อนเริ่มงานทุกครั้ง **อ่าน [HANDOFF.md](HANDOFF.md)** เพื่อดูสถานะล่าสุดและงานที่ค้างจากอีกเครื่อง และ **อัปเดต HANDOFF.md เมื่อจบงาน** — chat ของ Claude แยกกันคนละเครื่อง แต่ไฟล์นี้ sync ข้ามเครื่องผ่าน git
+
 ## Project Overview
 ระบบจัดการร้านแว่นตา — Single-page web application สำหรับใช้ภายในร้าน
 - ร้านเดียว, พนักงานไม่เกิน 10 คน
