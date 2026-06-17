@@ -16,8 +16,10 @@ export interface BusinessSnapshot {
     byGender: { gender: string; count: number }[]
     bySource: { source: string; count: number }[]
     byAgeGroup: { age_group: string; count: number }[]
+    byOccupation: { occupation: string; count: number }[]
     missingBirthday: number
   }
+  salesByStaff: { staff: string; orderCount: number; revenue: number }[]
   revenueByMonth: {
     month: string
     orderCount: number
@@ -105,6 +107,19 @@ export function getBusinessSnapshot(): BusinessSnapshot {
   if (missingBirthday.n > 0)
     warnings.push(`ลูกค้า ${missingBirthday.n} คนไม่มีข้อมูลวันเกิด`)
 
+  const byOccupation = db.prepare(`
+    SELECT CASE WHEN occupation = '' THEN 'ไม่ระบุ' ELSE occupation END AS occupation,
+           COUNT(*) AS count
+    FROM customers GROUP BY occupation ORDER BY count DESC
+  `).all() as any[]
+
+  const missingOccupation = db.prepare(
+    `SELECT COUNT(*) AS n FROM customers WHERE occupation = ''`
+  ).get() as any
+
+  if (missingOccupation.n > 0)
+    warnings.push(`ลูกค้า ${missingOccupation.n} คนไม่มีข้อมูลอาชีพ — การวิเคราะห์เลนส์ตามอาชีพ (Phase 6) จะไม่ครบ`)
+
   // ── Monthly Revenue (last 6 months) ──────────────────────────────────────
   const revenueByMonth = db.prepare(`
     SELECT
@@ -134,6 +149,21 @@ export function getBusinessSnapshot(): BusinessSnapshot {
     SELECT method, COUNT(*) AS count, ROUND(SUM(amount), 2) AS totalAmount
     FROM payments GROUP BY method ORDER BY totalAmount DESC
   `).all() as any[]
+
+  // ── Sales by Staff (staff performance) ────────────────────────────────────
+  const salesByStaff = db.prepare(`
+    SELECT CASE WHEN sold_by_name = '' THEN 'ไม่ระบุผู้ขาย' ELSE sold_by_name END AS staff,
+           COUNT(*) AS orderCount,
+           ROUND(SUM(total), 2) AS revenue
+    FROM purchases GROUP BY sold_by_name ORDER BY revenue DESC
+  `).all() as any[]
+
+  const missingSeller = db.prepare(
+    `SELECT COUNT(*) AS n FROM purchases WHERE sold_by_name = ''`
+  ).get() as any
+
+  if (missingSeller.n > 0)
+    warnings.push(`การขาย ${missingSeller.n} รายการไม่มีผู้ขายระบุ — รายงานผลงานพนักงานจะไม่ครบ (รายการเก่าก่อนเพิ่มฟีเจอร์นี้)`)
 
   // ── Lens Type Distribution (from JSON) ────────────────────────────────────
   const lensTypeDistribution = db.prepare(`
@@ -204,8 +234,10 @@ export function getBusinessSnapshot(): BusinessSnapshot {
       byGender,
       bySource,
       byAgeGroup,
+      byOccupation,
       missingBirthday: missingBirthday.n,
     },
+    salesByStaff,
     revenueByMonth,
     orderStatus,
     paymentStatus,

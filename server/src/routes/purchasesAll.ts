@@ -31,6 +31,8 @@ function rowToPurchase(row: any) {
     order_rx:         row.order_rx_data ? JSON.parse(row.order_rx_data) : null,
     lens_variant_id_r: row.lens_variant_id_r ?? null,
     lens_variant_id_l: row.lens_variant_id_l ?? null,
+    sold_by_staff_id:  row.sold_by_staff_id ?? '',
+    sold_by_name:      row.sold_by_name ?? '',
     stock_override:     row.stock_override_data ? {
       by:       row.stock_override_by,
       at:       row.stock_override_at,

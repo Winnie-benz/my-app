@@ -3,7 +3,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { X } from 'lucide-react'
-import type { Customer, CustomerFormData, CustomerSource } from '../../types/customer'
+import type { Customer, CustomerFormData, CustomerSource, Occupation } from '../../types/customer'
 import { calcAge } from '../../utils/customerUtils'
 
 const schema = z.object({
@@ -16,6 +16,7 @@ const schema = z.object({
   address:    z.string(),
   note:       z.string(),
   source:     z.enum(['walk_in', 'referral', 'social_media', 'other']),
+  occupation: z.enum(['', 'office', 'driver', 'student', 'teacher', 'healthcare', 'engineer', 'business', 'labor', 'retiree', 'other']),
 })
 
 type Props = {
@@ -37,12 +38,26 @@ const SOURCES: { value: CustomerSource; label: string }[] = [
   { value: 'other',        label: 'อื่นๆ'            },
 ]
 
+const OCCUPATIONS: { value: Occupation; label: string }[] = [
+  { value: '',           label: 'ไม่ระบุ'                 },
+  { value: 'office',     label: 'พนักงานออฟฟิศ / ใช้คอม'  },
+  { value: 'driver',     label: 'ขับรถ / ส่งของ'          },
+  { value: 'student',    label: 'นักเรียน / นักศึกษา'      },
+  { value: 'teacher',    label: 'ครู / อาจารย์'           },
+  { value: 'healthcare', label: 'บุคลากรการแพทย์'         },
+  { value: 'engineer',   label: 'วิศวกร / ช่างเทคนิค'      },
+  { value: 'business',   label: 'ค้าขาย / เจ้าของกิจการ'   },
+  { value: 'labor',      label: 'ใช้แรงงาน / กลางแจ้ง'     },
+  { value: 'retiree',    label: 'เกษียณ'                  },
+  { value: 'other',      label: 'อื่นๆ'                    },
+]
+
 export default function CustomerForm({ initial, onSubmit, onClose }: Props) {
   const { register, handleSubmit, watch, formState: { errors } } = useForm<CustomerFormData>({
     resolver: zodResolver(schema),
     defaultValues: initial ?? {
       first_name: '', last_name: '', phone_no: '', email: '',
-      birthday: '', gender: 'unspecified', address: '', note: '', source: 'walk_in',
+      birthday: '', gender: 'unspecified', address: '', note: '', source: 'walk_in', occupation: '',
     },
   })
 
@@ -136,15 +151,26 @@ export default function CustomerForm({ initial, onSubmit, onClose }: Props) {
             </div>
           </div>
 
-          {/* Source */}
-          <div>
-            <label className="block text-xs font-medium text-slate-600 mb-1">รู้จักร้านจาก</label>
-            <select {...register('source')}
-              className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-900 bg-white">
-              {SOURCES.map(s => (
-                <option key={s.value} value={s.value}>{s.label}</option>
-              ))}
-            </select>
+          {/* Source + Occupation */}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-medium text-slate-600 mb-1">รู้จักร้านจาก</label>
+              <select {...register('source')}
+                className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-900 bg-white">
+                {SOURCES.map(s => (
+                  <option key={s.value} value={s.value}>{s.label}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-slate-600 mb-1">อาชีพ</label>
+              <select {...register('occupation')}
+                className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-900 bg-white">
+                {OCCUPATIONS.map(o => (
+                  <option key={o.value} value={o.value}>{o.label}</option>
+                ))}
+              </select>
+            </div>
           </div>
 
           {/* Address */}

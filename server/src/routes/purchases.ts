@@ -34,6 +34,8 @@ function rowToPurchase(row: any) {
     order_rx:         row.order_rx_data ? JSON.parse(row.order_rx_data) : null,
     lens_variant_id_r: row.lens_variant_id_r ?? null,
     lens_variant_id_l: row.lens_variant_id_l ?? null,
+    sold_by_staff_id:  row.sold_by_staff_id ?? '',
+    sold_by_name:      row.sold_by_name ?? '',
     stock_override:     row.stock_override_data ? {
       by:       row.stock_override_by,
       at:       row.stock_override_at,
@@ -245,14 +247,16 @@ function stockWarningsForPurchase(d: z.infer<typeof purchaseBodySchema>, existin
   return warnings
 }
 
-function overrideAudit(req: Request, warnings: StockWarning[]) {
+function actorDisplayName(req: Request): string {
   const user = req.user
-  const by = user
-    ? [user.nickname || user.first_name, user.last_name].filter(Boolean).join(' ') || user.user
-    : ''
+  if (!user) return ''
+  return [user.nickname || user.first_name, user.last_name].filter(Boolean).join(' ') || user.user
+}
+
+function overrideAudit(req: Request, warnings: StockWarning[]) {
   return {
     data: JSON.stringify(warnings),
-    by,
+    by: actorDisplayName(req),
     at: new Date().toISOString(),
   }
 }
@@ -319,12 +323,14 @@ router.post('/', (req: Request, res: Response) => {
          price_lens, price_frame, price_other, special_discount, total, pickup_date, pickup_time,
          payment_status, paid_amount, order_status, cost_lens, cost_frame, cost_other,
          prev_rx_data, order_rx_data, lens_variant_id_r, lens_variant_id_l,
+         sold_by_staff_id, sold_by_name,
          stock_override_data, stock_override_by, stock_override_at, created_at)
       VALUES
         (@id, @customer_id, @date, @lens_data, @frame_data, @other_data,
          @price_lens, @price_frame, @price_other, @special_discount, @total, @pickup_date, @pickup_time,
          @payment_status, @paid_amount, 'waiting', @cost_lens, @cost_frame, @cost_other,
          @prev_rx_data, @order_rx_data, @lens_variant_id_r, @lens_variant_id_l,
+         @sold_by_staff_id, @sold_by_name,
          @stock_override_data, @stock_override_by, @stock_override_at, @created_at)
     `).run({
       id,
@@ -349,6 +355,8 @@ router.post('/', (req: Request, res: Response) => {
       order_rx_data:     d.order_rx ? JSON.stringify(d.order_rx) : null,
       lens_variant_id_r: d.lens_variant_id_r ?? null,
       lens_variant_id_l: d.lens_variant_id_l ?? null,
+      sold_by_staff_id:  req.user?.staff_id ?? '',
+      sold_by_name:      actorDisplayName(req),
       stock_override_data: override?.data ?? null,
       stock_override_by:   override?.by ?? '',
       stock_override_at:   override?.at ?? '',

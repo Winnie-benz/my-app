@@ -24,6 +24,7 @@ const customerSchema = z.object({
   address:    z.string().default(''),
   note:       z.string().default(''),
   source:     z.enum(['walk_in', 'referral', 'social_media', 'other']).default('walk_in'),
+  occupation: z.string().max(100).default(''),
 })
 
 // ── List ─────────────────────────────────────────────────────────────────────
@@ -56,8 +57,8 @@ router.post('/', (req: Request, res: Response) => {
   const customer_id = nextCustomerId()
 
   db.prepare(`
-    INSERT INTO customers (customer_id, first_name, last_name, phone_no, email, birthday, gender, address, note, source, created_at)
-    VALUES (@customer_id, @first_name, @last_name, @phone_no, @email, @birthday, @gender, @address, @note, @source, @created_at)
+    INSERT INTO customers (customer_id, first_name, last_name, phone_no, email, birthday, gender, address, note, source, occupation, created_at)
+    VALUES (@customer_id, @first_name, @last_name, @phone_no, @email, @birthday, @gender, @address, @note, @source, @occupation, @created_at)
   `).run({ customer_id, ...d, created_at: nowTH() })
 
   const customer = db.prepare('SELECT * FROM customers WHERE customer_id = ?').get(customer_id)

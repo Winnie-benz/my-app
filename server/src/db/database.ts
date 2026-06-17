@@ -139,11 +139,19 @@ try { db.exec(`ALTER TABLE purchases ADD COLUMN prev_rx_data TEXT DEFAULT NULL`)
 // Migration: ordered RX (may differ from measured)
 try { db.exec(`ALTER TABLE purchases ADD COLUMN order_rx_data TEXT DEFAULT NULL`) } catch {}
 
+// Migration: seller attribution (staff performance analysis) — set at sale creation,
+// preserved on edit (the editor is not necessarily the original seller)
+try { db.exec(`ALTER TABLE purchases ADD COLUMN sold_by_staff_id TEXT NOT NULL DEFAULT ''`) } catch {}
+try { db.exec(`ALTER TABLE purchases ADD COLUMN sold_by_name     TEXT NOT NULL DEFAULT ''`) } catch {}
+
 // Migration: per-product reorder point
 try { db.exec(`ALTER TABLE products ADD COLUMN reorder_point INTEGER NOT NULL DEFAULT 1`) } catch {}
 
 // Migration: customer acquisition source
 try { db.exec(`ALTER TABLE customers ADD COLUMN source TEXT NOT NULL DEFAULT 'walk_in'`) } catch {}
+
+// Migration: customer occupation (Phase 6 — occupational lens recommendation analysis)
+try { db.exec(`ALTER TABLE customers ADD COLUMN occupation TEXT NOT NULL DEFAULT ''`) } catch {}
 
 db.exec(`
   CREATE TABLE IF NOT EXISTS inventory_sessions (

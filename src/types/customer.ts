@@ -1,5 +1,8 @@
 export type Gender = 'male' | 'female' | 'unspecified'
 export type CustomerSource = 'walk_in' | 'referral' | 'social_media' | 'other'
+export type Occupation =
+  | '' | 'office' | 'driver' | 'student' | 'teacher' | 'healthcare'
+  | 'engineer' | 'business' | 'labor' | 'retiree' | 'other'
 export type LensType = 'single_vision' | 'bi_focal' | 'pal' | 'specialty' | 'other'
 export type LensKind = 'stock_order' | 'stock_store' | 'rx'
 export type LensIndex = '1.50' | '1.56' | '1.60' | '1.67' | '1.74'
@@ -140,6 +143,7 @@ export interface Customer {
   address: string
   note: string
   source: CustomerSource
+  occupation: Occupation
   created_at: string
 }
 
