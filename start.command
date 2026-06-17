@@ -2,13 +2,10 @@
 # ดับเบิลคลิกไฟล์นี้เพื่อเริ่มงาน: ดึงโค้ดล่าสุด + เริ่ม server ทั้งคู่
 cd "$(dirname "$0")"
 
-# ติดตั้ง auto-push hook ถ้าเครื่องนี้ยังไม่มี (ทำครั้งเดียวอัตโนมัติ)
+# ติดตั้ง/อัปเดต auto-push hook (push เฉพาะตอนอยู่บน branch จริง — ข้าม rebase)
 HOOK=".git/hooks/post-commit"
-if [ ! -f "$HOOK" ]; then
-  printf '#!/bin/sh\ngit push origin "$(git rev-parse --abbrev-ref HEAD)"\n' > "$HOOK"
-  chmod +x "$HOOK"
-  echo "✅ ติดตั้ง auto-push สำหรับเครื่องนี้แล้ว (commit ครั้งต่อไป push เอง)"
-fi
+printf '#!/bin/sh\nbranch=$(git symbolic-ref --short -q HEAD)\nif [ -n "$branch" ]; then\n  git push origin "$branch"\nfi\n' > "$HOOK"
+chmod +x "$HOOK"
 
 echo "📥 ดึงโค้ดล่าสุดจาก GitHub..."
 git pull --rebase --autostash
