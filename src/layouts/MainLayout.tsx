@@ -123,7 +123,7 @@ export default function MainLayout() {
               <span className="text-white text-xs font-bold">ST</span>
             </div>
             <div>
-              <p className="text-sm font-semibold text-slate-900 leading-none">Owndays</p>
+              <p className="text-sm font-semibold text-slate-900 leading-none">Winnie</p>
               <p className="text-[10px] text-slate-400 leading-none mt-0.5">Stock Management</p>
             </div>
           </div>

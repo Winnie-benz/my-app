@@ -56,7 +56,7 @@ applyPendingRestore()
 const USE_REMOTE = !!(TURSO_URL && TURSO_TOKEN)
 
 const db = USE_REMOTE
-  ? new Database(TURSO_URL as string, { authToken: TURSO_TOKEN as string })
+  ? new Database(TURSO_URL as string, { authToken: TURSO_TOKEN as string } as any)
   : new Database(DB_PATH)
 
 if (!USE_REMOTE) {

@@ -18,7 +18,7 @@ if (!TURSO_URL || !TURSO_TOKEN) {
 const LOCAL_PATH = path.resolve(__dirname, '../../data/shop.db')
 
 const local  = new Database(LOCAL_PATH)
-const remote = new Database(TURSO_URL, { authToken: TURSO_TOKEN })
+const remote = new Database(TURSO_URL, { authToken: TURSO_TOKEN } as any)
 
 function stripMeta<T extends Record<string, any>>(row: T): T {
   if (row && typeof row === 'object' && '_metadata' in row) {
@@ -50,7 +50,7 @@ let totalRows = 0
 for (const table of TABLES) {
   let rows: any[]
   try {
-    rows = local.prepare(`SELECT * FROM ${table}`).all().map(stripMeta)
+    rows = (local.prepare(`SELECT * FROM ${table}`).all() as Record<string, any>[]).map(stripMeta)
   } catch {
     console.log(`⏭  ${table} — not present locally, skipped`)
     continue
