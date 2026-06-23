@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Outlet, NavLink } from 'react-router-dom'
 import { Home, LayoutGrid, ScanLine, AlertTriangle, Users, BarChart2, LogOut, ClipboardList, Settings, Wallet, History, PackageSearch, ShieldAlert, BrainCircuit, UserCog } from 'lucide-react'
 import { useAuth } from '../hooks/useAuth'
+import SessionTimeoutWarning from '../components/SessionTimeoutWarning'
 import { useProductStore } from '../store/useProductStore'
 import { useCustomerStore } from '../store/useCustomerStore'
 import type { Claim } from '../types/customer'
@@ -200,6 +201,8 @@ export default function MainLayout() {
       <main className="flex-1 overflow-y-auto">
         <Outlet />
       </main>
+
+      <SessionTimeoutWarning />
     </div>
   )
 }
