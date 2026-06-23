@@ -86,7 +86,7 @@ export default function SettingsPage() {
       const currentStatus = statusRes.data
       setStatus(currentStatus)
 
-      const [exportRes, deletedRes, backupRes] = await Promise.all([
+      const [exportRes, deletedCustomersRes, deletedProductsRes, backupRes] = await Promise.all([
         api.admin.listExports(),
         api.customers.listDeleted(),
         api.products.listDeleted(),
@@ -94,9 +94,8 @@ export default function SettingsPage() {
       ])
 
       setExports(exportRes.data)
-      setDeletedCustomers(deletedRes.data)
-      setDeletedProducts((backupRes as any).data ? deletedRes.data as any : [])
-      setDeletedProducts((arguments[0] as never))
+      setDeletedCustomers(deletedCustomersRes.data)
+      setDeletedProducts(deletedProductsRes.data)
       setLocalBackups(backupRes.data)
     } catch (e: any) {
       setLoadError(e?.message || 'โหลดข้อมูลตั้งค่าไม่สำเร็จ')
