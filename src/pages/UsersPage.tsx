@@ -4,6 +4,7 @@ import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { api } from '../services/api'
+import ConfirmDialog from '../components/ConfirmDialog'
 
 interface User {
   id: number
@@ -65,6 +66,8 @@ export default function UsersPage() {
   const [loading, setLoading]     = useState(true)
   const [showCreate, setShowCreate] = useState(false)
   const [editUser, setEditUser]   = useState<User | null>(null)
+  const [deleteUser, setDeleteUser] = useState<User | null>(null)
+  const [deleting, setDeleting] = useState(false)
   const [error, setError]         = useState('')
 
   async function load() {
@@ -81,10 +84,16 @@ export default function UsersPage() {
 
   useEffect(() => { load() }, [])
 
-  async function handleDelete(id: number) {
-    if (!confirm('ลบผู้ใช้นี้?')) return
-    await api.users.remove(id)
-    load()
+  async function handleDelete() {
+    if (!deleteUser) return
+    setDeleting(true)
+    try {
+      await api.users.remove(deleteUser.id)
+      setDeleteUser(null)
+      await load()
+    } finally {
+      setDeleting(false)
+    }
   }
 
   return (
@@ -139,9 +148,9 @@ export default function UsersPage() {
                       <button type="button" title="แก้ไข" onClick={() => setEditUser(u)} className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-700">
                         <Pencil size={14} />
                       </button>
-                      <button type="button" title="ลบ" onClick={() => handleDelete(u.id)} className="p-1.5 rounded-lg hover:bg-red-50 text-slate-400 hover:text-red-500">
-                        <Trash2 size={14} />
-                      </button>
+	                      <button type="button" title="ลบ" onClick={() => setDeleteUser(u)} className="p-1.5 rounded-lg hover:bg-red-50 text-slate-400 hover:text-red-500">
+	                        <Trash2 size={14} />
+	                      </button>
                     </div>
                   </td>
                 </tr>
@@ -157,6 +166,15 @@ export default function UsersPage() {
       {editUser && (
         <EditModal user={editUser} onClose={() => setEditUser(null)} onSaved={() => { setEditUser(null); load() }} />
       )}
+      <ConfirmDialog
+        open={deleteUser !== null}
+        title="ยืนยันการลบ"
+        message="ลบผู้ใช้นี้ออกจากระบบใช่หรือไม่?"
+        detail={deleteUser ? `${deleteUser.first_name} ${deleteUser.last_name} (${deleteUser.username})` : undefined}
+        busy={deleting}
+        onCancel={() => setDeleteUser(null)}
+        onConfirm={handleDelete}
+      />
     </div>
   )
 }

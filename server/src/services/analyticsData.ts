@@ -179,7 +179,8 @@ export function getBusinessSnapshot(): BusinessSnapshot {
   const inventoryAlerts = db.prepare(`
     SELECT name, sku, stock_current AS stock, reorder_point AS reorderPoint
     FROM products
-    WHERE stock_current <= reorder_point
+    WHERE COALESCE(deleted_at, '') = ''
+      AND stock_current <= reorder_point
     ORDER BY stock_current ASC LIMIT 20
   `).all() as any[]
 

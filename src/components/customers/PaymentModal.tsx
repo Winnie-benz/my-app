@@ -7,6 +7,7 @@ import type { PurchaseRecord, Payment } from '../../types/customer'
 import { useCustomerStore } from '../../store/useCustomerStore'
 import { api } from '../../services/api'
 import { formatDate } from '../../utils/customerUtils'
+import ConfirmDialog from '../ConfirmDialog'
 
 const PAYMENT_METHOD_LABEL: Record<string, string> = {
   cash: 'เงินสด', transfer: 'โอนธนาคาร', card: 'บัตรเครดิต/เดบิต', qr: 'QR Code',
@@ -38,6 +39,8 @@ type Props = {
 export default function PaymentModal({ record, onClose, onUpdated }: Props) {
   const [payments,   setPayments]   = useState<Payment[]>([])
   const [submitting, setSubmitting] = useState(false)
+  const [deleteCandidate, setDeleteCandidate] = useState<Payment | null>(null)
+  const [deleting, setDeleting] = useState(false)
   const addPayment    = useCustomerStore(s => s.addPayment)
   const deletePayment = useCustomerStore(s => s.deletePayment)
 
@@ -72,11 +75,15 @@ export default function PaymentModal({ record, onClose, onUpdated }: Props) {
   }
 
   async function onDeletePayment(paymentId: string) {
+    setDeleting(true)
     try {
       const updated = await deletePayment(record.id, paymentId)
       if (updated) onUpdated?.(updated)
       await loadPayments()
-    } catch { /* empty */ }
+      setDeleteCandidate(null)
+    } catch { /* empty */ } finally {
+      setDeleting(false)
+    }
   }
 
   return (
@@ -134,12 +141,12 @@ export default function PaymentModal({ record, onClose, onUpdated }: Props) {
                         {p.note && ` · ${p.note}`}
                       </p>
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => onDeletePayment(p.id)}
-                      className="text-slate-300 hover:text-red-500 transition-colors p-1"
-                    >
-                      <Trash2 size={14} />
+	                    <button
+	                      type="button"
+	                      onClick={() => setDeleteCandidate(p)}
+	                      className="text-slate-300 hover:text-red-500 transition-colors p-1"
+	                    >
+	                      <Trash2 size={14} />
                     </button>
                   </div>
                 ))}
@@ -200,7 +207,16 @@ export default function PaymentModal({ record, onClose, onUpdated }: Props) {
             </div>
           )}
         </div>
-      </div>
-    </div>
-  )
-}
+	      </div>
+	      <ConfirmDialog
+	        open={deleteCandidate !== null}
+	        title="ยืนยันการลบ"
+	        message="ลบรายการชำระเงินนี้ใช่หรือไม่?"
+	        detail={deleteCandidate ? `ยอด ฿${deleteCandidate.amount.toLocaleString()} · ${PAYMENT_METHOD_LABEL[deleteCandidate.method]} · ${formatDate(deleteCandidate.paid_at)}` : undefined}
+	        busy={deleting}
+	        onCancel={() => setDeleteCandidate(null)}
+	        onConfirm={() => deleteCandidate && onDeletePayment(deleteCandidate.id)}
+	      />
+	    </div>
+	  )
+	}

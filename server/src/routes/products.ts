@@ -1,11 +1,18 @@
 import { Router, Request, Response } from 'express'
 import { z } from 'zod'
 import db from '../db/database'
-import { requireAuth } from '../middleware/requireAuth'
+import { requireAuth, requireAdmin } from '../middleware/requireAuth'
 import { nowTH } from '../utils/time'
+import { recordAuditLog } from '../services/auditLog'
 
 const router = Router()
 router.use(requireAuth)
+
+function actorDisplayName(req: Request): string {
+  const user = req.user
+  if (!user) return ''
+  return [user.nickname || user.first_name, user.last_name].filter(Boolean).join(' ') || user.user
+}
 
 function calcAvgCost(oldStock: number, oldAvg: number, newQty: number, newCost: number): number {
   const total = oldStock + newQty
@@ -15,7 +22,7 @@ function calcAvgCost(oldStock: number, oldAvg: number, newQty: number, newCost: 
 
 // ── List ─────────────────────────────────────────────────────────────────────
 router.get('/', (_req: Request, res: Response) => {
-  const rows = db.prepare('SELECT * FROM products ORDER BY name ASC').all()
+  const rows = db.prepare("SELECT * FROM products WHERE COALESCE(deleted_at, '') = '' ORDER BY name ASC").all()
   res.json({ success: true, data: rows })
 })
 
@@ -31,10 +38,13 @@ router.get('/search', (req: Request, res: Response) => {
   const rows = db.prepare(`
     SELECT *
     FROM products
-    WHERE barcode = ?
-       OR barcode LIKE ?
-       OR sku LIKE ?
-       OR name LIKE ?
+    WHERE COALESCE(deleted_at, '') = ''
+      AND (
+        barcode = ?
+        OR barcode LIKE ?
+        OR sku LIKE ?
+        OR name LIKE ?
+      )
     ORDER BY
       CASE
         WHEN barcode = ? THEN 0
@@ -49,9 +59,18 @@ router.get('/search', (req: Request, res: Response) => {
   res.json({ success: true, data: rows })
 })
 
+router.get('/deleted', requireAdmin, (_req: Request, res: Response) => {
+  const rows = db.prepare(`
+    SELECT * FROM products
+    WHERE COALESCE(deleted_at, '') <> ''
+    ORDER BY deleted_at DESC, id DESC
+  `).all()
+  res.json({ success: true, data: rows })
+})
+
 // ── Get one ──────────────────────────────────────────────────────────────────
 router.get('/:id', (req: Request, res: Response) => {
-  const product = db.prepare('SELECT * FROM products WHERE id = ?').get(Number(req.params.id))
+  const product = db.prepare("SELECT * FROM products WHERE id = ? AND COALESCE(deleted_at, '') = ''").get(Number(req.params.id))
   if (!product) { res.status(404).json({ success: false, error: 'Product not found' }); return }
   res.json({ success: true, data: product })
 })
@@ -77,28 +96,40 @@ router.post('/', (req: Request, res: Response) => {
   const existing = db.prepare('SELECT * FROM products WHERE barcode = ?').get(d.barcode) as any
 
   if (existing) {
+    if (existing.deleted_at) {
+      res.status(409).json({ success: false, error: 'สินค้านี้อยู่ในรายการที่ถูกลบ กรุณากู้คืนจากหน้า Settings ก่อน' })
+      return
+    }
     const newAvg   = calcAvgCost(existing.stock_current, existing.avg_cost, d.stock_current, d.cost_price)
     const newStock = existing.stock_current + d.stock_current
-    db.prepare('UPDATE products SET stock_current = ?, avg_cost = ? WHERE id = ?')
-      .run(newStock, newAvg, existing.id)
-    const updated = db.prepare('SELECT * FROM products WHERE id = ?').get(existing.id)
+    const updated = db.transaction(() => {
+      db.prepare('UPDATE products SET stock_current = ?, avg_cost = ? WHERE id = ?')
+        .run(newStock, newAvg, existing.id)
+      const row = db.prepare('SELECT * FROM products WHERE id = ?').get(existing.id)
+      recordAuditLog(req, 'product', String(existing.id), 'update', existing, row)
+      return row
+    })()
     res.json({ success: true, data: updated, stockIn: true, added: d.stock_current, newAvg })
     return
   }
 
-  const result = db.prepare(`
-    INSERT INTO products (barcode, sku, name, category, cost_price, sell_price, stock_current, avg_cost, note, reorder_point, created_at)
-    VALUES (@barcode, @sku, @name, @category, @cost_price, @sell_price, @stock_current, @avg_cost, @note, @reorder_point, @created_at)
-  `).run({ ...d, avg_cost: d.cost_price, created_at: nowTH() })
+  const product = db.transaction(() => {
+    const result = db.prepare(`
+      INSERT INTO products (barcode, sku, name, category, cost_price, sell_price, stock_current, avg_cost, note, reorder_point, created_at)
+      VALUES (@barcode, @sku, @name, @category, @cost_price, @sell_price, @stock_current, @avg_cost, @note, @reorder_point, @created_at)
+    `).run({ ...d, avg_cost: d.cost_price, created_at: nowTH() })
 
-  const product = db.prepare('SELECT * FROM products WHERE id = ?').get(result.lastInsertRowid)
+    const row = db.prepare('SELECT * FROM products WHERE id = ?').get(result.lastInsertRowid)
+    recordAuditLog(req, 'product', String(result.lastInsertRowid), 'create', null, row)
+    return row
+  })()
   res.status(201).json({ success: true, data: product })
 })
 
 // ── Update ───────────────────────────────────────────────────────────────────
 router.put('/:id', (req: Request, res: Response) => {
   const id = Number(req.params.id)
-  const existing = db.prepare('SELECT * FROM products WHERE id = ?').get(id) as any
+  const existing = db.prepare("SELECT * FROM products WHERE id = ? AND COALESCE(deleted_at, '') = ''").get(id) as any
   if (!existing) { res.status(404).json({ success: false, error: 'Product not found' }); return }
 
   const schema = z.object({
@@ -119,26 +150,62 @@ router.put('/:id', (req: Request, res: Response) => {
   const fields = parsed.data
   if (Object.keys(fields).length === 0) { res.status(400).json({ success: false, error: 'No fields to update' }); return }
 
-  const setClauses = Object.keys(fields).map(k => `${k} = @${k}`).join(', ')
-  db.prepare(`UPDATE products SET ${setClauses} WHERE id = @id`).run({ ...fields, id })
+  if (fields.barcode && fields.barcode !== existing.barcode) {
+    const dup = db.prepare("SELECT id, deleted_at FROM products WHERE barcode = ? AND id <> ?").get(fields.barcode, id) as any
+    if (dup?.deleted_at) {
+      res.status(409).json({ success: false, error: 'barcode นี้อยู่ในสินค้าที่ถูกลบ กรุณากู้คืนหรือเปลี่ยน barcode ก่อน' })
+      return
+    }
+  }
 
-  const product = db.prepare('SELECT * FROM products WHERE id = ?').get(id)
+  const setClauses = Object.keys(fields).map(k => `${k} = @${k}`).join(', ')
+  const product = db.transaction(() => {
+    db.prepare(`UPDATE products SET ${setClauses} WHERE id = @id`).run({ ...fields, id })
+    const row = db.prepare('SELECT * FROM products WHERE id = ?').get(id)
+    recordAuditLog(req, 'product', String(id), 'update', existing, row)
+    return row
+  })()
   res.json({ success: true, data: product })
 })
 
 // ── Delete ───────────────────────────────────────────────────────────────────
 router.delete('/:id', (req: Request, res: Response) => {
   const id = Number(req.params.id)
-  const existing = db.prepare('SELECT * FROM products WHERE id = ?').get(id)
+  const existing = db.prepare("SELECT * FROM products WHERE id = ? AND COALESCE(deleted_at, '') = ''").get(id)
   if (!existing) { res.status(404).json({ success: false, error: 'Product not found' }); return }
-  db.prepare('DELETE FROM products WHERE id = ?').run(id)
+  db.transaction(() => {
+    db.prepare('UPDATE products SET deleted_at = ?, deleted_by = ? WHERE id = ?')
+      .run(nowTH(), actorDisplayName(req), id)
+    const row = db.prepare('SELECT * FROM products WHERE id = ?').get(id)
+    recordAuditLog(req, 'product', String(id), 'delete', existing, row)
+  })()
   res.json({ success: true })
+})
+
+router.post('/:id/restore', requireAdmin, (req: Request, res: Response) => {
+  const id = Number(req.params.id)
+  const existing = db.prepare("SELECT * FROM products WHERE id = ? AND COALESCE(deleted_at, '') <> ''").get(id) as any
+  if (!existing) { res.status(404).json({ success: false, error: 'Deleted product not found' }); return }
+
+  const barcodeConflict = db.prepare("SELECT id FROM products WHERE barcode = ? AND COALESCE(deleted_at, '') = '' AND id <> ?").get(existing.barcode, id) as any
+  if (barcodeConflict) {
+    res.status(409).json({ success: false, error: 'ไม่สามารถกู้คืนได้ เพราะมีสินค้า active ใช้ barcode นี้อยู่แล้ว' })
+    return
+  }
+
+  const product = db.transaction(() => {
+    db.prepare("UPDATE products SET deleted_at = '', deleted_by = '' WHERE id = ?").run(id)
+    const row = db.prepare('SELECT * FROM products WHERE id = ?').get(id)
+    recordAuditLog(req, 'product', String(id), 'restore', existing, row)
+    return row
+  })()
+  res.json({ success: true, data: product })
 })
 
 // ── Stock In ─────────────────────────────────────────────────────────────────
 router.post('/:id/stock-in', (req: Request, res: Response) => {
   const id = Number(req.params.id)
-  const product = db.prepare('SELECT * FROM products WHERE id = ?').get(id) as any
+  const product = db.prepare("SELECT * FROM products WHERE id = ? AND COALESCE(deleted_at, '') = ''").get(id) as any
   if (!product) { res.status(404).json({ success: false, error: 'Product not found' }); return }
 
   const schema = z.object({ qty: z.number().int().min(1), cost: z.number().min(0) })
@@ -161,7 +228,7 @@ router.post('/:id/stock-in', (req: Request, res: Response) => {
 // ── Stock Out (manual — adjusts avg_cost for corrections) ────────────────────
 router.post('/:id/stock-out', (req: Request, res: Response) => {
   const id = Number(req.params.id)
-  const product = db.prepare('SELECT * FROM products WHERE id = ?').get(id) as any
+  const product = db.prepare("SELECT * FROM products WHERE id = ? AND COALESCE(deleted_at, '') = ''").get(id) as any
   if (!product) { res.status(404).json({ success: false, error: 'Product not found' }); return }
 
   const schema = z.object({ qty: z.number().int().min(1), cost: z.number().min(0) })
@@ -186,7 +253,7 @@ router.post('/:id/stock-out', (req: Request, res: Response) => {
 // ── Deduct (legacy manual endpoint) ──────────────────────────────────────────
 router.post('/:id/deduct', (req: Request, res: Response) => {
   const id = Number(req.params.id)
-  const product = db.prepare('SELECT * FROM products WHERE id = ?').get(id) as any
+  const product = db.prepare("SELECT * FROM products WHERE id = ? AND COALESCE(deleted_at, '') = ''").get(id) as any
   if (!product) { res.status(404).json({ success: false, error: 'Product not found' }); return }
 
   const schema = z.object({ qty: z.number().int().min(1) })
@@ -206,7 +273,7 @@ router.post('/:id/deduct', (req: Request, res: Response) => {
 // ── Movement History ──────────────────────────────────────────────────────────
 router.get('/:id/movements', (req: Request, res: Response) => {
   const id = Number(req.params.id)
-  const product = db.prepare('SELECT id FROM products WHERE id = ?').get(id)
+  const product = db.prepare("SELECT id FROM products WHERE id = ? AND COALESCE(deleted_at, '') = ''").get(id)
   if (!product) { res.status(404).json({ success: false, error: 'Product not found' }); return }
 
   const rows = db.prepare(

@@ -7,6 +7,7 @@ import type { Claim, ClaimPayment } from '../../types/customer'
 import { notify } from '../../utils/notify'
 import { api } from '../../services/api'
 import { formatDate } from '../../utils/customerUtils'
+import ConfirmDialog from '../ConfirmDialog'
 
 const PAYMENT_METHOD_LABEL: Record<string, string> = {
   cash: 'เงินสด', transfer: 'โอนธนาคาร', card: 'บัตรเครดิต/เดบิต', qr: 'QR Code',
@@ -40,6 +41,8 @@ export default function ClaimPaymentModal({ claim, onClose, onUpdated }: Props) 
   const [submitting,   setSubmitting]   = useState(false)
   const [currentClaim, setCurrentClaim] = useState<Claim>(claim)
   const [submitError,  setSubmitError]  = useState('')
+  const [deleteCandidate, setDeleteCandidate] = useState<ClaimPayment | null>(null)
+  const [deleting, setDeleting] = useState(false)
 
   const today = new Date().toISOString().split('T')[0]
 
@@ -79,6 +82,7 @@ export default function ClaimPaymentModal({ claim, onClose, onUpdated }: Props) 
   }
 
   async function onDeletePayment(paymentId: string) {
+    setDeleting(true)
     try {
       setSubmitError('')
       const res = await api.claimPayments.remove(currentClaim.id, paymentId)
@@ -86,10 +90,13 @@ export default function ClaimPaymentModal({ claim, onClose, onUpdated }: Props) 
       setCurrentClaim(updated)
       onUpdated(updated)
       await loadPayments()
+      setDeleteCandidate(null)
     } catch (err: any) {
       const message = err?.message || 'ลบการชำระเงินค่าบริการเคลมไม่สำเร็จ'
       setSubmitError(message)
       notify('error', message)
+    } finally {
+      setDeleting(false)
     }
   }
 
@@ -153,12 +160,12 @@ export default function ClaimPaymentModal({ claim, onClose, onUpdated }: Props) 
                         {p.note && ` · ${p.note}`}
                       </p>
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => onDeletePayment(p.id)}
-                      className="text-slate-300 hover:text-red-500 transition-colors p-1"
-                    >
-                      <Trash2 size={14} />
+	                    <button
+	                      type="button"
+	                      onClick={() => setDeleteCandidate(p)}
+	                      className="text-slate-300 hover:text-red-500 transition-colors p-1"
+	                    >
+	                      <Trash2 size={14} />
                     </button>
                   </div>
                 ))}
@@ -219,7 +226,16 @@ export default function ClaimPaymentModal({ claim, onClose, onUpdated }: Props) 
             </div>
           )}
         </div>
-      </div>
-    </div>
-  )
-}
+	      </div>
+	      <ConfirmDialog
+	        open={deleteCandidate !== null}
+	        title="ยืนยันการลบ"
+	        message="ลบรายการชำระเงินเคลมนี้ใช่หรือไม่?"
+	        detail={deleteCandidate ? `ยอด ฿${deleteCandidate.amount.toLocaleString()} · ${PAYMENT_METHOD_LABEL[deleteCandidate.method]} · ${formatDate(deleteCandidate.paid_at)}` : undefined}
+	        busy={deleting}
+	        onCancel={() => setDeleteCandidate(null)}
+	        onConfirm={() => deleteCandidate && onDeletePayment(deleteCandidate.id)}
+	      />
+	    </div>
+	  )
+	}

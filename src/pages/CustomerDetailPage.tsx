@@ -398,8 +398,8 @@ export default function CustomerDetailPage() {
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 space-y-4">
             <h3 className="font-semibold text-slate-900">ยืนยันการลบ</h3>
             <p className="text-sm text-slate-600">
-              ลบข้อมูลลูกค้า <span className="font-medium">{customer.first_name} {customer.last_name}</span>{' '}
-              และประวัติการซื้อทั้งหมด? ไม่สามารถย้อนกลับได้
+              ซ่อนลูกค้า <span className="font-medium">{customer.first_name} {customer.last_name}</span>{' '}
+              ออกจากรายการหลัก? ประวัติการซื้อจะยังอยู่ และกู้คืนได้จากหน้า Settings
             </p>
             <div className="flex gap-3">
               <button type="button" onClick={() => setConfirmDel(false)}
@@ -408,7 +408,7 @@ export default function CustomerDetailPage() {
               </button>
               <button type="button" onClick={handleDelete}
                 className="flex-1 bg-red-500 text-white rounded-xl py-2 text-sm font-medium hover:bg-red-600 transition-colors">
-                ลบ
+                ซ่อนลูกค้า
               </button>
             </div>
           </div>

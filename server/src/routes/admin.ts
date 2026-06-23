@@ -1,7 +1,18 @@
 import { Router, Request, Response } from 'express'
 import { spawn } from 'child_process'
 import { requireAuth, requireAdmin } from '../middleware/requireAuth'
-import { createBackup, listBackups, getBackupPath, deleteBackup, queueRestore } from '../services/backup'
+import {
+  createBackup,
+  createExportBackup,
+  deleteBackup,
+  deleteExportBackup,
+  getBackupMode,
+  getBackupPath,
+  getExportBackupPath,
+  listBackups,
+  listExportBackups,
+  queueRestore,
+} from '../services/backup'
 
 const router = Router()
 router.use(requireAuth, requireAdmin)
@@ -30,6 +41,10 @@ function scheduleRestartAfterRestore() {
     process.exit(0)
   }, 100)
 }
+
+router.get('/backups/status', (_req: Request, res: Response) => {
+  res.json({ success: true, data: getBackupMode() })
+})
 
 router.get('/backups', (_req: Request, res: Response) => {
   res.json({ success: true, data: listBackups() })
@@ -62,6 +77,31 @@ router.post('/backups/:filename/restore', (req: Request, res: Response) => {
   } catch (e: any) {
     res.status(500).json({ success: false, error: e.message })
   }
+})
+
+router.get('/exports', (_req: Request, res: Response) => {
+  res.json({ success: true, data: listExportBackups() })
+})
+
+router.post('/exports', (_req: Request, res: Response) => {
+  try {
+    const data = createExportBackup('manual')
+    res.json({ success: true, data })
+  } catch (e: any) {
+    res.status(500).json({ success: false, error: e.message })
+  }
+})
+
+router.get('/exports/:filename', (req: Request, res: Response) => {
+  const p = getExportBackupPath(req.params.filename)
+  if (!p) { res.status(404).json({ success: false, error: 'Export backup not found' }); return }
+  res.download(p)
+})
+
+router.delete('/exports/:filename', (req: Request, res: Response) => {
+  const ok = deleteExportBackup(req.params.filename)
+  if (!ok) { res.status(404).json({ success: false, error: 'Export backup not found' }); return }
+  res.json({ success: true })
 })
 
 router.delete('/backups/:filename', (req: Request, res: Response) => {

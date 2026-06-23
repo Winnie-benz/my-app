@@ -76,7 +76,9 @@ db.exec(`
     stock_current INTEGER NOT NULL DEFAULT 0,
     avg_cost     REAL    NOT NULL DEFAULT 0,
     note         TEXT    NOT NULL DEFAULT '',
-    created_at   TEXT    NOT NULL DEFAULT (datetime('now','+7 hours'))
+    created_at   TEXT    NOT NULL DEFAULT (datetime('now','+7 hours')),
+    deleted_at   TEXT    NOT NULL DEFAULT '',
+    deleted_by   TEXT    NOT NULL DEFAULT ''
   );
 
   CREATE TABLE IF NOT EXISTS customers (
@@ -89,7 +91,9 @@ db.exec(`
     gender       TEXT NOT NULL DEFAULT 'unspecified',
     address      TEXT NOT NULL DEFAULT '',
     note         TEXT NOT NULL DEFAULT '',
-    created_at   TEXT NOT NULL DEFAULT (datetime('now','+7 hours'))
+    created_at   TEXT NOT NULL DEFAULT (datetime('now','+7 hours')),
+    deleted_at   TEXT NOT NULL DEFAULT '',
+    deleted_by   TEXT NOT NULL DEFAULT ''
   );
 
   CREATE TABLE IF NOT EXISTS purchases (
@@ -147,11 +151,19 @@ try { db.exec(`ALTER TABLE purchases ADD COLUMN sold_by_name     TEXT NOT NULL D
 // Migration: per-product reorder point
 try { db.exec(`ALTER TABLE products ADD COLUMN reorder_point INTEGER NOT NULL DEFAULT 1`) } catch {}
 
+// Migration: soft delete metadata on products
+try { db.exec(`ALTER TABLE products ADD COLUMN deleted_at TEXT NOT NULL DEFAULT ''`) } catch {}
+try { db.exec(`ALTER TABLE products ADD COLUMN deleted_by TEXT NOT NULL DEFAULT ''`) } catch {}
+
 // Migration: customer acquisition source
 try { db.exec(`ALTER TABLE customers ADD COLUMN source TEXT NOT NULL DEFAULT 'walk_in'`) } catch {}
 
 // Migration: customer occupation (Phase 6 — occupational lens recommendation analysis)
 try { db.exec(`ALTER TABLE customers ADD COLUMN occupation TEXT NOT NULL DEFAULT ''`) } catch {}
+
+// Migration: soft delete metadata on customers
+try { db.exec(`ALTER TABLE customers ADD COLUMN deleted_at TEXT NOT NULL DEFAULT ''`) } catch {}
+try { db.exec(`ALTER TABLE customers ADD COLUMN deleted_by TEXT NOT NULL DEFAULT ''`) } catch {}
 
 db.exec(`
   CREATE TABLE IF NOT EXISTS inventory_sessions (
@@ -318,6 +330,19 @@ db.exec(`
 `)
 
 db.exec(`
+  CREATE TABLE IF NOT EXISTS audit_logs (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    entity_type TEXT NOT NULL,
+    entity_id   TEXT NOT NULL,
+    action      TEXT NOT NULL,
+    before_data TEXT NOT NULL DEFAULT '',
+    after_data  TEXT NOT NULL DEFAULT '',
+    changed_by  TEXT NOT NULL DEFAULT '',
+    changed_at  TEXT NOT NULL DEFAULT (datetime('now','+7 hours'))
+  );
+`)
+
+db.exec(`
   CREATE TABLE IF NOT EXISTS claim_items (
     id           INTEGER PRIMARY KEY AUTOINCREMENT,
     claim_id     TEXT    NOT NULL REFERENCES claims(id) ON DELETE CASCADE,
@@ -369,6 +394,8 @@ db.exec(`
   CREATE INDEX IF NOT EXISTS idx_claim_items_claim    ON claim_items(claim_id);
 
   CREATE INDEX IF NOT EXISTS idx_status_logs_order    ON order_status_logs(order_kind, order_id);
+  CREATE INDEX IF NOT EXISTS idx_audit_logs_entity    ON audit_logs(entity_type, entity_id);
+  CREATE INDEX IF NOT EXISTS idx_audit_logs_changed   ON audit_logs(changed_at);
 `)
 
 // libsql shim. Two incompatibilities with better-sqlite3 are patched here so the

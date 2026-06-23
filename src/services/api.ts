@@ -69,9 +69,11 @@ async function req<T = unknown>(path: string, options: RequestInit = {}): Promis
 export const api = {
   products: {
     list:      ()                                             => req<{ data: any[] }>('/products'),
+    listDeleted: ()                                           => req<{ data: any[] }>('/products/deleted'),
     search:    (q: string)                                    => req<{ data: any[] }>(`/products/search?q=${encodeURIComponent(q)}`),
     create:    (body: unknown)                                => req<any>('/products', { method: 'POST', body: JSON.stringify(body) }),
     update:    (id: number, body: unknown)                    => req<any>(`/products/${id}`, { method: 'PUT', body: JSON.stringify(body) }),
+    restore:   (id: number)                                   => req<any>(`/products/${id}/restore`, { method: 'POST' }),
     remove:    (id: number)                                   => req<any>(`/products/${id}`, { method: 'DELETE' }),
     stockIn:   (id: number, qty: number, cost: number)       =>
       req<any>(`/products/${id}/stock-in`,  { method: 'POST', body: JSON.stringify({ qty, cost }) }),
@@ -86,9 +88,13 @@ export const api = {
   customers: {
     list:   (search?: string) =>
       req<{ data: any[] }>(`/customers${search ? `?search=${encodeURIComponent(search)}` : ''}`),
+    listDeleted: () =>
+      req<{ data: any[] }>('/customers/deleted'),
     create: (body: unknown)   => req<{ data: any }>('/customers', { method: 'POST', body: JSON.stringify(body) }),
     update: (id: string, body: unknown) =>
       req<{ data: any }>(`/customers/${id}`, { method: 'PUT', body: JSON.stringify(body) }),
+    restore: (id: string) =>
+      req<{ data: any }>(`/customers/${id}/restore`, { method: 'POST' }),
     remove: (id: string)      => req<any>(`/customers/${id}`, { method: 'DELETE' }),
   },
 
@@ -123,6 +129,8 @@ export const api = {
   },
 
   admin: {
+    backupStatus: () =>
+      req<{ data: { mode: 'turso' | 'local'; supports_restore: boolean; backup_dir: string; export_dir: string; auto_export_hour: number; export_retention_count: number } }>('/admin/backups/status'),
     listBackups:    () =>
       req<{ data: { filename: string; size: number; created_at: string }[] }>('/admin/backups'),
     createBackup:   () =>
@@ -133,6 +141,14 @@ export const api = {
       req<any>(`/admin/backups/${encodeURIComponent(filename)}`, { method: 'DELETE' }),
     downloadBackup: (filename: string) =>
       `${BASE}/admin/backups/${encodeURIComponent(filename)}`,
+    listExports:    () =>
+      req<{ data: { filename: string; size: number; created_at: string }[] }>('/admin/exports'),
+    createExport:   () =>
+      req<{ data: { filename: string; size: number; created_at: string } }>('/admin/exports', { method: 'POST' }),
+    deleteExport:   (filename: string) =>
+      req<any>(`/admin/exports/${encodeURIComponent(filename)}`, { method: 'DELETE' }),
+    downloadExport: (filename: string) =>
+      `${BASE}/admin/exports/${encodeURIComponent(filename)}`,
   },
 
   inventory: {

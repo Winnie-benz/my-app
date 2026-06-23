@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { ChevronDown, ChevronUp, Eye, Square, Package, Pencil, CreditCard, Trash2, Printer, History, ShieldAlert } from 'lucide-react'
 import type { PurchaseRecord } from '../../types/customer'
 import { formatDate, formatDateTime } from '../../utils/customerUtils'
+import ConfirmDialog from '../ConfirmDialog'
 
 const PAYMENT_STATUS_LABEL: Record<string, string> = {
   pending: 'ค้างชำระ', partial: 'มัดจำ', paid: 'ชำระแล้ว',
@@ -115,37 +116,19 @@ export default function PurchaseCard({ record, onEdit, onPayment, onDelete, onPr
               แก้ไข
             </button>
           )}
-          {onDelete && !confirmDelete && (
-            <button
-              type="button"
-              onClick={e => { e.stopPropagation(); setConfirmDelete(true) }}
+	          {onDelete && (
+	            <button
+	              type="button"
+	              onClick={e => { e.stopPropagation(); setConfirmDelete(true) }}
               className="flex items-center gap-1 text-xs text-slate-400 hover:text-red-600 hover:bg-red-50 px-2 py-1 rounded-lg transition-colors"
             >
               <Trash2 size={12} />
-              ลบ
-            </button>
-          )}
-          {confirmDelete && (
-            <div className="flex items-center gap-1" onClick={e => e.stopPropagation()}>
-              <button
-                type="button"
-                onClick={() => { onDelete!(record); setConfirmDelete(false) }}
-                className="text-xs text-red-600 font-medium px-2 py-1 bg-red-50 hover:bg-red-100 rounded-lg transition-colors"
-              >
-                ยืนยันลบ
-              </button>
-              <button
-                type="button"
-                onClick={() => setConfirmDelete(false)}
-                className="text-xs text-slate-500 px-2 py-1 hover:bg-slate-100 rounded-lg transition-colors"
-              >
-                ยกเลิก
-              </button>
-            </div>
-          )}
-          {open ? <ChevronUp size={16} className="text-slate-400" /> : <ChevronDown size={16} className="text-slate-400" />}
-        </div>
-      </button>
+	              ลบ
+	            </button>
+	          )}
+	          {open ? <ChevronUp size={16} className="text-slate-400" /> : <ChevronDown size={16} className="text-slate-400" />}
+	        </div>
+	      </button>
 
       {/* Detail panel */}
       {open && (
@@ -374,7 +357,18 @@ export default function PurchaseCard({ record, onEdit, onPayment, onDelete, onPr
             </div>
           )}
         </div>
-      )}
-    </div>
-  )
-}
+	      )}
+	      <ConfirmDialog
+	        open={confirmDelete}
+	        title="ยืนยันการลบ"
+	        message="ลบรายการซื้อนี้ออกจากระบบใช่หรือไม่?"
+	        detail={`${formatDate(record.date)} · ฿${record.total.toLocaleString()}`}
+	        onCancel={() => setConfirmDelete(false)}
+	        onConfirm={() => {
+	          onDelete?.(record)
+	          setConfirmDelete(false)
+	        }}
+	      />
+	    </div>
+	  )
+	}
