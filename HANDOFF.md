@@ -17,48 +17,46 @@
 
 ---
 
-## อัปเดตล่าสุด: 2026-06-18 — เครื่อง Air
+## อัปเดตล่าสุด: 2026-06-23 — เครื่อง Air
 
-### เพิ่งทำเสร็จ (Air session วันนี้)
-- ตั้งค่าเครื่อง Air ให้ใช้งานได้ครบ: Homebrew, GitHub CLI, PM2
-- PM2 รัน backend (owndays-server) auto-start ทุกครั้งที่เปิดเครื่อง
-- git pull/push ข้ามเครื่องทำงานได้แล้ว
-
-### เพิ่งทำเสร็จ (Pro session 2026-06-18)
-- **ผู้ขาย (staff) บนบิล:** บันทึกจาก JWT, แก้ไขทีหลังได้ ไม่ทับค่าเดิม
-- **อาชีพลูกค้า (occupation):** dropdown 10 แบบ + ป้อนเข้า AI snapshot
-- **Auto-push hook:** แก้บั๊กให้ทน rebase (ข้าม detached HEAD) แล้ว
-- Smoke test: 16 GET endpoints + frontend = 200 ทั้งหมด
+### เพิ่งทำเสร็จ (Air session 2026-06-23)
+- **Deploy บน Render** — `https://my-app-gjmf.onrender.com` live แล้ว (free tier)
+- **เปลี่ยนชื่อ Owndays → Winnie** ใน sidebar และหน้า Login
+- **หน้าจัดการผู้ใช้** (`/users`) — admin เพิ่ม/แก้ไข/ลบ user ผ่านหน้าเว็บได้เลย
+- **Local auth** — login ตรวจ `users` table ใน DB ก่อน แล้ว fallback ไป Google Apps Script
+- แก้ tsc errors ทั้งหมดก่อน deploy (tsconfig, authToken, exportBackupToDrive)
 
 ### Stable tags (กู้คืนด้วย `git checkout <tag>`)
 | Tag | สถานะ |
 |-----|--------|
 | `stable-2026-06-15-turso` | ก่อนแก้ staff/occupation |
-| `stable-2026-06-17-staff-occupation` | ล่าสุด ผ่าน smoke test แล้ว |
+| `stable-2026-06-17-staff-occupation` | ก่อน deploy |
+
+### หมายเหตุ Render
+- **URL:** `https://my-app-gjmf.onrender.com`
+- **Free tier:** spin down หลัง 15 นาที ไม่มีคนใช้ — ครั้งแรกช้า 30-50 วินาที
+- auto-deploy ทุกครั้งที่ `git push` ไม่ต้อง deploy manual
 
 ---
 
 ## งานที่ต้องทำต่อ (เรียงตามลำดับความสำคัญ)
 
-### 1. Phase D — Operations (ยังไม่ได้เริ่ม)
+### 1. แก้ bug — เพิ่ม user ใน local ยัง error
+- หน้า `/users` โหลดไม่สำเร็จ + เพิ่ม user ไม่ได้ — ยังไม่ได้ debug เพราะ port 3001 ชน PM2
+- ต้องรัน `pm2 stop all` ก่อน แล้วค่อย `npm run dev:all` เพื่อ test local
+
+### 2. Phase D — Operations
 - [ ] **Order notes** — เพิ่มช่องหมายเหตุใน purchase/order
 - [ ] **Session timeout warning** — แจ้งเตือน popup ก่อน JWT หมด 5 นาที
 - [ ] **Shop name config** — ตั้งชื่อร้านใน Settings แสดงบนใบเสร็จ
 
-### 2. Deploy to Render (ฟรี) — ค้างอยู่
-- ผู้ใช้เลือก Render เพราะฟรี ทราฟฟิกต่ำ พนักงานใช้เอง
-- **Blocker ก่อน deploy:** แก้ tsc error 3 จุด (`authToken` ใน database.ts + migrate-to-turso.ts)
-- backend serve frontend ในตัวแล้ว (express.static) → deploy ที่เดียวจบ
-- ตั้ง env vars บน Render: ดูจาก `server/.env`
-- ตั้ง CORS เป็น domain จริงหลัง deploy
-
-### 3. Phase 4 — Reports (ยังไม่ได้เริ่ม)
+### 3. Phase 4 — Reports
 - [ ] Dashboard ยอดขายรายวัน/เดือน + กราฟ (recharts)
 - [ ] สินค้าขายดี Top 10
 - [ ] รายงานกำไร-ขาดทุน (admin only)
 
 ### 4. AI Analytics
-- หน้า `/analytics` สร้างแล้ว รอแค่ใส่ `ANTHROPIC_API_KEY` ใน `server/.env`
+- หน้า `/analytics` สร้างแล้ว รอแค่ใส่ `ANTHROPIC_API_KEY` ใน `server/.env` และ Render environment
 
 ---
 
