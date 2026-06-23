@@ -205,4 +205,10 @@ export const api = {
     remove: (purchaseId: string, paymentId: string) =>
       req<{ purchase: any }>(`/purchases/${purchaseId}/payments/${paymentId}`, { method: 'DELETE' }),
   },
+  users: {
+    list:   ()                          => req<{ data: any[] }>('/users'),
+    create: (body: unknown)             => req<any>('/users', { method: 'POST', body: JSON.stringify(body) }),
+    update: (id: number, body: unknown) => req<any>(`/users/${id}`, { method: 'PATCH', body: JSON.stringify(body) }),
+    remove: (id: number)                => req<any>(`/users/${id}`, { method: 'DELETE' }),
+  },
 }

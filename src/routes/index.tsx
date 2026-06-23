@@ -19,6 +19,7 @@ import InventorySessionDetailPage   from '../pages/InventorySessionDetailPage'
 import LensProductsPage             from '../pages/LensProductsPage'
 import ClaimsPage                   from '../pages/ClaimsPage'
 import AnalyticsPage                from '../pages/AnalyticsPage'
+import UsersPage                   from '../pages/UsersPage'
 
 export const router = createBrowserRouter([
   // Public
@@ -51,6 +52,7 @@ export const router = createBrowserRouter([
       { path: 'lens-products',         element: <LensProductsPage /> },
       { path: 'claims',                element: <ClaimsPage /> },
       { path: 'analytics',             element: <AnalyticsPage /> },
+      { path: 'users',                 element: <UsersPage /> },
     ],
   },
 ])

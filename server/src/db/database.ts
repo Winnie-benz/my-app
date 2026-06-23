@@ -330,6 +330,21 @@ db.exec(`
   );
 `)
 
+db.exec(`
+  CREATE TABLE IF NOT EXISTS users (
+    id            INTEGER PRIMARY KEY AUTOINCREMENT,
+    username      TEXT    NOT NULL UNIQUE,
+    password_hash TEXT    NOT NULL,
+    role          TEXT    NOT NULL DEFAULT 'staff',
+    first_name    TEXT    NOT NULL DEFAULT '',
+    last_name     TEXT    NOT NULL DEFAULT '',
+    nickname      TEXT    NOT NULL DEFAULT '',
+    phone_no      TEXT    NOT NULL DEFAULT '',
+    status        TEXT    NOT NULL DEFAULT 'active',
+    created_at    TEXT    NOT NULL DEFAULT (datetime('now','localtime'))
+  );
+`)
+
 // ── Performance indexes ──────────────────────────────────────────────────────
 db.exec(`
   CREATE INDEX IF NOT EXISTS idx_purchases_customer   ON purchases(customer_id);

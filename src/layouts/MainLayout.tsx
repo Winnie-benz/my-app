@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Outlet, NavLink } from 'react-router-dom'
-import { Home, LayoutGrid, ScanLine, AlertTriangle, Users, BarChart2, LogOut, ClipboardList, Settings, Wallet, History, PackageSearch, ShieldAlert, BrainCircuit } from 'lucide-react'
+import { Home, LayoutGrid, ScanLine, AlertTriangle, Users, BarChart2, LogOut, ClipboardList, Settings, Wallet, History, PackageSearch, ShieldAlert, BrainCircuit, UserCog } from 'lucide-react'
 import { useAuth } from '../hooks/useAuth'
 import { useProductStore } from '../store/useProductStore'
 import { useCustomerStore } from '../store/useCustomerStore'
@@ -106,7 +106,10 @@ export default function MainLayout() {
     if (user?.role !== 'admin') return BASE_NAV_GROUPS
     return [
       ...BASE_NAV_GROUPS,
-      { label: 'ระบบ', items: [{ to: '/settings', label: 'ตั้งค่า', icon: Settings }] },
+      { label: 'ระบบ', items: [
+        { to: '/settings', label: 'ตั้งค่า',        icon: Settings },
+        { to: '/users',    label: 'จัดการผู้ใช้',   icon: UserCog  },
+      ]},
     ]
   }, [user?.role])
 

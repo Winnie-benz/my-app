@@ -4,6 +4,7 @@ import { z } from 'zod'
 import { findEmployeeByUsername } from '../services/sheetsService'
 import { signToken } from '../utils/jwt'
 import { requireAuth } from '../middleware/requireAuth'
+import db from '../db/database'
 
 const router = Router()
 
@@ -25,9 +26,45 @@ router.post('/login', async (req, res) => {
   const { username, password } = parsed.data
 
   try {
+    // Check local users table first
+    const localUser = db.prepare(
+      `SELECT * FROM users WHERE username = ?`
+    ).get(username) as Record<string, any> | undefined
+
+    if (localUser) {
+      if (localUser.status !== 'active') {
+        return res.status(403).json({ success: false, error: 'Your account is inactive. Please contact your administrator.' })
+      }
+      const isValid = await bcrypt.compare(password, localUser.password_hash as string)
+      if (!isValid) {
+        return res.status(401).json({ success: false, error: 'Invalid username or password' })
+      }
+      const token = signToken({
+        staff_id:   String(localUser.id),
+        user:       localUser.username as string,
+        role:       localUser.role as 'admin' | 'staff',
+        first_name: localUser.first_name as string,
+        last_name:  localUser.last_name as string,
+        nickname:   localUser.nickname as string,
+      })
+      return res.json({
+        success: true,
+        token,
+        user: {
+          staff_id:   String(localUser.id),
+          user:       localUser.username,
+          first_name: localUser.first_name,
+          last_name:  localUser.last_name,
+          nickname:   localUser.nickname,
+          role:       localUser.role,
+          phone_no:   localUser.phone_no,
+        },
+      })
+    }
+
+    // Fallback to Google Apps Script (existing behavior)
     const employee = await findEmployeeByUsername(username)
 
-    // Generic message to prevent username enumeration
     if (!employee || !employee.password_hash) {
       return res.status(401).json({ success: false, error: 'Invalid username or password' })
     }

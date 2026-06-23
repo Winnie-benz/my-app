@@ -18,6 +18,7 @@ import lensProductsRouter from './routes/lensProducts'
 import claimsRouter          from './routes/claims'
 import claimPaymentsRouter   from './routes/claimPayments'
 import analyticsRouter       from './routes/analytics'
+import usersRouter           from './routes/users'
 import { scheduleAutoBackup } from './services/backup'
 import './db/database'
 
@@ -47,6 +48,7 @@ app.use('/api/lens-products',                   lensProductsRouter)
 app.use('/api/claims',                          claimsRouter)
 app.use('/api/claims/:claimId/payments',        claimPaymentsRouter)
 app.use('/api/analytics',                       analyticsRouter)
+app.use('/api/users',                           usersRouter)
 
 app.get('/api/health', (_req, res) => {
   res.json({ ok: true, timestamp: new Date().toISOString() })
