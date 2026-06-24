@@ -197,7 +197,31 @@ router.get('/monthly', (req: Request, res: Response) => {
     FROM aged GROUP BY age_group
   `).all(month)
 
-  res.json({ success: true, data: { month, ...summary, new_customers: newCustomers, gender, age_groups } })
+  const source_breakdown = db.prepare(`
+    SELECT COALESCE(NULLIF(c.source,''), 'other') as source, COUNT(*) as cnt
+    FROM customers c
+    WHERE c.customer_id IN (
+      SELECT customer_id FROM (
+        SELECT customer_id, MIN(date) as first_date
+        FROM purchases
+        WHERE COALESCE(voided_at, '') = ''
+        GROUP BY customer_id
+      ) WHERE strftime('%Y-%m', first_date) = ?
+    )
+    GROUP BY source
+  `).all(month)
+
+  const lens_type_breakdown = db.prepare(`
+    SELECT COALESCE(NULLIF(lens_type,''), 'other') as lens_type, COUNT(*) as cnt
+    FROM purchases
+    WHERE COALESCE(voided_at, '') = ''
+      AND strftime('%Y-%m', date) = ?
+      AND lens_type != ''
+    GROUP BY lens_type
+    ORDER BY cnt DESC
+  `).all(month)
+
+  res.json({ success: true, data: { month, ...summary, new_customers: newCustomers, gender, age_groups, source_breakdown, lens_type_breakdown } })
 })
 
 export default router

@@ -43,6 +43,16 @@ const LENS_TYPE_LABEL: Record<string, string> = {
   single_vision: 'ตาเดียว', bi_focal: 'ไบโฟคัล', pal: 'โปรเกรสซีฟ', specialty: 'พิเศษ', other: 'อื่นๆ',
 }
 
+const SOURCE_LABEL: Record<string, string> = {
+  walk_in: 'เดินเข้าร้าน', referral: 'แนะนำ', social_media: 'โซเชียล', other: 'อื่นๆ',
+}
+const SOURCE_COLOR: Record<string, string> = {
+  walk_in: '#0f172a', referral: '#6366f1', social_media: '#ec4899', other: '#94a3b8',
+}
+const LENS_TYPE_COLOR: Record<string, string> = {
+  single_vision: '#0f172a', bi_focal: '#6366f1', pal: '#3b82f6', specialty: '#f59e0b', other: '#94a3b8',
+}
+
 const GENDER_LABEL: Record<string, string> = { male: 'ชาย', female: 'หญิง', unspecified: 'ไม่ระบุ' }
 const GENDER_COLOR: Record<string, string> = { male: '#3b82f6', female: '#ec4899', unspecified: '#94a3b8' }
 const AGE_ORDER  = ['under18','18-30','31-45','46-60','over60']
@@ -267,6 +277,20 @@ export default function ReportsPage() {
     .filter(a => a.count > 0)
   const ageTotal = ageItems.reduce((s, a) => s + a.count, 0)
 
+  const sourceItems: BarItem[] = (monthlyData?.source_breakdown ?? []).map((s: any) => ({
+    label: SOURCE_LABEL[s.source] ?? s.source,
+    count: s.cnt,
+    color: SOURCE_COLOR[s.source] ?? '#94a3b8',
+  }))
+  const sourceTotal = sourceItems.reduce((sum, s) => sum + s.count, 0)
+
+  const lensTypeItems: BarItem[] = (monthlyData?.lens_type_breakdown ?? []).map((l: any) => ({
+    label: LENS_TYPE_LABEL[l.lens_type] ?? l.lens_type,
+    count: l.cnt,
+    color: LENS_TYPE_COLOR[l.lens_type] ?? '#94a3b8',
+  }))
+  const lensTypeTotal = lensTypeItems.reduce((sum, l) => sum + l.count, 0)
+
   // ── Year options ────────────────────────────────────────────────────────────
   const yearOptions = Array.from({ length: now.getFullYear() - 2022 }, (_, i) => now.getFullYear() - i)
 
@@ -399,6 +423,12 @@ export default function ReportsPage() {
         <div className="grid grid-cols-2 gap-4">
           <HorizBars title="เพศ" items={genderItems} total={genderTotal} />
           <HorizBars title="ช่วงอายุ" items={ageItems} total={ageTotal} />
+        </div>
+
+        {/* Acquisition + Lens type */}
+        <div className="grid grid-cols-2 gap-4">
+          <HorizBars title={`ช่องทางลูกค้าใหม่${newCustomers > 0 ? ` (${newCustomers} คน)` : ''}`} items={sourceItems} total={sourceTotal} />
+          <HorizBars title="ชนิดเลนส์ที่ขาย" items={lensTypeItems} total={lensTypeTotal} />
         </div>
       </div>
 
