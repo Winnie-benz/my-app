@@ -115,6 +115,13 @@ const ACTION_LABEL: Record<string, string> = {
 }
 
 const DEFAULT_AUDIT_LIMIT = 30
+const DELETED_VISIBLE_STEP = 5
+
+function filterDeleted<T>(list: T[], search: string, fields: (item: T) => (string | undefined)[]): T[] {
+  const q = search.trim().toLowerCase()
+  if (!q) return list
+  return list.filter(item => fields(item).some(f => (f || '').toLowerCase().includes(q)))
+}
 
 const EMPTY_AUDIT_FILTERS = {
   q: '',
@@ -140,6 +147,13 @@ export default function SettingsPage() {
   const [draftAuditFilters, setDraftAuditFilters] = useState(EMPTY_AUDIT_FILTERS)
   const [appliedAuditFilters, setAppliedAuditFilters] = useState(EMPTY_AUDIT_FILTERS)
   const [auditArchiveVisibleCount, setAuditArchiveVisibleCount] = useState(10)
+
+  const [productSearch, setProductSearch] = useState('')
+  const [claimSearch, setClaimSearch] = useState('')
+  const [customerSearch, setCustomerSearch] = useState('')
+  const [productVisible, setProductVisible] = useState(DELETED_VISIBLE_STEP)
+  const [claimVisible, setClaimVisible] = useState(DELETED_VISIBLE_STEP)
+  const [customerVisible, setCustomerVisible] = useState(DELETED_VISIBLE_STEP)
 
   const [loading, setLoading] = useState(true)
   const [auditLoading, setAuditLoading] = useState(false)
@@ -215,6 +229,9 @@ export default function SettingsPage() {
       setDeletedProducts(deletedProductsRes.data)
       setDeletedClaims(deletedClaimsRes.data)
       setLocalBackups(backupRes.data)
+      setProductVisible(DELETED_VISIBLE_STEP)
+      setClaimVisible(DELETED_VISIBLE_STEP)
+      setCustomerVisible(DELETED_VISIBLE_STEP)
       await loadAuditSummary()
     } catch (e: any) {
       setLoadError(e?.message || 'โหลดข้อมูลตั้งค่าไม่สำเร็จ')
@@ -400,6 +417,10 @@ export default function SettingsPage() {
       </div>
     )
   }
+
+  const filteredProducts = filterDeleted(deletedProducts, productSearch, p => [p.name, p.sku, p.barcode])
+  const filteredClaims = filterDeleted(deletedClaims, claimSearch, c => [c.first_name, c.last_name, c.phone_no, c.description, c.claim_type])
+  const filteredCustomers = filterDeleted(deletedCustomers, customerSearch, c => [c.first_name, c.last_name, c.phone_no])
 
   return (
     <div className="p-8 max-w-4xl mx-auto space-y-8">
@@ -674,35 +695,58 @@ export default function SettingsPage() {
           การลบสินค้าจะซ่อนจากคลังสินค้า แต่ยังเก็บ stock history และยอดขายเดิมไว้
         </p>
 
+        {deletedProducts.length > 0 && (
+          <input
+            type="text"
+            value={productSearch}
+            onChange={e => setProductSearch(e.target.value)}
+            placeholder="ค้นหาชื่อ / SKU / บาร์โค้ด"
+            className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm mb-3 focus:outline-none focus:ring-2 focus:ring-slate-900"
+          />
+        )}
+
         {loading ? (
           <p className="text-sm text-slate-400 text-center py-6">กำลังโหลด...</p>
         ) : deletedProducts.length === 0 ? (
           <p className="text-sm text-slate-400 text-center py-6">ยังไม่มีสินค้าที่ถูกลบ</p>
+        ) : filteredProducts.length === 0 ? (
+          <p className="text-sm text-slate-400 text-center py-6">ไม่พบสินค้าที่ค้นหา</p>
         ) : (
-          <div className="divide-y divide-slate-100">
-            {deletedProducts.map(product => (
-              <div key={product.id} className="flex items-center gap-3 py-3">
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm text-slate-800 font-medium truncate">
-                    {product.name}
-                  </p>
-                  <p className="text-xs text-slate-400 mt-0.5">
-                    {product.sku || product.barcode} · คงเหลือ {product.stock_current} · ลบเมื่อ {fmtDate(product.deleted_at)}
-                    {product.deleted_by ? ` โดย ${product.deleted_by}` : ''}
-                  </p>
+          <>
+            <div className="divide-y divide-slate-100">
+              {filteredProducts.slice(0, productVisible).map(product => (
+                <div key={product.id} className="flex items-center gap-3 py-3">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm text-slate-800 font-medium truncate">
+                      {product.name}
+                    </p>
+                    <p className="text-xs text-slate-400 mt-0.5">
+                      {product.sku || product.barcode} · คงเหลือ {product.stock_current} · ลบเมื่อ {fmtDate(product.deleted_at)}
+                      {product.deleted_by ? ` โดย ${product.deleted_by}` : ''}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => restoreProduct(product.id)}
+                    disabled={restoringProduct !== null}
+                    className="flex items-center gap-1 text-xs text-green-700 hover:text-green-900 hover:bg-green-50 px-2 py-1.5 rounded-lg transition-colors disabled:opacity-40"
+                  >
+                    <RotateCcw size={13} />
+                    {restoringProduct === product.id ? 'กำลังกู้คืน...' : 'กู้คืน'}
+                  </button>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => restoreProduct(product.id)}
-                  disabled={restoringProduct !== null}
-                  className="flex items-center gap-1 text-xs text-green-700 hover:text-green-900 hover:bg-green-50 px-2 py-1.5 rounded-lg transition-colors disabled:opacity-40"
-                >
-                  <RotateCcw size={13} />
-                  {restoringProduct === product.id ? 'กำลังกู้คืน...' : 'กู้คืน'}
-                </button>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+            {productVisible < filteredProducts.length && (
+              <button
+                type="button"
+                onClick={() => setProductVisible(c => c + DELETED_VISIBLE_STEP)}
+                className="w-full mt-3 border border-slate-200 text-slate-700 rounded-xl py-2.5 text-sm font-medium hover:bg-slate-50 transition-colors"
+              >
+                ดูเพิ่ม ({filteredProducts.length - productVisible})
+              </button>
+            )}
+          </>
         )}
       </section>
 
@@ -725,38 +769,61 @@ export default function SettingsPage() {
           การลบเคลมจะซ่อนจากรายการหลักและคืน stock; เมื่อกู้คืน ระบบจะหัก stock กลับตามรายการเคลมนั้น
         </p>
 
+        {deletedClaims.length > 0 && (
+          <input
+            type="text"
+            value={claimSearch}
+            onChange={e => setClaimSearch(e.target.value)}
+            placeholder="ค้นหาชื่อ / เบอร์โทร / รายละเอียด"
+            className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm mb-3 focus:outline-none focus:ring-2 focus:ring-slate-900"
+          />
+        )}
+
         {loading ? (
           <p className="text-sm text-slate-400 text-center py-6">กำลังโหลด...</p>
         ) : deletedClaims.length === 0 ? (
           <p className="text-sm text-slate-400 text-center py-6">ยังไม่มีเคลมที่ถูกลบ</p>
+        ) : filteredClaims.length === 0 ? (
+          <p className="text-sm text-slate-400 text-center py-6">ไม่พบเคลมที่ค้นหา</p>
         ) : (
-          <div className="divide-y divide-slate-100">
-            {deletedClaims.map(claim => (
-              <div key={claim.id} className="flex items-center gap-3 py-3">
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm text-slate-800 font-medium truncate">
-                    {claim.first_name} {claim.last_name} · {claim.claim_type || 'เคลม'}
-                  </p>
-                  <p className="text-xs text-slate-400 mt-0.5">
-                    {claim.phone_no || 'ไม่มีเบอร์โทร'} · ฿{Number(claim.fee || 0).toLocaleString()} · ลบเมื่อ {fmtDate(claim.deleted_at)}
-                    {claim.deleted_by ? ` โดย ${claim.deleted_by}` : ''}
-                  </p>
-                  {claim.description && (
-                    <p className="text-xs text-slate-400 mt-0.5 truncate">{claim.description}</p>
-                  )}
+          <>
+            <div className="divide-y divide-slate-100">
+              {filteredClaims.slice(0, claimVisible).map(claim => (
+                <div key={claim.id} className="flex items-center gap-3 py-3">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm text-slate-800 font-medium truncate">
+                      {claim.first_name} {claim.last_name} · {claim.claim_type || 'เคลม'}
+                    </p>
+                    <p className="text-xs text-slate-400 mt-0.5">
+                      {claim.phone_no || 'ไม่มีเบอร์โทร'} · ฿{Number(claim.fee || 0).toLocaleString()} · ลบเมื่อ {fmtDate(claim.deleted_at)}
+                      {claim.deleted_by ? ` โดย ${claim.deleted_by}` : ''}
+                    </p>
+                    {claim.description && (
+                      <p className="text-xs text-slate-400 mt-0.5 truncate">{claim.description}</p>
+                    )}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => restoreClaim(claim.id)}
+                    disabled={restoringClaim !== null}
+                    className="flex items-center gap-1 text-xs text-green-700 hover:text-green-900 hover:bg-green-50 px-2 py-1.5 rounded-lg transition-colors disabled:opacity-40"
+                  >
+                    <RotateCcw size={13} />
+                    {restoringClaim === claim.id ? 'กำลังกู้คืน...' : 'กู้คืน'}
+                  </button>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => restoreClaim(claim.id)}
-                  disabled={restoringClaim !== null}
-                  className="flex items-center gap-1 text-xs text-green-700 hover:text-green-900 hover:bg-green-50 px-2 py-1.5 rounded-lg transition-colors disabled:opacity-40"
-                >
-                  <RotateCcw size={13} />
-                  {restoringClaim === claim.id ? 'กำลังกู้คืน...' : 'กู้คืน'}
-                </button>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+            {claimVisible < filteredClaims.length && (
+              <button
+                type="button"
+                onClick={() => setClaimVisible(c => c + DELETED_VISIBLE_STEP)}
+                className="w-full mt-3 border border-slate-200 text-slate-700 rounded-xl py-2.5 text-sm font-medium hover:bg-slate-50 transition-colors"
+              >
+                ดูเพิ่ม ({filteredClaims.length - claimVisible})
+              </button>
+            )}
+          </>
         )}
       </section>
 
@@ -829,35 +896,58 @@ export default function SettingsPage() {
           การลบลูกค้าจะซ่อนจากรายการหลัก แต่ยังเก็บประวัติการขายไว้และสามารถกู้คืนได้
         </p>
 
+        {deletedCustomers.length > 0 && (
+          <input
+            type="text"
+            value={customerSearch}
+            onChange={e => setCustomerSearch(e.target.value)}
+            placeholder="ค้นหาชื่อ / เบอร์โทร"
+            className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm mb-3 focus:outline-none focus:ring-2 focus:ring-slate-900"
+          />
+        )}
+
         {loading ? (
           <p className="text-sm text-slate-400 text-center py-6">กำลังโหลด...</p>
         ) : deletedCustomers.length === 0 ? (
           <p className="text-sm text-slate-400 text-center py-6">ยังไม่มีลูกค้าที่ถูกลบ</p>
+        ) : filteredCustomers.length === 0 ? (
+          <p className="text-sm text-slate-400 text-center py-6">ไม่พบลูกค้าที่ค้นหา</p>
         ) : (
-          <div className="divide-y divide-slate-100">
-            {deletedCustomers.map(customer => (
-              <div key={customer.customer_id} className="flex items-center gap-3 py-3">
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm text-slate-800 font-medium truncate">
-                    {customer.customer_id} · {customer.first_name} {customer.last_name}
-                  </p>
-                  <p className="text-xs text-slate-400 mt-0.5">
-                    {customer.phone_no || 'ไม่มีเบอร์โทร'} · ลบเมื่อ {fmtDate(customer.deleted_at)}
-                    {customer.deleted_by ? ` โดย ${customer.deleted_by}` : ''}
-                  </p>
+          <>
+            <div className="divide-y divide-slate-100">
+              {filteredCustomers.slice(0, customerVisible).map(customer => (
+                <div key={customer.customer_id} className="flex items-center gap-3 py-3">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm text-slate-800 font-medium truncate">
+                      {customer.customer_id} · {customer.first_name} {customer.last_name}
+                    </p>
+                    <p className="text-xs text-slate-400 mt-0.5">
+                      {customer.phone_no || 'ไม่มีเบอร์โทร'} · ลบเมื่อ {fmtDate(customer.deleted_at)}
+                      {customer.deleted_by ? ` โดย ${customer.deleted_by}` : ''}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => restoreCustomer(customer.customer_id)}
+                    disabled={!!restoringCustomer}
+                    className="flex items-center gap-1 text-xs text-green-700 hover:text-green-900 hover:bg-green-50 px-2 py-1.5 rounded-lg transition-colors disabled:opacity-40"
+                  >
+                    <RotateCcw size={13} />
+                    {restoringCustomer === customer.customer_id ? 'กำลังกู้คืน...' : 'กู้คืน'}
+                  </button>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => restoreCustomer(customer.customer_id)}
-                  disabled={!!restoringCustomer}
-                  className="flex items-center gap-1 text-xs text-green-700 hover:text-green-900 hover:bg-green-50 px-2 py-1.5 rounded-lg transition-colors disabled:opacity-40"
-                >
-                  <RotateCcw size={13} />
-                  {restoringCustomer === customer.customer_id ? 'กำลังกู้คืน...' : 'กู้คืน'}
-                </button>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+            {customerVisible < filteredCustomers.length && (
+              <button
+                type="button"
+                onClick={() => setCustomerVisible(c => c + DELETED_VISIBLE_STEP)}
+                className="w-full mt-3 border border-slate-200 text-slate-700 rounded-xl py-2.5 text-sm font-medium hover:bg-slate-50 transition-colors"
+              >
+                ดูเพิ่ม ({filteredCustomers.length - customerVisible})
+              </button>
+            )}
+          </>
         )}
       </section>
 
