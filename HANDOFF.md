@@ -17,7 +17,7 @@
 
 ## 🚨 อัปเดตล่าสุด: 2026-06-24 (รอบดึก) — Codex / local workspace
 
-### ✅ Phase ถัดไปทำเสร็จแล้วในเครื่องนี้ — **ยังไม่ได้ push / deploy**
+### ✅ Phase ถัดไปทำเสร็จแล้วในเครื่องนี้ — **push แล้วโดย Claude (รวมกับ 2 ฟีเจอร์ใหม่ ดูด้านล่าง)**
 
 **งานที่เสร็จในรอบนี้:**
 
@@ -58,14 +58,17 @@
    - dev server มีอยู่แล้ว 1 ชุด: `http://localhost:5173` ได้ 200 และ `http://localhost:3001/api/health` ได้ 200
    - รัน SQL breakdown ใหม่ผ่าน `server/dist` + `server/.env` กับ Turso จริงแล้ว ได้ผลลัพธ์เดือน `2026-06` ออกมาเป็น sample brand เช่น `Essi`, `Hoya`
 
-### ✅ ปิดงานโดย Claude (รอบถัดมา) — push + deploy แล้ว
-- ตรวจ working tree พบว่า Codex จบรอบ lens brand + refactor `lensBrands.ts` + dropdown หน้า `/lens-products` ทิ้งไว้ (ยังไม่ push)
-- รัน code-review (สกิล) บน diff ทั้งหมด → **ไม่พบ bug** (flow brand ครบ end-to-end ผ่าน `z.record(z.unknown())` → `lens_data.$.brand` → report)
-- verify ซ้ำ: `tsc` root + server ผ่าน, `npm run build` ผ่าน
-- **push + deploy ขึ้น live แล้ว** (ดู commit ใหม่ + ยืนยัน `/api/health` = 200)
+### ✅ ปิดงานโดย Claude (รอบถัดมา) — push 5 commits ทีเดียว
+รวมงาน Codex (ยี่ห้อเลนส์) + cleanup + 2 ฟีเจอร์ใหม่ ขึ้น live รอบเดียว:
+- **(Codex) ยี่ห้อเลนส์**: dropdown ฟอร์มขาย + หน้าสินค้าเลนส์ + กราฟยี่ห้อขายดี + filter stock lens ตามยี่ห้อ — ผ่าน code-review (ไม่พบ bug; flow ครบผ่าน `z.record` → `lens_data.$.brand` → report)
+- **ลบ `.github/workflows/keep-alive.yml`** (ซ้ำซ้อนกับ cron-job.org)
+- **(ใหม่) ปุ่มซ่อนจากแจ้งเตือน Low Stock**: column `low_stock_ignored` (products + lens_variants) + endpoint toggle + GET ignored-list; LowStockPage มีปุ่มซ่อนต่อแถว (สินค้า+เลนส์) + ส่วน "ซ่อนแล้ว" พับได้ เปิดกลับได้
+- **(ใหม่) รายการที่ถูกลบใน Settings**: ช่องค้นหา + แสดง 5 ดูเพิ่มทีละ 5 (กันหน้า scroll ยาวเมื่อข้อมูลสะสม)
+- verify: `tsc` root+server ผ่าน, `npm run build` ผ่าน, SQL logic ของ low-stock ทดสอบบน **throwaway DB (libsql local) 11/11 ผ่าน** — ไม่แตะ Turso live
+- ⚠️ migration `low_stock_ignored` จะ ALTER บน Turso live ตอน deploy boot (additive + idempotent + try/catch ปลอดภัย)
 
 ### 📌 ยังเหลือ (ทำต่อได้)
-- ยังไม่ได้ spot-check ผ่าน browser UI จริง — เลี่ยงการสร้างรายการขายทดสอบเพราะ **local/live ใช้ Turso เดียวกัน** (จะเขียน test data ลงร้านจริง); read path (รายงาน) verify ผ่าน runtime SQL query แล้ว
+- ยังไม่ได้ spot-check ผ่าน browser UI จริง (ทั้งยี่ห้อเลนส์ + 2 ฟีเจอร์ใหม่) — เลี่ยงเพราะ **local/live ใช้ Turso เดียวกัน** (กดปุ่มซ่อน/ลบ/ขายทดสอบ = เขียนร้านจริง); ตรวจระดับ logic/SQL + build แล้ว
 
 ---
 
