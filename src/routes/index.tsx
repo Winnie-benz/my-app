@@ -20,6 +20,7 @@ import LensProductsPage             from '../pages/LensProductsPage'
 import ClaimsPage                   from '../pages/ClaimsPage'
 import AnalyticsPage                from '../pages/AnalyticsPage'
 import UsersPage                   from '../pages/UsersPage'
+import DailyClosePage              from '../pages/DailyClosePage'
 
 export const router = createBrowserRouter([
   // Public
@@ -53,6 +54,7 @@ export const router = createBrowserRouter([
       { path: 'claims',                element: <ClaimsPage /> },
       { path: 'analytics',             element: <AnalyticsPage /> },
       { path: 'users',                 element: <UsersPage /> },
+      { path: 'daily-close',           element: <DailyClosePage /> },
     ],
   },
 ])

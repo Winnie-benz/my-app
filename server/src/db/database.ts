@@ -386,6 +386,29 @@ db.exec(`
   );
 `)
 
+db.exec(`
+  CREATE TABLE IF NOT EXISTS daily_closes (
+    id             INTEGER PRIMARY KEY AUTOINCREMENT,
+    close_date     TEXT NOT NULL UNIQUE,
+    status         TEXT NOT NULL DEFAULT 'open',
+    opening_float  REAL NOT NULL DEFAULT 0,
+    opened_by      TEXT NOT NULL DEFAULT '',
+    opened_at      TEXT NOT NULL DEFAULT '',
+    total_cash     REAL NOT NULL DEFAULT 0,
+    total_transfer REAL NOT NULL DEFAULT 0,
+    total_card     REAL NOT NULL DEFAULT 0,
+    total_qr       REAL NOT NULL DEFAULT 0,
+    total_sales    REAL NOT NULL DEFAULT 0,
+    expected_cash  REAL NOT NULL DEFAULT 0,
+    counted_cash   REAL NOT NULL DEFAULT 0,
+    difference     REAL NOT NULL DEFAULT 0,
+    note           TEXT NOT NULL DEFAULT '',
+    closed_by      TEXT NOT NULL DEFAULT '',
+    closed_at      TEXT NOT NULL DEFAULT '',
+    created_at     TEXT NOT NULL DEFAULT (datetime('now','+7 hours'))
+  );
+`)
+
 // ── Performance indexes ──────────────────────────────────────────────────────
 db.exec(`
   CREATE INDEX IF NOT EXISTS idx_purchases_customer   ON purchases(customer_id);

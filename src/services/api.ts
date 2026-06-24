@@ -207,6 +207,15 @@ export const api = {
       `${BASE}/admin/exports/${encodeURIComponent(filename)}`,
   },
 
+  dailyClose: {
+    today:   () => req<{ data: any }>('/daily-close/today'),
+    open:    (opening_float: number) =>
+      req<{ data: any }>('/daily-close/open', { method: 'POST', body: JSON.stringify({ opening_float }) }),
+    close:   (body: { counted_cash: number; opening_float?: number; note?: string }) =>
+      req<{ data: any }>('/daily-close/close', { method: 'POST', body: JSON.stringify(body) }),
+    history: (limit = 30) => req<{ data: any[] }>(`/daily-close/history?limit=${limit}`),
+  },
+
   inventory: {
     submitSession: (body: unknown) =>
       req<{ data: any }>('/inventory/sessions', { method: 'POST', body: JSON.stringify(body) }),

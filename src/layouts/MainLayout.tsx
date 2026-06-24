@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Outlet, NavLink } from 'react-router-dom'
-import { Home, LayoutGrid, ScanLine, AlertTriangle, Users, BarChart2, LogOut, ClipboardList, Settings, Wallet, History, PackageSearch, ShieldAlert, BrainCircuit, UserCog } from 'lucide-react'
+import { Home, LayoutGrid, ScanLine, AlertTriangle, Users, BarChart2, LogOut, ClipboardList, Settings, Wallet, History, PackageSearch, ShieldAlert, BrainCircuit, UserCog, Calculator } from 'lucide-react'
 import { useAuth } from '../hooks/useAuth'
 import SessionTimeoutWarning from '../components/SessionTimeoutWarning'
 import { useProductStore } from '../store/useProductStore'
@@ -37,6 +37,7 @@ const BASE_NAV_GROUPS = [
   {
     label: 'วิเคราะห์',
     items: [
+      { to: '/daily-close', label: 'ปิดยอดรายวัน', icon: Calculator   },
       { to: '/reports',    label: 'รายงาน',       icon: BarChart2    },
       { to: '/analytics',  label: 'AI Analyst',   icon: BrainCircuit },
     ],

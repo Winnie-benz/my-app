@@ -19,6 +19,7 @@ import claimsRouter          from './routes/claims'
 import claimPaymentsRouter   from './routes/claimPayments'
 import analyticsRouter       from './routes/analytics'
 import usersRouter           from './routes/users'
+import dailyCloseRouter      from './routes/dailyClose'
 import { scheduleAutoBackup } from './services/backup'
 import { scheduleAuditLogMaintenance } from './services/auditRetention'
 import { rateLimit } from './middleware/rateLimit'
@@ -65,6 +66,7 @@ app.use('/api/claims',                          claimsRouter)
 app.use('/api/claims/:claimId/payments',        claimPaymentsRouter)
 app.use('/api/analytics',                       analyticsRouter)
 app.use('/api/users',                           usersRouter)
+app.use('/api/daily-close',                     dailyCloseRouter)
 
 app.get('/api/health', (_req, res) => {
   res.json({ ok: true, timestamp: new Date().toISOString() })
