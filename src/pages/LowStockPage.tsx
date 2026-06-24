@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ArrowLeft, EyeOff, Eye, ChevronDown } from 'lucide-react'
+import { ArrowLeft, EyeOff, Eye, ChevronDown, Trash2 } from 'lucide-react'
 import { useProductStore } from '../store/useProductStore'
+import type { Product } from '../types/product'
 import { CategoryBadge } from '../components/Badge'
 import { api } from '../services/api'
 import { notify } from '../utils/notify'
@@ -24,6 +25,7 @@ export default function LowStockPage() {
   const navigate = useNavigate()
   const products = useProductStore(s => s.products)
   const fetchProducts = useProductStore(s => s.fetchProducts)
+  const deleteProduct = useProductStore(s => s.deleteProduct)
 
   const lowStockItems = products.filter(p => p.stock_current <= (p.reorder_point ?? 1) && !p.low_stock_ignored)
   const ignoredProducts = products.filter(p => !!p.low_stock_ignored)
@@ -31,6 +33,7 @@ export default function LowStockPage() {
   const [zeroVariants, setZeroVariants] = useState<ZeroVariant[]>([])
   const [ignoredVariants, setIgnoredVariants] = useState<ZeroVariant[]>([])
   const [showHidden, setShowHidden] = useState(false)
+  const [deleteTarget, setDeleteTarget] = useState<Product | null>(null)
 
   async function refreshVariants() {
     try {
@@ -65,6 +68,12 @@ export default function LowStockPage() {
     } catch {
       notify('error', ignored ? 'ซ่อนจากแจ้งเตือนไม่สำเร็จ' : 'เปิดแจ้งเตือนไม่สำเร็จ')
     }
+  }
+
+  async function confirmDelete() {
+    if (!deleteTarget) return
+    await deleteProduct(deleteTarget.id)
+    setDeleteTarget(null)
   }
 
   const totalAlerts = lowStockItems.length + zeroVariants.length
@@ -118,7 +127,7 @@ export default function LowStockPage() {
                           {h}
                         </th>
                       ))}
-                      <th className="w-10" />
+                      <th className="w-20" />
                     </tr>
                   </thead>
                   <tbody>
@@ -151,15 +160,25 @@ export default function LowStockPage() {
                             {p.stock_current === 0 ? 'Out' : `▲ ${p.stock_current}`}
                           </span>
                         </td>
-                        <td className="px-2 py-4 text-right">
-                          <button
-                            type="button"
-                            title="ซ่อนจากแจ้งเตือน"
-                            onClick={e => { e.stopPropagation(); setProductIgnored(p.id, true) }}
-                            className="text-slate-300 hover:text-slate-700 p-1.5 rounded-lg hover:bg-slate-100 transition-colors"
-                          >
-                            <EyeOff size={15} />
-                          </button>
+                        <td className="px-2 py-4">
+                          <div className="flex items-center justify-end gap-0.5">
+                            <button
+                              type="button"
+                              title="ซ่อนจากแจ้งเตือน"
+                              onClick={e => { e.stopPropagation(); setProductIgnored(p.id, true) }}
+                              className="text-slate-300 hover:text-slate-700 p-1.5 rounded-lg hover:bg-slate-100 transition-colors"
+                            >
+                              <EyeOff size={15} />
+                            </button>
+                            <button
+                              type="button"
+                              title="ลบสินค้า"
+                              onClick={e => { e.stopPropagation(); setDeleteTarget(p) }}
+                              className="text-slate-300 hover:text-red-600 p-1.5 rounded-lg hover:bg-red-50 transition-colors"
+                            >
+                              <Trash2 size={15} />
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     ))}
@@ -255,13 +274,22 @@ export default function LowStockPage() {
                     <p className="font-medium text-slate-700 text-sm truncate">{p.name}</p>
                     <p className="text-xs text-slate-400 font-mono">{p.sku} · คงเหลือ {p.stock_current}</p>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => setProductIgnored(p.id, false)}
-                    className="flex items-center gap-1.5 text-xs font-medium text-emerald-600 hover:text-emerald-700 shrink-0"
-                  >
-                    <Eye size={14} /> เปิดแจ้งเตือน
-                  </button>
+                  <div className="flex items-center gap-3 shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => setProductIgnored(p.id, false)}
+                      className="flex items-center gap-1.5 text-xs font-medium text-emerald-600 hover:text-emerald-700"
+                    >
+                      <Eye size={14} /> เปิดแจ้งเตือน
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setDeleteTarget(p)}
+                      className="flex items-center gap-1.5 text-xs font-medium text-red-600 hover:text-red-700"
+                    >
+                      <Trash2 size={14} /> ลบ
+                    </button>
+                  </div>
                 </div>
               ))}
               {ignoredVariants.map(v => (
@@ -281,6 +309,38 @@ export default function LowStockPage() {
               ))}
             </div>
           )}
+        </div>
+      )}
+
+      {/* Delete confirmation */}
+      {deleteTarget && (
+        <div
+          className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4"
+          onClick={() => setDeleteTarget(null)}
+        >
+          <div className="bg-white rounded-2xl p-6 max-w-sm w-full" onClick={e => e.stopPropagation()}>
+            <h3 className="font-semibold text-slate-900">ลบสินค้า</h3>
+            <p className="text-sm text-slate-500 mt-2">
+              ลบ <span className="font-medium text-slate-800">{deleteTarget.name}</span> ออกจากคลัง?
+              จะหายจากแจ้งเตือนและคลังสินค้า แต่ยังกู้คืนได้ที่ ตั้งค่า → สินค้าที่ถูกลบ
+            </p>
+            <div className="flex justify-end gap-2 mt-5">
+              <button
+                type="button"
+                onClick={() => setDeleteTarget(null)}
+                className="px-4 py-2 rounded-xl text-sm font-medium border border-slate-200 text-slate-700 hover:bg-slate-50 transition-colors"
+              >
+                ยกเลิก
+              </button>
+              <button
+                type="button"
+                onClick={confirmDelete}
+                className="px-4 py-2 rounded-xl text-sm font-medium bg-red-600 text-white hover:bg-red-700 transition-colors"
+              >
+                ลบ
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
