@@ -80,6 +80,7 @@ export default function DailyClosePage() {
   const [countedInput, setCountedInput] = useState('')
   const [note, setNote] = useState('')
   const [busy, setBusy] = useState(false)
+  const [editing, setEditing] = useState(false)
 
   async function load() {
     setLoading(true)
@@ -118,14 +119,22 @@ export default function DailyClosePage() {
         opening_float: Number(floatInput) || 0,
         note,
       })
-      notify('success', 'ปิดยอดแล้ว')
-      setCountedInput(''); setNote('')
+      notify('success', editing ? 'แก้ไขยอดแล้ว' : 'ปิดยอดแล้ว')
+      setCountedInput(''); setNote(''); setEditing(false)
       await load()
     } catch (e: any) {
       notify('error', e?.message || 'ปิดยอดไม่สำเร็จ')
     } finally {
       setBusy(false)
     }
+  }
+
+  function startEdit() {
+    if (!data?.close) return
+    setFloatInput(String(data.close.opening_float ?? 0))
+    setCountedInput(String(data.close.counted_cash ?? 0))
+    setNote(data.close.note ?? '')
+    setEditing(true)
   }
 
   if (loading || !data) return <div className="p-8 text-sm text-slate-400">กำลังโหลด...</div>
@@ -148,7 +157,10 @@ export default function DailyClosePage() {
         </div>
       )}
 
-      <SummaryCards totals={data.totals} />
+      <div className="space-y-2">
+        <p className="text-xs text-slate-400">ยอดขายวันนี้ แยกตามวิธีจ่าย (ระบบรวมให้อัตโนมัติจากที่บันทึกไว้ — ไม่ต้องกรอกเอง)</p>
+        <SummaryCards totals={data.totals} />
+      </div>
 
       {data.status === 'none' && (
         <div className="bg-white border border-slate-200 rounded-2xl p-6 space-y-4">
@@ -163,9 +175,9 @@ export default function DailyClosePage() {
         </div>
       )}
 
-      {data.status === 'open' && (
+      {(data.status === 'open' || editing) && (
         <div className="bg-white border border-slate-200 rounded-2xl p-6 space-y-4">
-          <h2 className="font-semibold text-slate-900 flex items-center gap-2"><Lock size={16} /> ปิดยอด</h2>
+          <h2 className="font-semibold text-slate-900 flex items-center gap-2"><Lock size={16} /> {editing ? 'แก้ไขยอดที่ปิด' : 'ปิดยอด'}</h2>
           <div className="grid grid-cols-2 gap-3 text-sm">
             <div>
               <label className="block text-xs text-slate-500">เงินตั้งต้น</label>
@@ -190,16 +202,30 @@ export default function DailyClosePage() {
           )}
           <textarea value={note} onChange={e => setNote(e.target.value)} placeholder="หมายเหตุ (ถ้าเงินไม่ตรง)"
             className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm" rows={2} />
-          <button type="button" onClick={handleClose} disabled={busy || countedInput === ''}
-            className="bg-slate-900 text-white rounded-xl px-4 py-2 text-sm font-medium disabled:opacity-50">
-            บันทึกปิดยอด
-          </button>
+          <div className="flex gap-2">
+            <button type="button" onClick={handleClose} disabled={busy || countedInput === ''}
+              className="bg-slate-900 text-white rounded-xl px-4 py-2 text-sm font-medium disabled:opacity-50">
+              {editing ? 'บันทึกการแก้ไข' : 'บันทึกปิดยอด'}
+            </button>
+            {editing && (
+              <button type="button" onClick={() => { setEditing(false); setCountedInput(''); setNote('') }} disabled={busy}
+                className="border border-slate-200 text-slate-700 rounded-xl px-4 py-2 text-sm font-medium disabled:opacity-50">
+                ยกเลิก
+              </button>
+            )}
+          </div>
         </div>
       )}
 
-      {data.status === 'closed' && data.close && (
+      {data.status === 'closed' && data.close && !editing && (
         <div className="bg-white border border-slate-200 rounded-2xl p-6 space-y-2 text-sm">
-          <h2 className="font-semibold text-slate-900 mb-2">ปิดยอดแล้ว</h2>
+          <div className="flex items-center justify-between mb-2">
+            <h2 className="font-semibold text-slate-900">ปิดยอดแล้ว</h2>
+            <button type="button" onClick={startEdit}
+              className="border border-slate-200 text-slate-700 rounded-lg px-3 py-1.5 text-xs font-medium hover:bg-slate-50">
+              แก้ไข
+            </button>
+          </div>
           <div className="flex justify-between"><span className="text-slate-500">เงินตั้งต้น</span><span>{baht(data.close.opening_float)}</span></div>
           <div className="flex justify-between"><span className="text-slate-500">เงินสดที่ควรมี</span><span>{baht(data.close.expected_cash)}</span></div>
           <div className="flex justify-between"><span className="text-slate-500">นับได้จริง</span><span>{baht(data.close.counted_cash)}</span></div>
