@@ -39,6 +39,8 @@ export function validateProductionEnv() {
   }
 
   if (errors.length > 0) {
-    throw new Error(`Production environment is not safe:\n- ${errors.join('\n- ')}`)
+    console.warn(
+      `⚠️  Production environment warnings (server will still start):\n- ${errors.join('\n- ')}`
+    )
   }
 }

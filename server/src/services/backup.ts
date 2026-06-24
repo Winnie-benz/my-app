@@ -2,6 +2,7 @@ import fs from 'fs'
 import path from 'path'
 import Database from 'libsql'
 import db, { DATA_DIR, DB_PATH } from '../db/database'
+import { pad2, thaiClockParts, thaiDateKey, thaiNowDate } from '../utils/time'
 
 const BACKUP_DIR  = path.join(DATA_DIR, 'backups')
 const EXPORT_DIR  = path.join(DATA_DIR, 'exports')
@@ -15,10 +16,9 @@ if (!fs.existsSync(BACKUP_DIR)) fs.mkdirSync(BACKUP_DIR, { recursive: true })
 if (!fs.existsSync(EXPORT_DIR)) fs.mkdirSync(EXPORT_DIR, { recursive: true })
 
 function timestamp(): string {
-  const d = new Date()
-  const pad = (n: number) => String(n).padStart(2, '0')
+  const d = thaiNowDate()
   const ms = String(d.getMilliseconds()).padStart(3, '0')
-  return `${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}_${pad(d.getHours())}${pad(d.getMinutes())}${pad(d.getSeconds())}${ms}`
+  return `${d.getUTCFullYear()}${pad2(d.getUTCMonth() + 1)}${pad2(d.getUTCDate())}_${pad2(d.getUTCHours())}${pad2(d.getUTCMinutes())}${pad2(d.getUTCSeconds())}${ms}`
 }
 
 const USE_REMOTE = !!(process.env.TURSO_DATABASE_URL && process.env.TURSO_AUTH_TOKEN)
@@ -51,9 +51,7 @@ export function createBackup(
 }
 
 function todayStr(): string {
-  const d = new Date()
-  const pad = (n: number) => String(n).padStart(2, '0')
-  return `${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}`
+  return thaiDateKey()
 }
 
 function alreadyBackedUpToday(tag: 'daily' | 'weekly'): boolean {
@@ -76,15 +74,12 @@ function quoteIdent(name: string): string {
 }
 
 function exportTimestamp(): string {
-  const d = new Date()
-  const pad = (n: number) => String(n).padStart(2, '0')
-  return `${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}_${pad(d.getHours())}${pad(d.getMinutes())}${pad(d.getSeconds())}`
+  const d = thaiNowDate()
+  return `${d.getUTCFullYear()}${pad2(d.getUTCMonth() + 1)}${pad2(d.getUTCDate())}_${pad2(d.getUTCHours())}${pad2(d.getUTCMinutes())}${pad2(d.getUTCSeconds())}`
 }
 
 function exportTodayStr(): string {
-  const d = new Date()
-  const pad = (n: number) => String(n).padStart(2, '0')
-  return `${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}`
+  return thaiDateKey()
 }
 
 type ExportEntry = { filename: string; size: number; created_at: string }
@@ -247,18 +242,17 @@ export function scheduleAutoBackup() {
   }
 
   try {
-    const now = new Date()
-    if (now.getHours() >= EXPORT_HOUR) maybeExport('catchup')
+    const now = thaiClockParts()
+    if (now.hour >= EXPORT_HOUR) maybeExport('catchup')
   } catch (e) {
     console.error('Export backup catch-up failed:', e)
   }
 
   setInterval(() => {
-    const now = new Date()
-    const hour = now.getHours()
+    const now = thaiClockParts()
 
     try {
-      if (hour === EXPORT_HOUR) maybeExport('auto')
+      if (now.hour === EXPORT_HOUR) maybeExport('auto')
     } catch (e) {
       console.error('Export backup failed:', e)
     }
