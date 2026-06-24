@@ -212,11 +212,13 @@ router.get('/monthly', (req: Request, res: Response) => {
   `).all(month)
 
   const lens_type_breakdown = db.prepare(`
-    SELECT COALESCE(NULLIF(lens_type,''), 'other') as lens_type, COUNT(*) as cnt
+    SELECT COALESCE(NULLIF(json_extract(lens_data, '$.lens_type'),''), 'other') as lens_type,
+           COUNT(*) as cnt
     FROM purchases
     WHERE COALESCE(voided_at, '') = ''
       AND strftime('%Y-%m', date) = ?
-      AND lens_type != ''
+      AND json_extract(lens_data, '$.enabled') = 1
+      AND COALESCE(json_extract(lens_data, '$.lens_type'), '') != ''
     GROUP BY lens_type
     ORDER BY cnt DESC
   `).all(month)

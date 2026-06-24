@@ -333,14 +333,14 @@ router.post('/', (req: Request, res: Response) => {
          payment_status, paid_amount, order_status, cost_lens, cost_frame, cost_other,
          prev_rx_data, order_rx_data, lens_variant_id_r, lens_variant_id_l,
          sold_by_staff_id, sold_by_name,
-         stock_override_data, stock_override_by, stock_override_at, created_at)
+         stock_override_data, stock_override_by, stock_override_at, lens_type, created_at)
       VALUES
         (@id, @customer_id, @date, @lens_data, @frame_data, @other_data,
          @price_lens, @price_frame, @price_other, @special_discount, @total, @pickup_date, @pickup_time,
          @payment_status, @paid_amount, 'waiting', @cost_lens, @cost_frame, @cost_other,
          @prev_rx_data, @order_rx_data, @lens_variant_id_r, @lens_variant_id_l,
          @sold_by_staff_id, @sold_by_name,
-         @stock_override_data, @stock_override_by, @stock_override_at, @created_at)
+         @stock_override_data, @stock_override_by, @stock_override_at, @lens_type, @created_at)
     `).run({
       id,
       customer_id:       customerId,
@@ -369,6 +369,7 @@ router.post('/', (req: Request, res: Response) => {
       stock_override_data: override?.data ?? null,
       stock_override_by:   override?.by ?? '',
       stock_override_at:   override?.at ?? '',
+      lens_type:           (d.lens as any)?.lens_type ?? '',
       created_at:          nowTH(),
     })
 
@@ -513,7 +514,8 @@ router.put('/:purchaseId', (req: Request, res: Response) => {
         lens_variant_id_r = @lens_variant_id_r, lens_variant_id_l = @lens_variant_id_l,
         stock_override_data = @stock_override_data,
         stock_override_by = @stock_override_by,
-        stock_override_at = @stock_override_at
+        stock_override_at = @stock_override_at,
+        lens_type = @lens_type
       WHERE id = @id
     `).run({
       id:                purchaseId,
@@ -538,6 +540,7 @@ router.put('/:purchaseId', (req: Request, res: Response) => {
       stock_override_data: override?.data ?? null,
       stock_override_by:   override?.by ?? '',
       stock_override_at:   override?.at ?? '',
+      lens_type:           (d.lens as any)?.lens_type ?? '',
       created_at:          nowTH(),
     })
 
