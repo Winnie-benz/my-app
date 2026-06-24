@@ -111,6 +111,10 @@ function safeNumber(value: number | undefined | null): number {
   return Number.isFinite(value) ? Number(value) : 0
 }
 
+function sameBrand(a?: string, b?: string): boolean {
+  return (a ?? '').trim().toLowerCase() === (b ?? '').trim().toLowerCase()
+}
+
 // ── Sub-components (defined OUTSIDE to preserve identity across re-renders) ───
 
 interface PriceRowProps {
@@ -665,6 +669,11 @@ export default function PurchaseForm({ customerId, initial, onSubmit, onClose }:
 
   // Lens variant picker — sync R/L variant_ids into form
   const pickerProduct = lensProducts.find(p => p.id === pickerProdId) ?? null
+  const filteredLensProducts = useMemo(() => {
+    const brand = lensBrand?.trim()
+    if (!brand) return lensProducts
+    return lensProducts.filter(p => sameBrand(p.brand, brand))
+  }, [lensProducts, lensBrand])
 
   const pickerSphRange = useMemo(() =>
     pickerProduct ? makePickerRange(pickerProduct.sph_max, pickerProduct.sph_min, pickerProduct.sph_step) : [],
@@ -696,6 +705,16 @@ export default function PurchaseForm({ customerId, initial, onSubmit, onClose }:
     if (lensKind === 'stock_store' && pickerProduct?.brand && !lensBrand) {
       setValue('lens.brand', pickerProduct.brand)
     }
+  }, [lensKind, lensBrand, pickerProduct, setValue])
+
+  useEffect(() => {
+    if (lensKind !== 'stock_store' || !pickerProduct || !lensBrand) return
+    if (sameBrand(pickerProduct.brand, lensBrand)) return
+
+    setPickerProdId(null)
+    setPickerSphR(''); setPickerCylR(''); setPickerSphL(''); setPickerCylL('')
+    setValue('lens_variant_id_r', null)
+    setValue('lens_variant_id_l', null)
   }, [lensKind, lensBrand, pickerProduct, setValue])
 
   const showLensBarcode  = lensKind === 'stock_store' && lensProducts.length === 0
@@ -1109,7 +1128,7 @@ export default function PurchaseForm({ customerId, initial, onSubmit, onClose }:
                         setPickerProdId(prodId)
                         setPickerSphR(''); setPickerCylR(''); setPickerSphL(''); setPickerCylL('')
                         if (prodId) {
-                          const lp = lensProducts.find(p => p.id === prodId)
+                          const lp = filteredLensProducts.find(p => p.id === prodId)
                           if (lp && lp.sell_price > 0) {
                             setValue('price_lens.full' as any, lp.sell_price, { shouldDirty: true, shouldValidate: true })
                             setValue('price_lens.discounted' as any, lp.sell_price, { shouldDirty: true, shouldValidate: true })
@@ -1120,10 +1139,15 @@ export default function PurchaseForm({ customerId, initial, onSubmit, onClose }:
                       className="w-full border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-violet-400 bg-white"
                     >
                       <option value="">— เลือกสินค้าเลนส์ —</option>
-                      {lensProducts.map(p => (
+                      {filteredLensProducts.map(p => (
                         <option key={p.id} value={p.id}>{p.brand} {p.series} {p.lens_index && `(${p.lens_index})`}</option>
                       ))}
                     </select>
+                    {lensBrand && filteredLensProducts.length === 0 && (
+                      <p className="text-xs text-amber-700 bg-amber-50 border border-amber-100 rounded-lg px-3 py-2">
+                        ยังไม่มีสินค้าเลนส์ Stock หน้าร้านของ {lensBrand}
+                      </p>
+                    )}
 
                     {/* R / L pickers */}
                     {pickerProdId && (

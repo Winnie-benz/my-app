@@ -25,6 +25,8 @@
    - เพิ่ม field `lens.brand` ใน purchase data
    - ใช้รายชื่อยี่ห้อเป็น dropdown ตามรายการล่าสุด: Essilor, Hoya, Nikon, Rodenstock, TOG, HITOP, Zeiss
    - ถ้าเลือกเลนส์แบบ `stock_store` จาก lens picker ระบบจะเติมยี่ห้อให้อัตโนมัติ
+   - dropdown สีม่วงของ `สต็อกเลนส์ (ตัดอัตโนมัติ)` filter ตามยี่ห้อที่เลือก เช่นเลือก Hoya จะแสดงเฉพาะ stock lens ของ Hoya
+   - ถ้าเปลี่ยนยี่ห้อหลังเลือก stock lens ไว้ ระบบจะเคลียร์สินค้า/ค่าสายตาที่ไม่ตรงยี่ห้อให้
    - รองรับทั้ง create + edit
    - รายชื่อยี่ห้อถูกย้ายไปใช้ shared constant เดียวกันที่ `src/constants/lensBrands.ts`
 
@@ -52,6 +54,7 @@
    - หลังปรับ dropdown เป็น 7 ยี่ห้อตามรายการล่าสุด รัน `npx tsc --noEmit` + `npm run build` ที่ root ผ่านอีกครั้ง
    - หลังเพิ่ม dropdown หน้า `สินค้าเลนส์` รัน `npx tsc --noEmit` + `npm run build` ที่ root ผ่านอีกครั้ง
    - หลังเพิ่ม dropdown `ประเภทเลนส์` + `Index` หน้า `สินค้าเลนส์` รัน `npx tsc --noEmit` + `npm run build` ที่ root ผ่านอีกครั้ง
+   - หลัง filter dropdown stock lens ตามยี่ห้อในฟอร์มขาย รัน `npx tsc --noEmit` + `npm run build` ที่ root ผ่านอีกครั้ง
    - dev server มีอยู่แล้ว 1 ชุด: `http://localhost:5173` ได้ 200 และ `http://localhost:3001/api/health` ได้ 200
    - รัน SQL breakdown ใหม่ผ่าน `server/dist` + `server/.env` กับ Turso จริงแล้ว ได้ผลลัพธ์เดือน `2026-06` ออกมาเป็น sample brand เช่น `Essi`, `Hoya`
 
