@@ -16,9 +16,10 @@ export type Product = {
   avg_cost: number
   note: string
   reorder_point: number
+  low_stock_ignored?: number
 }
 
-export type ProductFormData = Omit<Product, 'id' | 'avg_cost'>
+export type ProductFormData = Omit<Product, 'id' | 'avg_cost' | 'low_stock_ignored'>
 
 export type StockCheckEntry = {
   product: Product
@@ -100,4 +101,5 @@ export type LensVariant = {
   stock_qty: number
   cost: number
   created_at: string
+  low_stock_ignored?: number
 }

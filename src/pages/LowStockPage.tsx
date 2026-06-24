@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, EyeOff, Eye, ChevronDown } from 'lucide-react'
 import { useProductStore } from '../store/useProductStore'
 import { CategoryBadge } from '../components/Badge'
 import { api } from '../services/api'
+import { notify } from '../utils/notify'
 
 interface ZeroVariant {
   id: number
@@ -22,15 +23,52 @@ interface ZeroVariant {
 export default function LowStockPage() {
   const navigate = useNavigate()
   const products = useProductStore(s => s.products)
-  const lowStockItems = products.filter(p => p.stock_current <= (p.reorder_point ?? 1))
+  const fetchProducts = useProductStore(s => s.fetchProducts)
+
+  const lowStockItems = products.filter(p => p.stock_current <= (p.reorder_point ?? 1) && !p.low_stock_ignored)
+  const ignoredProducts = products.filter(p => !!p.low_stock_ignored)
 
   const [zeroVariants, setZeroVariants] = useState<ZeroVariant[]>([])
+  const [ignoredVariants, setIgnoredVariants] = useState<ZeroVariant[]>([])
+  const [showHidden, setShowHidden] = useState(false)
+
+  async function refreshVariants() {
+    try {
+      const [active, ignored] = await Promise.all([
+        api.lensProducts.zeroStock(),
+        api.lensProducts.zeroStockIgnored(),
+      ])
+      setZeroVariants(active.data)
+      setIgnoredVariants(ignored.data)
+    } catch {
+      /* keep current view on transient errors */
+    }
+  }
 
   useEffect(() => {
-    api.lensProducts.zeroStock().then(r => setZeroVariants(r.data)).catch(() => {})
+    refreshVariants()
   }, [])
 
+  async function setProductIgnored(id: number, ignored: boolean) {
+    try {
+      await api.products.ignoreLowStock(id, ignored)
+      await fetchProducts()
+    } catch {
+      notify('error', ignored ? 'ซ่อนจากแจ้งเตือนไม่สำเร็จ' : 'เปิดแจ้งเตือนไม่สำเร็จ')
+    }
+  }
+
+  async function setVariantIgnored(id: number, ignored: boolean) {
+    try {
+      await api.lensProducts.ignoreVariantLowStock(id, ignored)
+      await refreshVariants()
+    } catch {
+      notify('error', ignored ? 'ซ่อนจากแจ้งเตือนไม่สำเร็จ' : 'เปิดแจ้งเตือนไม่สำเร็จ')
+    }
+  }
+
   const totalAlerts = lowStockItems.length + zeroVariants.length
+  const hiddenCount = ignoredProducts.length + ignoredVariants.length
 
   return (
     <div className="max-w-3xl mx-auto px-4 sm:px-6 py-6 space-y-6">
@@ -80,6 +118,7 @@ export default function LowStockPage() {
                           {h}
                         </th>
                       ))}
+                      <th className="w-10" />
                     </tr>
                   </thead>
                   <tbody>
@@ -112,6 +151,16 @@ export default function LowStockPage() {
                             {p.stock_current === 0 ? 'Out' : `▲ ${p.stock_current}`}
                           </span>
                         </td>
+                        <td className="px-2 py-4 text-right">
+                          <button
+                            type="button"
+                            title="ซ่อนจากแจ้งเตือน"
+                            onClick={e => { e.stopPropagation(); setProductIgnored(p.id, true) }}
+                            className="text-slate-300 hover:text-slate-700 p-1.5 rounded-lg hover:bg-slate-100 transition-colors"
+                          >
+                            <EyeOff size={15} />
+                          </button>
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -138,6 +187,7 @@ export default function LowStockPage() {
                           {h}
                         </th>
                       ))}
+                      <th className="w-10" />
                     </tr>
                   </thead>
                   <tbody>
@@ -166,6 +216,16 @@ export default function LowStockPage() {
                             Out
                           </span>
                         </td>
+                        <td className="px-2 py-4 text-right">
+                          <button
+                            type="button"
+                            title="ซ่อนจากแจ้งเตือน"
+                            onClick={e => { e.stopPropagation(); setVariantIgnored(v.id, true) }}
+                            className="text-slate-300 hover:text-slate-700 p-1.5 rounded-lg hover:bg-slate-100 transition-colors"
+                          >
+                            <EyeOff size={15} />
+                          </button>
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -174,6 +234,54 @@ export default function LowStockPage() {
             </div>
           )}
         </>
+      )}
+
+      {/* Hidden-from-alert section */}
+      {hiddenCount > 0 && (
+        <div className="space-y-2">
+          <button
+            type="button"
+            onClick={() => setShowHidden(v => !v)}
+            className="flex items-center gap-1.5 text-xs font-semibold text-slate-400 uppercase tracking-wider hover:text-slate-600 transition-colors"
+          >
+            <ChevronDown size={14} className={`transition-transform ${showHidden ? '' : '-rotate-90'}`} />
+            ซ่อนจากแจ้งเตือนแล้ว ({hiddenCount})
+          </button>
+          {showHidden && (
+            <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden divide-y divide-slate-100">
+              {ignoredProducts.map(p => (
+                <div key={`p-${p.id}`} className="flex items-center justify-between px-5 py-3 gap-3">
+                  <div className="min-w-0">
+                    <p className="font-medium text-slate-700 text-sm truncate">{p.name}</p>
+                    <p className="text-xs text-slate-400 font-mono">{p.sku} · คงเหลือ {p.stock_current}</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setProductIgnored(p.id, false)}
+                    className="flex items-center gap-1.5 text-xs font-medium text-emerald-600 hover:text-emerald-700 shrink-0"
+                  >
+                    <Eye size={14} /> เปิดแจ้งเตือน
+                  </button>
+                </div>
+              ))}
+              {ignoredVariants.map(v => (
+                <div key={`v-${v.id}`} className="flex items-center justify-between px-5 py-3 gap-3">
+                  <div className="min-w-0">
+                    <p className="font-medium text-slate-700 text-sm truncate">{v.brand} {v.series}</p>
+                    <p className="text-xs text-slate-400">{v.sph} / {v.cyl} · {v.sku || '-'}</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setVariantIgnored(v.id, false)}
+                    className="flex items-center gap-1.5 text-xs font-medium text-emerald-600 hover:text-emerald-700 shrink-0"
+                  >
+                    <Eye size={14} /> เปิดแจ้งเตือน
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       )}
     </div>
   )

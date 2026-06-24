@@ -202,6 +202,18 @@ router.post('/:id/restore', requireAdmin, (req: Request, res: Response) => {
   res.json({ success: true, data: product })
 })
 
+// ── Low-stock alert dismissal ────────────────────────────────────────────────
+// POST { ignored?: boolean } — hide/show a product in the low-stock alert (default: hide)
+router.post('/:id/low-stock-ignore', (req: Request, res: Response) => {
+  const id = Number(req.params.id)
+  const ignored = req.body?.ignored === false ? 0 : 1
+  const existing = db.prepare("SELECT * FROM products WHERE id = ? AND COALESCE(deleted_at, '') = ''").get(id)
+  if (!existing) { res.status(404).json({ success: false, error: 'Product not found' }); return }
+  db.prepare('UPDATE products SET low_stock_ignored = ? WHERE id = ?').run(ignored, id)
+  const row = db.prepare('SELECT * FROM products WHERE id = ?').get(id)
+  res.json({ success: true, data: row })
+})
+
 // ── Stock In ─────────────────────────────────────────────────────────────────
 router.post('/:id/stock-in', (req: Request, res: Response) => {
   const id = Number(req.params.id)

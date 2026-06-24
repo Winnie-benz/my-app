@@ -161,6 +161,9 @@ try { db.exec(`ALTER TABLE products ADD COLUMN reorder_point INTEGER NOT NULL DE
 try { db.exec(`ALTER TABLE products ADD COLUMN deleted_at TEXT NOT NULL DEFAULT ''`) } catch {}
 try { db.exec(`ALTER TABLE products ADD COLUMN deleted_by TEXT NOT NULL DEFAULT ''`) } catch {}
 
+// Migration: dismiss a product from the low-stock alert (kept in stock, just not alerted)
+try { db.exec(`ALTER TABLE products ADD COLUMN low_stock_ignored INTEGER NOT NULL DEFAULT 0`) } catch {}
+
 // Migration: customer acquisition source
 try { db.exec(`ALTER TABLE customers ADD COLUMN source TEXT NOT NULL DEFAULT 'walk_in'`) } catch {}
 
@@ -267,6 +270,9 @@ try { db.exec(`ALTER TABLE lens_products ADD COLUMN default_cost REAL NOT NULL D
 
 // Migration: sell price per lens product (auto-fills price in purchase form)
 try { db.exec(`ALTER TABLE lens_products ADD COLUMN sell_price REAL NOT NULL DEFAULT 0`) } catch {}
+
+// Migration: dismiss a lens variant from the low-stock alert
+try { db.exec(`ALTER TABLE lens_variants ADD COLUMN low_stock_ignored INTEGER NOT NULL DEFAULT 0`) } catch {}
 
 // Migration: lens variant stock movement history (avg cost tracking)
 db.exec(`

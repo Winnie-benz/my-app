@@ -83,6 +83,8 @@ export const api = {
       req<any>(`/products/${id}/deduct`,    { method: 'POST', body: JSON.stringify({ qty }) }),
     movements: (id: number)                                  =>
       req<{ data: any[] }>(`/products/${id}/movements`),
+    ignoreLowStock: (id: number, ignored: boolean)          =>
+      req<{ data: any }>(`/products/${id}/low-stock-ignore`, { method: 'POST', body: JSON.stringify({ ignored }) }),
   },
 
   customers: {
@@ -234,6 +236,9 @@ export const api = {
   lensProducts: {
     list:            ()                            => req<{ data: any[] }>('/lens-products'),
     zeroStock:       ()                            => req<{ data: any[] }>('/lens-products/zero-stock'),
+    zeroStockIgnored:()                            => req<{ data: any[] }>('/lens-products/low-stock-ignored'),
+    ignoreVariantLowStock: (variantId: number, ignored: boolean) =>
+      req<{ data: any }>(`/lens-products/variants/${variantId}/low-stock-ignore`, { method: 'POST', body: JSON.stringify({ ignored }) }),
     create:          (body: unknown)               => req<{ data: any }>('/lens-products', { method: 'POST', body: JSON.stringify(body) }),
     update:          (id: number, body: unknown)   => req<{ data: any }>(`/lens-products/${id}`, { method: 'PUT', body: JSON.stringify(body) }),
     remove:          (id: number)                  => req<any>(`/lens-products/${id}`, { method: 'DELETE' }),

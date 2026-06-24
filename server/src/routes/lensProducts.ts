@@ -110,16 +110,40 @@ router.get('/variant-lookup', (req: Request, res: Response) => {
   res.json({ success: true, data: rows })
 })
 
-// GET /lens-products/zero-stock — variants with stock_qty = 0
+// GET /lens-products/zero-stock — variants with stock_qty = 0 (excluding ones dismissed from alert)
 router.get('/zero-stock', (_req: Request, res: Response) => {
   const rows = db.prepare(`
     SELECT lv.*, lp.brand, lp.series, lp.lens_type, lp.lens_index, lp.coating
     FROM lens_variants lv
     JOIN lens_products lp ON lp.id = lv.product_id
-    WHERE lv.stock_qty = 0
+    WHERE lv.stock_qty = 0 AND COALESCE(lv.low_stock_ignored, 0) = 0
     ORDER BY lp.brand, lp.series, CAST(lv.sph AS REAL) DESC, CAST(lv.cyl AS REAL) DESC
   `).all()
   res.json({ success: true, data: rows })
+})
+
+// GET /lens-products/low-stock-ignored — zero-stock variants dismissed from the alert
+router.get('/low-stock-ignored', (_req: Request, res: Response) => {
+  const rows = db.prepare(`
+    SELECT lv.*, lp.brand, lp.series, lp.lens_type, lp.lens_index, lp.coating
+    FROM lens_variants lv
+    JOIN lens_products lp ON lp.id = lv.product_id
+    WHERE lv.stock_qty = 0 AND COALESCE(lv.low_stock_ignored, 0) = 1
+    ORDER BY lp.brand, lp.series, CAST(lv.sph AS REAL) DESC, CAST(lv.cyl AS REAL) DESC
+  `).all()
+  res.json({ success: true, data: rows })
+})
+
+// POST /lens-products/variants/:variantId/low-stock-ignore { ignored?: boolean } — hide/show a variant in the alert (default: hide)
+router.post('/variants/:variantId/low-stock-ignore', (req: Request, res: Response) => {
+  const id = parseInt(req.params.variantId)
+  if (isNaN(id)) { res.status(400).json({ success: false, error: 'Invalid ID' }); return }
+  const ignored = req.body?.ignored === false ? 0 : 1
+  const existing = db.prepare('SELECT id FROM lens_variants WHERE id = ?').get(id)
+  if (!existing) { res.status(404).json({ success: false, error: 'Variant not found' }); return }
+  db.prepare('UPDATE lens_variants SET low_stock_ignored = ? WHERE id = ?').run(ignored, id)
+  const row = db.prepare('SELECT * FROM lens_variants WHERE id = ?').get(id)
+  res.json({ success: true, data: row })
 })
 
 // GET /lens-products/:id/variants
