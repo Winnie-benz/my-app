@@ -40,7 +40,7 @@ function fmtPeriod(p: string, group: string) {
 const THAI_MONTHS = ['','ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.']
 
 const LENS_TYPE_LABEL: Record<string, string> = {
-  single_vision: 'ตาเดียว', bi_focal: 'ไบโฟคัล', pal: 'โปรเกรสซีฟ', specialty: 'พิเศษ', other: 'อื่นๆ',
+  single_vision: 'SV', bi_focal: 'Bi-focal', pal: 'PAL', specialty: 'พิเศษ', other: 'อื่นๆ',
 }
 
 const SOURCE_LABEL: Record<string, string> = {
