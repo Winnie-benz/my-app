@@ -15,7 +15,58 @@
 
 ---
 
-## 🚨 อัปเดตล่าสุด: 2026-06-24 (รอบเย็น) — เครื่อง Air
+## 🚨 อัปเดตล่าสุด: 2026-06-24 (รอบดึก) — Codex / local workspace
+
+### ✅ Phase ถัดไปทำเสร็จแล้วในเครื่องนี้ — **ยังไม่ได้ push / deploy**
+
+**งานที่เสร็จในรอบนี้:**
+
+1. **Lens brand dropdown ในฟอร์มบันทึกการซื้อ**
+   - เพิ่ม field `lens.brand` ใน purchase data
+   - ใช้รายชื่อยี่ห้อเป็น dropdown ตามรายการล่าสุด: Essilor, Hoya, Nikon, Rodenstock, TOG, HITOP, Zeiss
+   - ถ้าเลือกเลนส์แบบ `stock_store` จาก lens picker ระบบจะเติมยี่ห้อให้อัตโนมัติ
+   - รองรับทั้ง create + edit
+   - รายชื่อยี่ห้อถูกย้ายไปใช้ shared constant เดียวกันที่ `src/constants/lensBrands.ts`
+
+2. **สินค้าเลนส์ — เปลี่ยนช่องยี่ห้อเป็น dropdown ชุดเดียวกัน**
+   - หน้า `/lens-products` modal เพิ่ม/แก้ไขสินค้าเลนส์ เปลี่ยน `ยี่ห้อ *` จาก text input เป็น dropdown
+   - ใช้รายการเดียวกับฟอร์มบันทึกการซื้อ
+   - เปลี่ยน `ประเภทเลนส์` เป็น dropdown: Single vision, PAL, Bifocal
+   - เปลี่ยน `Index` เป็น dropdown: 1.50, 1.56, 1.60, 1.67, 1.74
+   - ถ้า edit สินค้าเก่าที่มียี่ห้อนอกลิสต์ ระบบยังแสดงค่านั้นใน dropdown เพื่อไม่ให้ข้อมูลเดิมหาย
+
+3. **รายงานรายเดือน — เพิ่มกราฟ `ยี่ห้อเลนส์ขายดี`**
+   - `/reports/monthly` คืน `lens_brand_breakdown`
+   - หน้า `/reports` แสดงกราฟใหม่ต่อจาก “ชนิดเลนส์ที่ขาย”
+   - query ใช้ `lens_data.brand` เป็นหลัก และ fallback ไปที่ brand จาก `lens_variant`/`lens_product` สำหรับรายการเก่าแบบ stock lens
+
+4. **แสดงยี่ห้อเลนส์ในจุดที่เกี่ยวข้อง**
+   - Purchase card
+   - ใบเสร็จ
+
+5. **Verify แล้ว**
+   - `npx tsc --noEmit` ที่ root ผ่าน
+   - `npx tsc --noEmit` ที่ `server/` ผ่าน
+   - `npm run build` ที่ root ผ่าน
+   - `npm run build` ที่ `server/` ผ่าน
+   - หลังปรับ dropdown เป็น 7 ยี่ห้อตามรายการล่าสุด รัน `npx tsc --noEmit` + `npm run build` ที่ root ผ่านอีกครั้ง
+   - หลังเพิ่ม dropdown หน้า `สินค้าเลนส์` รัน `npx tsc --noEmit` + `npm run build` ที่ root ผ่านอีกครั้ง
+   - หลังเพิ่ม dropdown `ประเภทเลนส์` + `Index` หน้า `สินค้าเลนส์` รัน `npx tsc --noEmit` + `npm run build` ที่ root ผ่านอีกครั้ง
+   - dev server มีอยู่แล้ว 1 ชุด: `http://localhost:5173` ได้ 200 และ `http://localhost:3001/api/health` ได้ 200
+   - รัน SQL breakdown ใหม่ผ่าน `server/dist` + `server/.env` กับ Turso จริงแล้ว ได้ผลลัพธ์เดือน `2026-06` ออกมาเป็น sample brand เช่น `Essi`, `Hoya`
+
+### ✅ ปิดงานโดย Claude (รอบถัดมา) — push + deploy แล้ว
+- ตรวจ working tree พบว่า Codex จบรอบ lens brand + refactor `lensBrands.ts` + dropdown หน้า `/lens-products` ทิ้งไว้ (ยังไม่ push)
+- รัน code-review (สกิล) บน diff ทั้งหมด → **ไม่พบ bug** (flow brand ครบ end-to-end ผ่าน `z.record(z.unknown())` → `lens_data.$.brand` → report)
+- verify ซ้ำ: `tsc` root + server ผ่าน, `npm run build` ผ่าน
+- **push + deploy ขึ้น live แล้ว** (ดู commit ใหม่ + ยืนยัน `/api/health` = 200)
+
+### 📌 ยังเหลือ (ทำต่อได้)
+- ยังไม่ได้ spot-check ผ่าน browser UI จริง — เลี่ยงการสร้างรายการขายทดสอบเพราะ **local/live ใช้ Turso เดียวกัน** (จะเขียน test data ลงร้านจริง); read path (รายงาน) verify ผ่าน runtime SQL query แล้ว
+
+---
+
+## อัปเดตก่อนหน้า: 2026-06-24 (รอบเย็น) — เครื่อง Air
 
 ### ✅ ทุกอย่าง push + deploy ขึ้น live แล้ว — branch ตรงกับ origin (0 ahead), commit `a25b2a9`
 
@@ -45,7 +96,7 @@
 ### 🔧 Keep-alive Render — เปลี่ยนไปใช้ external แล้ว
 - **GitHub Actions cron ไม่เคย fire เลย** (มีแต่ workflow_dispatch ที่กดมือ) → พึ่งไม่ได้
 - ✅ ผู้ใช้ตั้ง **cron-job.org** ยิง `https://my-app-gjmf.onrender.com/api/health` ทุก 10 นาทีแล้ว
-- ⚠️ `.github/workflows/keep-alive.yml` **ซ้ำซ้อนแล้ว** — ยังไม่ลบ (ไม่ทำงานอยู่แล้วไม่เสียหาย) รอผู้ใช้ตัดสินใจว่าจะลบไหม
+- ✅ `.github/workflows/keep-alive.yml` **ลบแล้ว** (ซ้ำซ้อนกับ cron-job.org) — เหลือแต่ `deploy.yml`
 
 ### 📋 ไอเดียที่ผู้ใช้ฝากไว้ทำ phase หน้า
 - **Lens brand dropdown**: เพิ่ม field ยี่ห้อเลนส์ตอนเพิ่มรายการขาย → แล้วเพิ่มรายงาน "ยี่ห้อเลนส์ขายดี" (เลื่อนจากรอบนี้ตามที่ผู้ใช้เลือก)
