@@ -259,6 +259,9 @@ try { db.exec(`ALTER TABLE purchases ADD COLUMN stock_override_data TEXT DEFAULT
 try { db.exec(`ALTER TABLE purchases ADD COLUMN stock_override_by   TEXT NOT NULL DEFAULT ''`) } catch {}
 try { db.exec(`ALTER TABLE purchases ADD COLUMN stock_override_at   TEXT NOT NULL DEFAULT ''`) } catch {}
 
+// Migration: lens_type on purchases (was in CREATE TABLE but missing on older Turso instances)
+try { db.exec(`ALTER TABLE purchases ADD COLUMN lens_type TEXT NOT NULL DEFAULT ''`) } catch {}
+
 // Migration: default cost per lens product (pre-fills variant cost on creation)
 try { db.exec(`ALTER TABLE lens_products ADD COLUMN default_cost REAL NOT NULL DEFAULT 0`) } catch {}
 
