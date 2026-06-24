@@ -15,49 +15,49 @@
 
 ---
 
-## 🚨 อัปเดตล่าสุด: 2026-06-24 (รอบบ่าย) — เครื่อง Air
+## 🚨 อัปเดตล่าสุด: 2026-06-24 (รอบเย็น) — เครื่อง Air
 
-### ✅ Codex auth overhaul = PUSH + DEPLOY ขึ้น live แล้ว (commit `7b0ebbb` + `c52a80a`)
+### ✅ ทุกอย่าง push + deploy ขึ้น live แล้ว — branch ตรงกับ origin (0 ahead), commit `a25b2a9`
 
-**deploy แล้วและเซิร์ฟเวอร์รันอยู่บน live** — ยืนยันแล้วว่า:
-- frontend bundle บน live = hash เดียวกับ build ใหม่ (`index-CFHbNmBT.js`) → โค้ดใหม่ขึ้นจริง
-- backend `/api/auth/me`, `/api/auth/refresh` ตอบ 401 JSON → route ใหม่มีจริง
-- **server ไม่ crash ตอน boot** (แก้ `validateProductionEnv` ให้ warn แทน throw แล้ว — commit `c52a80a`)
-- login flow (cookie: login → me → refresh → logout) verify ผ่าน 12/12 ผ่าน curl บน local (โค้ด+Turso เดียวกับ live)
+**งานที่เสร็จในรอบนี้ (เรียงตามลำดับ):**
 
-**สิ่งที่ตัดสินใจไปในรอบนี้:**
-- `validateProductionEnv` → **warn แทน throw** (ผู้ใช้เลือก) กัน boot crash จาก env อ่อน; ปัญหายัง log เตือนอยู่ — `isWeakSecret` ปัด secret ที่ <32 ตัว หรือมีสตริง secret/password/default
-- revert Vite 8 → 5 (`@vitejs/plugin-react` ^4.3.4 + vite ^5.4.11) ตาม CLAUDE.md, build ผ่าน
-- backup.ts: timestamp เวลาไทยผ่าน `utils/time`
+1. **Codex auth overhaul (cookie) + daily-close + keep-alive** — push 5 commits ขึ้น live
+   - ยืนยัน deploy สำเร็จผ่าน `/api/health` = 200
+   - ปุ่ม "แก้ไข" ยอดที่ปิดแล้วในหน้า `/daily-close` + ป้ายกำกับการ์ดยอดอัตโนมัติ
 
-**⏳ เหลือขั้นเดียว — ต้องให้ผู้ใช้ทำเอง (classifier บล็อกการเขียน user ลง prod DB):**
-- login จริงด้วย account จริงผ่านเบราว์เซอร์บน https://my-app-gjmf.onrender.com → ใช้งาน → refresh → logout
-- ถ้าพัง: `git revert 7b0ebbb c52a80a` + push (auto-deploy กลับ Bearer เดิม)
+2. **รายงานรายเดือน — เพิ่ม 2 กราฟ** (`/reports` → สรุปรายเดือน)
+   - **ช่องทางลูกค้าใหม่**: walk_in / referral / social_media / other — *เฉพาะลูกค้าที่ซื้อครั้งแรกในเดือนนั้น* (ดึงจาก `customers.source`)
+   - **ชนิดเลนส์ที่ขาย**: SV / Bi-focal / PAL / พิเศษ / อื่นๆ
+   - ทั้งคู่เป็น **live SQL query** — แก้รายการขายเมื่อไหร่ รายงานเปลี่ยนตามทันที (ไม่เก็บยอดแยก)
 
-### ✅ "ปิดยอดรายวัน" — implement + ทดสอบเสร็จแล้ว (commit `0efd5e4`, ยังไม่ push)
-- spec/plan: `docs/superpowers/specs|plans/2026-06-24-daily-cash-close*.md`
-- ทำครบ 3 task: ตาราง `daily_closes` → backend `/api/daily-close` (today/open/close/history) → หน้า `/daily-close` + เมนู sidebar (กลุ่ม **วิเคราะห์** ข้างรายงาน)
-- **ปรับจาก plan เพื่อความถูกต้อง:**
-  - คำนวณยอด **ตัด payments ที่ voided_at != '' ออก** (กันนับยอดที่ยกเลิก)
-  - `/close` คงค่า `opened_by`/`opened_at` เดิมไว้ (plan เขียนทับเป็นค่าว่าง)
-  - เมนูอยู่กลุ่ม "วิเคราะห์" (plan บอก "ลูกค้า") — ตรงที่ผู้ใช้มองหา
-- **verify:** tsc (root+server) + build ผ่าน; ทดสอบ runtime จริงบน SQLite local (ไม่แตะ Turso prod) — auth, voided excluded, claim_payments รวม, open/close/expected_cash/difference, re-open blocked, history ผ่านทั้งหมด
-- ⚠️ ตาราง `daily_closes` ถูกสร้างใน Turso prod แล้ว (dev server respawn รัน CREATE TABLE IF NOT EXISTS) — ตารางว่าง additive ปลอดภัย
-- **ยังไม่ push** (รอจังหวะ deploy) — branch นำหน้า origin 2 commits: HANDOFF + daily-close
+3. **แก้ 3 bug ที่ทำให้รายงานรายเดือนขึ้น 0 ทั้งหมด:**
+   - `purchases.lens_type` column ไม่มีใน Turso (อยู่แต่ใน CREATE TABLE ไม่มี ALTER) → เพิ่ม migration `database.ts`
+   - `lens_type` column ไม่เคยถูก populate (ข้อมูลจริงอยู่ใน `lens_data` JSON `$.lens_type`)
+     → รายงานเปลี่ยนไปใช้ `json_extract(lens_data, '$.lens_type')`
+     → INSERT/UPDATE purchases เพิ่ม populate column ด้วย (future-proof)
+   - แก้ label เลนส์: ตาเดียว→**SV**, ไบโฟคัล→**Bi-focal**, โปรเกรสซีฟ→**PAL** (`LENS_TYPE_LABEL` ใน ReportsPage)
 
-### เสร็จแล้วในแชตนี้ (2026-06-24)
-- แก้ bug หน้า Settings crash (`loadSettings` artifacts) — push แล้ว
-- **Auto-deploy ใช้งานได้จริงแล้ว** ผ่าน GitHub Actions (`.github/workflows/deploy.yml` ยิง Render Deploy Hook) — webhook เดิมของ Render หลุด ต้องใช้วิธีนี้แทน (secret `RENDER_DEPLOY_HOOK` ตั้งใน GitHub แล้ว)
-- **Keep-alive** (`.github/workflows/keep-alive.yml`) ping ทุก 14 นาที ช่วง ~09:00–21:00 ICT กัน Render หลับ
-- ติดตั้ง **superpowers skills** (14 ตัว) ที่ `~/.claude/skills/` — *per-machine, เครื่อง Pro ต้องติดตั้งเอง:* `git clone --depth 1 https://github.com/obra/superpowers.git ~/.claude/superpowers && mkdir -p ~/.claude/skills && cp -R ~/.claude/superpowers/skills/* ~/.claude/skills/`
+4. **แก้ปัญหา local dev โหลดข้อมูลไม่สำเร็จ (สำคัญ — รู้ไว้กันงง):**
+   - ต้นเหตุ: ผู้ใช้รัน `npm run dev:all` ซ้อนหลายครั้งโดยไม่ปิดตัวเก่า → concurrently 3 ตัว + ts-node-dev 14 ตัว ทุกตัวใช้ `--respawn` แย่ง bind port 3001/5173 → request หลุดเป็นช่วงๆ
+   - แก้: `pkill -9 -f "concurrently -n FE,BE"` + `pkill -9 -f "ts-node-dev"` แล้วเริ่มใหม่ตัวเดียว
+   - **เช็คก่อนทุกครั้ง:** `pgrep -fl "concurrently -n FE,BE" | wc -l` — ถ้าได้ >1 แปลว่าซ้อน
+
+### 🔧 Keep-alive Render — เปลี่ยนไปใช้ external แล้ว
+- **GitHub Actions cron ไม่เคย fire เลย** (มีแต่ workflow_dispatch ที่กดมือ) → พึ่งไม่ได้
+- ✅ ผู้ใช้ตั้ง **cron-job.org** ยิง `https://my-app-gjmf.onrender.com/api/health` ทุก 10 นาทีแล้ว
+- ⚠️ `.github/workflows/keep-alive.yml` **ซ้ำซ้อนแล้ว** — ยังไม่ลบ (ไม่ทำงานอยู่แล้วไม่เสียหาย) รอผู้ใช้ตัดสินใจว่าจะลบไหม
+
+### 📋 ไอเดียที่ผู้ใช้ฝากไว้ทำ phase หน้า
+- **Lens brand dropdown**: เพิ่ม field ยี่ห้อเลนส์ตอนเพิ่มรายการขาย → แล้วเพิ่มรายงาน "ยี่ห้อเลนส์ขายดี" (เลื่อนจากรอบนี้ตามที่ผู้ใช้เลือก)
 
 ---
 
 ## หมายเหตุ Render
 - **URL:** `https://my-app-gjmf.onrender.com`
-- **Free tier:** หลับหลัง 15 นาที — มี keep-alive ping กันแล้ว (ช่วงร้านเปิด)
-- **Auto-deploy:** push เข้า main → GitHub Actions ยิง Deploy Hook → Render deploy เอง (ไม่ต้องกด Manual แล้ว)
+- **Free tier:** หลับหลัง 15 นาที — ตอนนี้กันด้วย **cron-job.org** (ทุก 10 นาที) ไม่ใช่ GitHub Actions แล้ว
+- **Auto-deploy:** push เข้า main → GitHub Actions ยิง Deploy Hook → Render deploy เอง (secret `RENDER_DEPLOY_HOOK` ตั้งใน GitHub แล้ว)
 - Env (JWT_SECRET, TURSO_*, CORS_ORIGIN ฯลฯ) ตั้งใน Render dashboard → Environment (แยกจาก server/.env ของ local)
+- ⚠️ **local dev ใช้ Turso เดียวกับ live** — เขียน test data ลง DB = กระทบร้านจริง ระวัง
 
 ## Stable tags
 | Tag | สถานะ |
@@ -70,10 +70,13 @@
 - รัน `npx tsc --noEmit` (ทั้ง root + server) ให้ผ่านก่อน push ทุกครั้ง
 - **verify ของจริงก่อนเคลมว่าเสร็จ** (รัน/curl/เปิดแอป ไม่ใช่แค่ build ผ่าน)
 - โปรเจกต์**ไม่มี test runner** — verify = tsc + curl/เปิดแอป
+- **สื่อสารเป็นภาษาไทย**
 
 ## สภาพแวดล้อม
 - 2 เครื่อง: **Air (M1)** + **Pro (M3)**
-- Database: Turso cloud (sync อัตโนมัติ)
-- `server/.env` ไม่อยู่ใน git — ต้องมีทุกเครื่อง
-- รัน: `cd ~/my-app && npm run dev:all` (FE :5173 + BE :3001)
+- Database: Turso cloud (sync อัตโนมัติ ทุกเครื่องเห็นข้อมูลเดียวกัน)
+- `server/.env` ไม่อยู่ใน git — ต้องมีทุกเครื่อง (มี TURSO_DATABASE_URL + TURSO_AUTH_TOKEN)
+- รัน: `cd ~/my-app && npm run dev:all` (FE :5173 + BE :3001) — **รันตัวเดียวพอ อย่ารันซ้อน**
 - Stack: React 18 + **Vite 5** (ห้าม v8 ที่ Codex เผลออัป) + Tailwind v3 + Express + better-sqlite3/libsql
+- Superpowers skills (14 ตัว) ที่ `~/.claude/skills/` — *per-machine, เครื่อง Pro ต้องติดตั้งเอง:*
+  `git clone --depth 1 https://github.com/obra/superpowers.git ~/.claude/superpowers && mkdir -p ~/.claude/skills && cp -R ~/.claude/superpowers/skills/* ~/.claude/skills/`
