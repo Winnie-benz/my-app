@@ -15,26 +15,24 @@
 
 ---
 
-## 🚨 อัปเดตล่าสุด: 2026-06-24 — เครื่อง Air (แชตนี้ยาวมาก กำลังจะเปิดแชตใหม่)
+## 🚨 อัปเดตล่าสุด: 2026-06-24 (รอบบ่าย) — เครื่อง Air
 
-### ⛔ ค้างอยู่ตรงนี้ — ห้ามข้าม (อ่านก่อนทำต่อ)
+### ✅ Codex auth overhaul = PUSH + DEPLOY ขึ้น live แล้ว (commit `7b0ebbb` + `c52a80a`)
 
-**Codex ทำ security overhaul ไว้ = commit `7b0ebbb` (commit แล้วใน local แต่ยัง PUSH ไม่ได้)**
-มันไม่ใช่แค่ soft-delete เคลม แต่รวม:
-- 🔴 **เปลี่ยนระบบ login จาก Bearer token → httpOnly cookie** (auth.ts, useAuthStore, ProtectedRoute, SessionTimeoutWarning, api.ts) — **เสี่ยงสูง ถ้าพลาด = ทุกคน login ไม่ได้**
-- rate limiting, productionEnv validation (`validateProductionEnv` crash ตอน boot ถ้า env อ่อน), audit retention, soft-delete เคลม
+**deploy แล้วและเซิร์ฟเวอร์รันอยู่บน live** — ยืนยันแล้วว่า:
+- frontend bundle บน live = hash เดียวกับ build ใหม่ (`index-CFHbNmBT.js`) → โค้ดใหม่ขึ้นจริง
+- backend `/api/auth/me`, `/api/auth/refresh` ตอบ 401 JSON → route ใหม่มีจริง
+- **server ไม่ crash ตอน boot** (แก้ `validateProductionEnv` ให้ warn แทน throw แล้ว — commit `c52a80a`)
+- login flow (cookie: login → me → refresh → logout) verify ผ่าน 12/12 ผ่าน curl บน local (โค้ด+Turso เดียวกับ live)
 
-**ยังมี uncommitted ใน working tree (ของแชตนี้):**
-- `package.json` + `package-lock.json` — **revert Vite 8 → 5 แล้ว** (vite 8 ที่ Codex อัปไม่ได้ขอ ขัด CLAUDE.md) build ผ่าน vite 5.4.21 ✅
-- `server/src/services/backup.ts` — Codex เปลี่ยน timestamp ใช้เวลาไทย (ส่วนหนึ่งของงาน)
+**สิ่งที่ตัดสินใจไปในรอบนี้:**
+- `validateProductionEnv` → **warn แทน throw** (ผู้ใช้เลือก) กัน boot crash จาก env อ่อน; ปัญหายัง log เตือนอยู่ — `isWeakSecret` ปัด secret ที่ <32 ตัว หรือมีสตริง secret/password/default
+- revert Vite 8 → 5 (`@vitejs/plugin-react` ^4.3.4 + vite ^5.4.11) ตาม CLAUDE.md, build ผ่าน
+- backup.ts: timestamp เวลาไทยผ่าน `utils/time`
 
-**ต้องทำก่อน push `7b0ebbb`:**
-1. **ทดสอบ login flow จริง** (login → ใช้งาน → refresh → logout) — build ผ่าน ≠ login ใช้ได้ การเปลี่ยนเป็น cookie คือจุดเสี่ยงสุด **ห้าม push จนกว่าจะ verify**
-2. **JWT_SECRET บน Render** — `validateProductionEnv` จะ throw ตอน boot ถ้า JWT_SECRET อ่อน → ตัวเลือก: (ก) เช็คใน Render dashboard → Environment ว่าเป็นค่ายาวสุ่ม / (ข) แก้ `server/src/config/productionEnv.ts` ให้ warn แทน throw (ปลอดภัยกว่า)
-   - หมายเหตุ: CORS_ORIGIN บน Render = `https://my-app.onrender.com` → เช็คแล้ว ผ่าน
-3. commit (backup.ts + vite revert) รวมกัน → push → auto-deploy → **ดู deploy ว่าสำเร็จ + login บน URL ยังได้**
-
-> live URL ตอนนี้ยังรันโค้ด**ก่อน** Codex (Bearer auth เดิม) เพราะ `7b0ebbb` ยังไม่ push
+**⏳ เหลือขั้นเดียว — ต้องให้ผู้ใช้ทำเอง (classifier บล็อกการเขียน user ลง prod DB):**
+- login จริงด้วย account จริงผ่านเบราว์เซอร์บน https://my-app-gjmf.onrender.com → ใช้งาน → refresh → logout
+- ถ้าพัง: `git revert 7b0ebbb c52a80a` + push (auto-deploy กลับ Bearer เดิม)
 
 ### 🎯 งานหลักที่ผู้ใช้รออยู่: "ปิดยอดรายวัน"
 - spec: `docs/superpowers/specs/2026-06-24-daily-cash-close-design.md`
