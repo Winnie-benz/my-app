@@ -114,7 +114,7 @@ const ACTION_LABEL: Record<string, string> = {
   restore: 'กู้คืน',
 }
 
-const DEFAULT_AUDIT_LIMIT = 30
+const DEFAULT_AUDIT_LIMIT = 8
 const DELETED_VISIBLE_STEP = 5
 
 function filterDeleted<T>(list: T[], search: string, fields: (item: T) => (string | undefined)[]): T[] {
