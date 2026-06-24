@@ -223,7 +223,44 @@ router.get('/monthly', (req: Request, res: Response) => {
     ORDER BY cnt DESC
   `).all(month)
 
-  res.json({ success: true, data: { month, ...summary, new_customers: newCustomers, gender, age_groups, source_breakdown, lens_type_breakdown } })
+  const lens_brand_breakdown = db.prepare(`
+    SELECT
+      COALESCE(
+        NULLIF(TRIM(json_extract(p.lens_data, '$.brand')), ''),
+        NULLIF(TRIM(lpr.brand), ''),
+        NULLIF(TRIM(lpl.brand), '')
+      ) as lens_brand,
+      COUNT(*) as cnt
+    FROM purchases p
+    LEFT JOIN lens_variants lvr ON lvr.id = p.lens_variant_id_r
+    LEFT JOIN lens_products lpr ON lpr.id = lvr.product_id
+    LEFT JOIN lens_variants lvl ON lvl.id = p.lens_variant_id_l
+    LEFT JOIN lens_products lpl ON lpl.id = lvl.product_id
+    WHERE COALESCE(p.voided_at, '') = ''
+      AND strftime('%Y-%m', p.date) = ?
+      AND json_extract(p.lens_data, '$.enabled') = 1
+      AND COALESCE(
+        NULLIF(TRIM(json_extract(p.lens_data, '$.brand')), ''),
+        NULLIF(TRIM(lpr.brand), ''),
+        NULLIF(TRIM(lpl.brand), '')
+      ) IS NOT NULL
+    GROUP BY lens_brand
+    ORDER BY cnt DESC, lens_brand ASC
+  `).all(month)
+
+  res.json({
+    success: true,
+    data: {
+      month,
+      ...summary,
+      new_customers: newCustomers,
+      gender,
+      age_groups,
+      source_breakdown,
+      lens_type_breakdown,
+      lens_brand_breakdown,
+    },
+  })
 })
 
 export default router

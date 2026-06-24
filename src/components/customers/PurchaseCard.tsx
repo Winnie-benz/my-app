@@ -181,6 +181,7 @@ export default function PurchaseCard({ record, onEdit, onPayment, onDelete, onPr
                 <span className="text-sm font-medium text-slate-800">เลนส์</span>
                 <span className="text-xs text-slate-400">
                   {LENS_TYPE_LABEL[record.lens.lens_type]}
+                  {record.lens.brand && <span>{' · '}{record.lens.brand}</span>}
                   {record.lens.lens_type === 'single_vision' && record.lens.sv_eye && (
                     <span className="ml-1 text-violet-600 font-medium">
                       ({record.lens.sv_eye === 'far' ? 'Far' : 'Near'})

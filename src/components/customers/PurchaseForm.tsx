@@ -9,6 +9,7 @@ import { useProductStore } from '../../store/useProductStore'
 import { ApiError, api } from '../../services/api'
 import type { Product, LensProduct, LensVariant } from '../../types/product'
 import { notify } from '../../utils/notify'
+import { LENS_INDEXES, lensBrandOptions } from '../../constants/lensBrands'
 
 // ── Schema ────────────────────────────────────────────────────────────────────
 
@@ -33,6 +34,7 @@ const schema = z.object({
     product_id: z.number().nullable().optional(),
     product_name: z.string().default(''),
     sku: z.string().default(''),
+    brand: z.string().default(''),
     right: eyeSchema, left: eyeSchema,
     lens_type: z.enum(['single_vision','bi_focal','pal','specialty','other']),
     sv_eye: z.enum(['far', 'near', '']).default(''),
@@ -91,7 +93,6 @@ const LENS_KINDS: { value: LensKind; label: string }[] = [
   { value: 'stock_store', label: 'Stock (หน้าร้าน)' },
   { value: 'rx',          label: 'RX'               },
 ]
-const LENS_INDEXES: LensIndex[] = ['1.50','1.56','1.60','1.67','1.74']
 const COATINGS: { value: Coating; label: string }[] = [
   { value: 'hmc',          label: 'HMC'          },
   { value: 'blue_block',   label: 'Blue Block'   },
@@ -500,7 +501,7 @@ function recordToDefaults(r: PurchaseRecord): FormValues {
     order_rx_left:    r.order_rx?.left  ?? { ...BLANK_EYE },
     lens_variant_id_r: r.lens_variant_id_r ?? null,
     lens_variant_id_l: r.lens_variant_id_l ?? null,
-    lens:     { ...r.lens, product_id: r.lens.product_id ?? null, product_name: r.lens.product_name ?? '', sku: r.lens.sku ?? '' },
+    lens:     { ...r.lens, product_id: r.lens.product_id ?? null, product_name: r.lens.product_name ?? '', sku: r.lens.sku ?? '', brand: r.lens.brand ?? '' },
     frame:    { ...r.frame, product_id: r.frame.product_id ?? null, product_name: r.frame.product_name ?? '', sku: r.frame.sku ?? '', model: r.frame.model ?? '' },
     other:    { ...r.other, product_id: r.other.product_id ?? null, product_name: r.other.product_name ?? '', sku: r.other.sku ?? '', source: r.other.source ?? 'store' },
     price_lens:  { full: r.price_lens.full,  discounted: r.price_lens.discounted  },
@@ -596,7 +597,7 @@ export default function PurchaseForm({ customerId, initial, onSubmit, onClose }:
       lens_variant_id_l: null,
       order_rx_left:    { ...BLANK_EYE },
       lens: {
-        enabled: false, product_id: null, product_name: '', sku: '',
+        enabled: false, product_id: null, product_name: '', sku: '', brand: '',
         right: { ...BLANK_EYE }, left: { ...BLANK_EYE },
         lens_type: 'single_vision', sv_eye: '' as const, lens_kind: 'rx',
         barcode: '', index: '1.56', coatings: [], notes: '',
@@ -623,6 +624,7 @@ export default function PurchaseForm({ customerId, initial, onSubmit, onClose }:
 
   const lensType    = useWatch({ control, name: 'lens.lens_type' }) as LensType
   const lensKind    = useWatch({ control, name: 'lens.lens_kind' }) as LensKind
+  const lensBrand   = useWatch({ control, name: 'lens.brand'     }) as string
   const frameSource = useWatch({ control, name: 'frame.source'   }) as 'store' | 'customer' | 'pre_order'
   const orderRxEnabled = useWatch({ control, name: 'order_rx_enabled' })
   const otherSource = useWatch({ control, name: 'other.source'   }) as 'store' | 'pre_order'
@@ -680,6 +682,8 @@ export default function PurchaseForm({ customerId, initial, onSubmit, onClose }:
     lensVariants.find(v => v.sph === pickerSphL && v.cyl === pickerCylL) ?? null,
   [lensVariants, pickerSphL, pickerCylL])
 
+  const lensBrandItems = useMemo(() => lensBrandOptions(lensBrand), [lensBrand])
+
   useEffect(() => {
     setValue('lens_variant_id_r', pickedVariantR?.id ?? null)
   }, [pickedVariantR, setValue])
@@ -687,6 +691,12 @@ export default function PurchaseForm({ customerId, initial, onSubmit, onClose }:
   useEffect(() => {
     setValue('lens_variant_id_l', pickedVariantL?.id ?? null)
   }, [pickedVariantL, setValue])
+
+  useEffect(() => {
+    if (lensKind === 'stock_store' && pickerProduct?.brand && !lensBrand) {
+      setValue('lens.brand', pickerProduct.brand)
+    }
+  }, [lensKind, lensBrand, pickerProduct, setValue])
 
   const showLensBarcode  = lensKind === 'stock_store' && lensProducts.length === 0
   const showFrameBarcode = frameSource === 'store'
@@ -1060,6 +1070,24 @@ export default function PurchaseForm({ customerId, initial, onSubmit, onClose }:
                   </div>
                 </div>
 
+                <div>
+                  <label className="block text-xs font-medium text-slate-600 mb-1">ยี่ห้อเลนส์</label>
+                  <select
+                    {...register('lens.brand')}
+                    className="w-full border border-slate-200 rounded-lg px-2.5 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-900 bg-white"
+                  >
+                    <option value="">— เลือกยี่ห้อเลนส์ —</option>
+                    {lensBrandItems.map(brand => (
+                      <option key={brand} value={brand}>{brand}</option>
+                    ))}
+                  </select>
+                  <p className="mt-1 text-[11px] text-slate-400">
+                    {lensKind === 'stock_store' && pickerProduct
+                      ? 'ดึงอัตโนมัติจากสินค้าเลนส์ที่เลือก แต่ยังแก้ได้หากต้องการ'
+                      : 'ใช้สำหรับสรุปรายงานยี่ห้อเลนส์ขายดี'}
+                  </p>
+                </div>
+
                 {/* Lens variant picker — stock_store only, split R/L */}
                 {lensKind === 'stock_store' && lensProducts.length > 0 && (
                   <div className="border border-dashed border-violet-200 rounded-xl p-3 bg-violet-50/40 space-y-3">
@@ -1086,6 +1114,7 @@ export default function PurchaseForm({ customerId, initial, onSubmit, onClose }:
                             setValue('price_lens.full' as any, lp.sell_price, { shouldDirty: true, shouldValidate: true })
                             setValue('price_lens.discounted' as any, lp.sell_price, { shouldDirty: true, shouldValidate: true })
                           }
+                          if (lp?.brand) setValue('lens.brand', lp.brand, { shouldDirty: true })
                         }
                       }}
                       className="w-full border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-violet-400 bg-white"

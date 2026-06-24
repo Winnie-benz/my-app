@@ -4,6 +4,7 @@ import { api } from '../services/api'
 import type { LensProduct, LensVariant, CheckStatus } from '../types/product'
 import { useAuthStore } from '../store/useAuthStore'
 import { useEscapeKey } from '../hooks/useEscapeKey'
+import { lensBrandOptions, lensIndexOptions, lensProductTypeOptions } from '../constants/lensBrands'
 
 // ── Range helpers ─────────────────────────────────────────────────────────────
 
@@ -135,12 +136,12 @@ function ProductFormModal({ initial, onSaved, onClose }: ProductFormModalProps) 
   }
 
   const textFields: { key: keyof typeof EMPTY_PRODUCT; label: string }[] = [
-    { key: 'brand',      label: 'ยี่ห้อ *'   },
     { key: 'series',     label: 'รุ่น/Series' },
-    { key: 'lens_type',  label: 'ประเภทเลนส์' },
-    { key: 'lens_index', label: 'Index'       },
     { key: 'coating',    label: 'Coating'     },
   ]
+  const brandOptions = lensBrandOptions(form.brand)
+  const productTypeOptions = lensProductTypeOptions(form.lens_type)
+  const indexOptions = lensIndexOptions(form.lens_index)
 
   return (
     <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
@@ -149,6 +150,20 @@ function ProductFormModal({ initial, onSaved, onClose }: ProductFormModalProps) 
           {initial ? 'แก้ไขสินค้าเลนส์' : 'เพิ่มสินค้าเลนส์'}
         </h3>
         <form onSubmit={handleSubmit} className="space-y-3">
+          <div>
+            <label className="block text-xs text-slate-500 mb-1">ยี่ห้อ *</label>
+            <select
+              value={form.brand}
+              onChange={e => set('brand', e.target.value)}
+              aria-label="ยี่ห้อ"
+              className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-900 bg-white"
+            >
+              <option value="">— เลือกยี่ห้อเลนส์ —</option>
+              {brandOptions.map(brand => (
+                <option key={brand} value={brand}>{brand}</option>
+              ))}
+            </select>
+          </div>
           {textFields.map(f => (
             <div key={f.key}>
               <label className="block text-xs text-slate-500 mb-1">{f.label}</label>
@@ -157,6 +172,34 @@ function ProductFormModal({ initial, onSaved, onClose }: ProductFormModalProps) 
                 className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-900" />
             </div>
           ))}
+          <div>
+            <label className="block text-xs text-slate-500 mb-1">ประเภทเลนส์</label>
+            <select
+              value={form.lens_type}
+              onChange={e => set('lens_type', e.target.value)}
+              aria-label="ประเภทเลนส์"
+              className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-900 bg-white"
+            >
+              <option value="">— เลือกประเภทเลนส์ —</option>
+              {productTypeOptions.map(type => (
+                <option key={type} value={type}>{type}</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="block text-xs text-slate-500 mb-1">Index</label>
+            <select
+              value={form.lens_index}
+              onChange={e => set('lens_index', e.target.value)}
+              aria-label="Index"
+              className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-900 bg-white"
+            >
+              <option value="">— เลือก Index —</option>
+              {indexOptions.map(index => (
+                <option key={index} value={index}>{index}</option>
+              ))}
+            </select>
+          </div>
           <div>
             <label className="block text-xs text-slate-500 mb-1">หมายเหตุ</label>
             <textarea value={form.note} onChange={e => set('note', e.target.value)} rows={2}

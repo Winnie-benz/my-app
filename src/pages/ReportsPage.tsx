@@ -52,6 +52,7 @@ const SOURCE_COLOR: Record<string, string> = {
 const LENS_TYPE_COLOR: Record<string, string> = {
   single_vision: '#0f172a', bi_focal: '#6366f1', pal: '#3b82f6', specialty: '#f59e0b', other: '#94a3b8',
 }
+const BRAND_COLORS = ['#0f172a', '#2563eb', '#0891b2', '#16a34a', '#f59e0b', '#db2777', '#7c3aed', '#64748b']
 
 const GENDER_LABEL: Record<string, string> = { male: 'ชาย', female: 'หญิง', unspecified: 'ไม่ระบุ' }
 const GENDER_COLOR: Record<string, string> = { male: '#3b82f6', female: '#ec4899', unspecified: '#94a3b8' }
@@ -291,6 +292,13 @@ export default function ReportsPage() {
   }))
   const lensTypeTotal = lensTypeItems.reduce((sum, l) => sum + l.count, 0)
 
+  const lensBrandItems: BarItem[] = (monthlyData?.lens_brand_breakdown ?? []).map((l: any, i: number) => ({
+    label: l.lens_brand,
+    count: l.cnt,
+    color: BRAND_COLORS[i % BRAND_COLORS.length],
+  }))
+  const lensBrandTotal = lensBrandItems.reduce((sum, l) => sum + l.count, 0)
+
   // ── Year options ────────────────────────────────────────────────────────────
   const yearOptions = Array.from({ length: now.getFullYear() - 2022 }, (_, i) => now.getFullYear() - i)
 
@@ -430,6 +438,8 @@ export default function ReportsPage() {
           <HorizBars title={`ช่องทางลูกค้าใหม่${newCustomers > 0 ? ` (${newCustomers} คน)` : ''}`} items={sourceItems} total={sourceTotal} />
           <HorizBars title="ชนิดเลนส์ที่ขาย" items={lensTypeItems} total={lensTypeTotal} />
         </div>
+
+        <HorizBars title="ยี่ห้อเลนส์ขายดี" items={lensBrandItems} total={lensBrandTotal} />
       </div>
 
       {/* ── Lifetime KPIs ─────────────────────────────────────────── */}

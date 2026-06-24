@@ -25,6 +25,7 @@ export interface LensPurchase {
   product_id?: number | null
   product_name?: string
   sku?: string
+  brand?: string
   right: EyeRx
   left: EyeRx
   lens_type: LensType

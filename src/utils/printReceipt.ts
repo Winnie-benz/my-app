@@ -42,7 +42,7 @@ export function printReceipt(record: PurchaseRecord, customer?: Customer | null)
     <div class="section">
       <div class="section-title">
         <span>เลนส์</span>
-        <span>${LENS_TYPE[record.lens.lens_type] || ''} · ${LENS_KIND[record.lens.lens_kind] || ''} · ${record.lens.index}</span>
+        <span>${[LENS_TYPE[record.lens.lens_type] || '', record.lens.brand || '', LENS_KIND[record.lens.lens_kind] || '', record.lens.index].filter(Boolean).join(' · ')}</span>
       </div>
       <table style="width:100%;font-size:12px;margin:4px 0 6px">
         <tbody>
