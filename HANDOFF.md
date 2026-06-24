@@ -34,11 +34,16 @@
 - login จริงด้วย account จริงผ่านเบราว์เซอร์บน https://my-app-gjmf.onrender.com → ใช้งาน → refresh → logout
 - ถ้าพัง: `git revert 7b0ebbb c52a80a` + push (auto-deploy กลับ Bearer เดิม)
 
-### 🎯 งานหลักที่ผู้ใช้รออยู่: "ปิดยอดรายวัน"
-- spec: `docs/superpowers/specs/2026-06-24-daily-cash-close-design.md`
-- **plan พร้อม implement: `docs/superpowers/plans/2026-06-24-daily-cash-close.md`** (3 task: ตาราง daily_closes → backend API → frontend)
-- แนวทาง: แบบ B (เปิด/ปิดกะ + เงินตั้งต้น), นับเงินค่าเคลมรวมเหมือนยอดขายปกติ, ทุกคนใช้ได้
-- **ทำหลังจาก push Codex (7b0ebbb) เสร็จเท่านั้น** (เพราะแตะ database.ts/index.ts/api.ts ที่ Codex commit ไปแล้ว — ตอนนี้เคลียร์แล้ว)
+### ✅ "ปิดยอดรายวัน" — implement + ทดสอบเสร็จแล้ว (commit `0efd5e4`, ยังไม่ push)
+- spec/plan: `docs/superpowers/specs|plans/2026-06-24-daily-cash-close*.md`
+- ทำครบ 3 task: ตาราง `daily_closes` → backend `/api/daily-close` (today/open/close/history) → หน้า `/daily-close` + เมนู sidebar (กลุ่ม **วิเคราะห์** ข้างรายงาน)
+- **ปรับจาก plan เพื่อความถูกต้อง:**
+  - คำนวณยอด **ตัด payments ที่ voided_at != '' ออก** (กันนับยอดที่ยกเลิก)
+  - `/close` คงค่า `opened_by`/`opened_at` เดิมไว้ (plan เขียนทับเป็นค่าว่าง)
+  - เมนูอยู่กลุ่ม "วิเคราะห์" (plan บอก "ลูกค้า") — ตรงที่ผู้ใช้มองหา
+- **verify:** tsc (root+server) + build ผ่าน; ทดสอบ runtime จริงบน SQLite local (ไม่แตะ Turso prod) — auth, voided excluded, claim_payments รวม, open/close/expected_cash/difference, re-open blocked, history ผ่านทั้งหมด
+- ⚠️ ตาราง `daily_closes` ถูกสร้างใน Turso prod แล้ว (dev server respawn รัน CREATE TABLE IF NOT EXISTS) — ตารางว่าง additive ปลอดภัย
+- **ยังไม่ push** (รอจังหวะ deploy) — branch นำหน้า origin 2 commits: HANDOFF + daily-close
 
 ### เสร็จแล้วในแชตนี้ (2026-06-24)
 - แก้ bug หน้า Settings crash (`loadSettings` artifacts) — push แล้ว
