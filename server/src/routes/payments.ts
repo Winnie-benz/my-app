@@ -3,6 +3,7 @@ import { z } from 'zod'
 import db from '../db/database'
 import { requireAuth } from '../middleware/requireAuth'
 import { nowTH } from '../utils/time'
+import { recordAuditLog } from '../services/auditLog'
 
 const router = Router({ mergeParams: true })
 router.use(requireAuth)
@@ -11,6 +12,38 @@ function calcStatus(total: number, paid: number): string {
   if (paid <= 0) return 'pending'
   if (paid >= total) return 'paid'
   return 'partial'
+}
+
+function actorDisplayName(req: Request): string {
+  const user = req.user
+  if (!user) return ''
+  return [user.nickname || user.first_name, user.last_name].filter(Boolean).join(' ') || user.user
+}
+
+function activePurchase(purchaseId: string) {
+  return db.prepare(
+    "SELECT * FROM purchases WHERE id = ? AND COALESCE(voided_at, '') = ''"
+  ).get(purchaseId) as any
+}
+
+function recalculatePurchasePayment(purchaseId: string) {
+  const purchase = db.prepare('SELECT * FROM purchases WHERE id = ?').get(purchaseId) as any
+  if (!purchase) return null
+
+  const row = db.prepare(`
+    SELECT COALESCE(SUM(amount), 0) AS paid_amount
+    FROM payments
+    WHERE purchase_id = ? AND COALESCE(voided_at, '') = ''
+  `).get(purchaseId) as any
+
+  const paidAmount = Number(row?.paid_amount ?? 0)
+  db.prepare(`
+    UPDATE purchases
+    SET paid_amount = ?, payment_status = ?
+    WHERE id = ?
+  `).run(paidAmount, calcStatus(Number(purchase.total ?? 0), paidAmount), purchaseId)
+
+  return db.prepare('SELECT * FROM purchases WHERE id = ?').get(purchaseId) as any
 }
 
 function rowToPurchase(row: any) {
@@ -44,11 +77,11 @@ const paymentBodySchema = z.object({
 // GET /api/purchases/:purchaseId/payments
 router.get('/', (req: Request, res: Response) => {
   const { purchaseId } = req.params
-  const purchase = db.prepare('SELECT id FROM purchases WHERE id = ?').get(purchaseId)
+  const purchase = activePurchase(purchaseId)
   if (!purchase) { res.status(404).json({ success: false, error: 'Purchase not found' }); return }
 
   const rows = db.prepare(
-    'SELECT * FROM payments WHERE purchase_id = ? ORDER BY paid_at ASC, created_at ASC'
+    "SELECT * FROM payments WHERE purchase_id = ? AND COALESCE(voided_at, '') = '' ORDER BY paid_at ASC, created_at ASC"
   ).all(purchaseId)
 
   res.json({ success: true, data: rows })
@@ -57,7 +90,7 @@ router.get('/', (req: Request, res: Response) => {
 // POST /api/purchases/:purchaseId/payments
 router.post('/', (req: Request, res: Response) => {
   const { purchaseId } = req.params
-  const purchase = db.prepare('SELECT * FROM purchases WHERE id = ?').get(purchaseId) as any
+  const purchase = activePurchase(purchaseId)
   if (!purchase) { res.status(404).json({ success: false, error: 'Purchase not found' }); return }
 
   const parsed = paymentBodySchema.safeParse(req.body)
@@ -82,27 +115,30 @@ router.post('/', (req: Request, res: Response) => {
 
   const payment  = db.prepare('SELECT * FROM payments WHERE id = ?').get(payId)
   const updated  = db.prepare('SELECT * FROM purchases WHERE id = ?').get(purchaseId) as any
+  recordAuditLog(req, 'payment', payId, 'create', null, payment)
 
   res.status(201).json({ success: true, data: payment, purchase: rowToPurchase(updated) })
 })
 
-// DELETE /api/purchases/:purchaseId/payments/:paymentId
+// DELETE /api/purchases/:purchaseId/payments/:paymentId  → reverse payment
 router.delete('/:paymentId', (req: Request, res: Response) => {
   const { purchaseId, paymentId } = req.params
-  const purchase = db.prepare('SELECT * FROM purchases WHERE id = ?').get(purchaseId) as any
+  const purchase = activePurchase(purchaseId)
   if (!purchase) { res.status(404).json({ success: false, error: 'Purchase not found' }); return }
 
   const payment = db.prepare(
-    'SELECT * FROM payments WHERE id = ? AND purchase_id = ?'
+    "SELECT * FROM payments WHERE id = ? AND purchase_id = ? AND COALESCE(voided_at, '') = ''"
   ).get(paymentId, purchaseId) as any
   if (!payment) { res.status(404).json({ success: false, error: 'Payment not found' }); return }
 
   const deleteAndUpdate = db.transaction(() => {
-    db.prepare('DELETE FROM payments WHERE id = ?').run(paymentId)
-    const newPaid = Math.max(0, (purchase.paid_amount ?? 0) - payment.amount)
-    db.prepare(
-      `UPDATE purchases SET paid_amount = ?, payment_status = ? WHERE id = ?`
-    ).run(newPaid, calcStatus(purchase.total, newPaid), purchaseId)
+    db.prepare(`
+      UPDATE payments
+      SET voided_at = ?, voided_by = ?, void_reason = ?
+      WHERE id = ?
+    `).run(nowTH(), actorDisplayName(req), 'manual reversal', paymentId)
+    recordAuditLog(req, 'payment', paymentId, 'delete', payment, db.prepare('SELECT * FROM payments WHERE id = ?').get(paymentId))
+    recalculatePurchasePayment(purchaseId)
   })
 
   deleteAndUpdate()

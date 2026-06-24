@@ -1,7 +1,8 @@
 import { Router, Request, Response } from 'express'
 import db from '../db/database'
-import { requireAuth } from '../middleware/requireAuth'
+import { requireAuth, requireAdmin } from '../middleware/requireAuth'
 import { nowTH } from '../utils/time'
+import { recordAuditLog } from '../services/auditLog'
 
 const router = Router()
 router.use(requireAuth)
@@ -38,6 +39,13 @@ function insertStatusLog(kind: string, id: string, fromStatus: string, toStatus:
   `).run(kind, id, fromStatus, toStatus, changedBy, nowTH())
 }
 
+function claimSnapshot(id: string) {
+  const claim = db.prepare('SELECT * FROM claims WHERE id = ?').get(id)
+  const items = db.prepare('SELECT * FROM claim_items WHERE claim_id = ? ORDER BY id ASC').all(id)
+  const payments = db.prepare('SELECT * FROM claim_payments WHERE claim_id = ? ORDER BY paid_at ASC, created_at ASC').all(id)
+  return { claim, items, payments }
+}
+
 // GET /claims/outstanding — claims with fee > 0 that are unpaid
 router.get('/outstanding', (_req: Request, res: Response) => {
   const rows = db.prepare(`
@@ -45,7 +53,9 @@ router.get('/outstanding', (_req: Request, res: Response) => {
            (SELECT MAX(cp.paid_at) FROM claim_payments cp WHERE cp.claim_id = cl.id) as last_payment_date
     FROM claims cl
     JOIN customers cu ON cu.customer_id = cl.customer_id
-    WHERE cl.fee > 0 AND cl.payment_status IN ('pending', 'partial')
+    WHERE COALESCE(cl.deleted_at, '') = ''
+      AND cl.fee > 0
+      AND cl.payment_status IN ('pending', 'partial')
     ORDER BY cl.created_at ASC
   `).all()
   res.json({ success: true, data: rows, count: (rows as any[]).length })
@@ -61,7 +71,22 @@ router.get('/', (_req: Request, res: Response) => {
     FROM claims cl
     JOIN customers cu ON cu.customer_id = cl.customer_id
     JOIN purchases p ON p.id = cl.purchase_id
+    WHERE COALESCE(cl.deleted_at, '') = ''
     ORDER BY cl.created_at DESC
+  `).all()
+  res.json({ success: true, data: rows })
+})
+
+router.get('/deleted', requireAdmin, (_req: Request, res: Response) => {
+  const rows = db.prepare(`
+    SELECT cl.*,
+      cu.first_name, cu.last_name, cu.phone_no,
+      p.date as purchase_date, p.total as purchase_total
+    FROM claims cl
+    JOIN customers cu ON cu.customer_id = cl.customer_id
+    JOIN purchases p ON p.id = cl.purchase_id
+    WHERE COALESCE(cl.deleted_at, '') <> ''
+    ORDER BY cl.deleted_at DESC, cl.created_at DESC
   `).all()
   res.json({ success: true, data: rows })
 })
@@ -109,7 +134,7 @@ router.post('/', (req: Request, res: Response) => {
     `).run(id, purchase_id, customer_id, claim_type ?? '', description ?? '', feeNum, payment_status, pickup_date ?? '', nowTH(), nowTH())
 
     for (const item of stockItems) {
-      const product = db.prepare('SELECT id, name, barcode, stock_current, avg_cost FROM products WHERE id = ?').get(item.product_id) as any
+      const product = db.prepare("SELECT id, name, barcode, stock_current, avg_cost FROM products WHERE id = ? AND COALESCE(deleted_at, '') = ''").get(item.product_id) as any
       if (!product) continue
       const qty = Math.max(1, Math.floor(item.qty) || 1)
       if (product.stock_current < qty) {
@@ -137,14 +162,16 @@ router.post('/', (req: Request, res: Response) => {
 
   const row = db.prepare('SELECT * FROM claims WHERE id = ?').get(id)
   const claimItems = db.prepare('SELECT * FROM claim_items WHERE claim_id = ?').all(id)
+  recordAuditLog(req, 'claim', id, 'create', null, { claim: row, items: claimItems })
   res.status(201).json({ success: true, data: row, items: claimItems })
 })
 
 // PATCH /claims/:id
 router.patch('/:id', (req: Request, res: Response) => {
   const { id } = req.params
-  const existing = db.prepare('SELECT * FROM claims WHERE id = ?').get(id) as any
+  const existing = db.prepare("SELECT * FROM claims WHERE id = ? AND COALESCE(deleted_at, '') = ''").get(id) as any
   if (!existing) { res.status(404).json({ success: false, error: 'Not found' }); return }
+  const before = claimSnapshot(id)
 
   const { status, order_status, description, fee, claim_type, pickup_date, payment_status } = req.body
   if (order_status !== undefined && !VALID_ORDER_STATUSES.includes(order_status)) {
@@ -192,29 +219,69 @@ router.patch('/:id', (req: Request, res: Response) => {
   })
   tx()
   const row = db.prepare('SELECT * FROM claims WHERE id = ?').get(id)
+  recordAuditLog(req, 'claim', id, 'update', before, claimSnapshot(id))
   res.json({ success: true, data: row })
 })
 
 // GET /claims/:id/items
 router.get('/:id/items', (req: Request, res: Response) => {
+  const claim = db.prepare("SELECT id FROM claims WHERE id = ? AND COALESCE(deleted_at, '') = ''").get(req.params.id)
+  if (!claim) { res.status(404).json({ success: false, error: 'Claim not found' }); return }
   const rows = db.prepare('SELECT * FROM claim_items WHERE claim_id = ? ORDER BY id ASC').all(req.params.id)
   res.json({ success: true, data: rows })
 })
 
 // DELETE /claims/:id
 router.delete('/:id', (req: Request, res: Response) => {
+  const existing = db.prepare("SELECT * FROM claims WHERE id = ? AND COALESCE(deleted_at, '') = ''").get(req.params.id)
+  if (!existing) { res.status(404).json({ success: false, error: 'Claim not found' }); return }
+  const before = claimSnapshot(req.params.id)
   const claimItems = db.prepare('SELECT * FROM claim_items WHERE claim_id = ?').all(req.params.id) as any[]
 
   const deleteTx = db.transaction(() => {
     for (const item of claimItems) {
       db.prepare('UPDATE products SET stock_current = stock_current + ? WHERE id = ?').run(item.qty, item.product_id)
-      db.prepare(`DELETE FROM stock_movements WHERE reference = ? AND type = 'warranty' AND product_id = ?`).run(req.params.id, item.product_id)
+      db.prepare(`INSERT INTO stock_movements (product_id, type, qty, cost, reference, note, created_at) VALUES (?, 'warranty_restore', ?, ?, ?, ?, ?)`)
+        .run(item.product_id, item.qty, item.cost ?? 0, req.params.id, 'soft delete claim', nowTH())
     }
-    db.prepare('DELETE FROM claims WHERE id = ?').run(req.params.id)
+    db.prepare('UPDATE claims SET deleted_at = ?, deleted_by = ?, updated_at = ? WHERE id = ?')
+      .run(nowTH(), actorName(req), nowTH(), req.params.id)
+    recordAuditLog(req, 'claim', req.params.id, 'delete', before, claimSnapshot(req.params.id))
   })
 
   deleteTx()
   res.json({ success: true })
+})
+
+router.post('/:id/restore', requireAdmin, (req: Request, res: Response) => {
+  const id = req.params.id
+  const existing = db.prepare("SELECT * FROM claims WHERE id = ? AND COALESCE(deleted_at, '') <> ''").get(id)
+  if (!existing) { res.status(404).json({ success: false, error: 'Deleted claim not found' }); return }
+  const before = claimSnapshot(id)
+  const claimItems = db.prepare('SELECT * FROM claim_items WHERE claim_id = ?').all(id) as any[]
+
+  const restoreTx = db.transaction(() => {
+    for (const item of claimItems) {
+      const product = db.prepare('SELECT id, name, stock_current FROM products WHERE id = ?').get(item.product_id) as any
+      if (!product) throw new Error(`ไม่พบสินค้าเดิมของเคลม: ${item.product_name}`)
+      if (product.stock_current < item.qty) {
+        throw new Error(`สินค้า "${product.name}" มีในสต็อก ${product.stock_current} ชิ้น ไม่พอสำหรับกู้คืนเคลม ${item.qty} ชิ้น`)
+      }
+      db.prepare('UPDATE products SET stock_current = stock_current - ? WHERE id = ?').run(item.qty, item.product_id)
+      db.prepare(`INSERT INTO stock_movements (product_id, type, qty, cost, reference, note, created_at) VALUES (?, 'warranty', ?, ?, ?, ?, ?)`)
+        .run(item.product_id, -item.qty, item.cost ?? 0, id, 'restore claim', nowTH())
+    }
+    db.prepare("UPDATE claims SET deleted_at = '', deleted_by = '', updated_at = ? WHERE id = ?").run(nowTH(), id)
+    recordAuditLog(req, 'claim', id, 'restore', before, claimSnapshot(id))
+    return db.prepare('SELECT * FROM claims WHERE id = ?').get(id)
+  })
+
+  try {
+    const row = restoreTx()
+    res.json({ success: true, data: row })
+  } catch (err: any) {
+    res.status(400).json({ success: false, error: err.message ?? 'Restore claim failed' })
+  }
 })
 
 export default router

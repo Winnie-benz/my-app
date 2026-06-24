@@ -82,6 +82,7 @@ export default function ClaimsPage() {
       await api.claims.remove(confirmDeleteId)
       setClaims(prev => prev.filter(c => c.id !== confirmDeleteId))
       setConfirmDeleteId(null)
+      window.dispatchEvent(new Event('claims-updated'))
     } catch { /* empty */ }
   }
 
@@ -302,7 +303,9 @@ export default function ClaimsPage() {
               <Trash2 size={16} className="text-red-500" />
               <h3 className="font-semibold text-slate-900">ยืนยันการลบ</h3>
             </div>
-            <p className="text-sm text-slate-600">ต้องการลบรายการเคลมนี้ใช่หรือไม่? ไม่สามารถกู้คืนได้</p>
+            <p className="text-sm text-slate-600">
+              รายการเคลมจะถูกซ่อนจากหน้าหลักและคืน stock ที่ใช้ไป แต่ยังกู้คืนได้จากหน้า Settings
+            </p>
             <div className="flex gap-3 pt-1">
               <button type="button" onClick={() => setConfirmDeleteId(null)}
                 className="flex-1 border border-slate-200 text-slate-600 rounded-xl py-2 text-sm font-medium hover:bg-slate-50 transition-colors">
@@ -310,7 +313,7 @@ export default function ClaimsPage() {
               </button>
               <button type="button" onClick={handleDelete}
                 className="flex-1 bg-red-500 text-white rounded-xl py-2 text-sm font-medium hover:bg-red-600 transition-colors">
-                ลบ
+                ซ่อนเคลม
               </button>
             </div>
           </div>

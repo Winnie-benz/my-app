@@ -160,7 +160,7 @@ export const useCustomerStore = create<CustomerStore>()((set, get) => ({
       useProductStore.getState().fetchProducts()
     } catch (e) {
       console.error('deletePurchase failed:', e)
-      notify('error', 'ลบรายการซื้อไม่สำเร็จ')
+      notify('error', 'ยกเลิกรายการซื้อไม่สำเร็จ')
     }
   },
 
@@ -187,7 +187,7 @@ export const useCustomerStore = create<CustomerStore>()((set, get) => ({
       return res.purchase as PurchaseRecord
     } catch (e) {
       console.error('deletePayment failed:', e)
-      notify('error', purchaseErrorMessage(e, 'ลบการชำระเงินไม่สำเร็จ'))
+      notify('error', purchaseErrorMessage(e, 'ย้อนรายการชำระเงินไม่สำเร็จ'))
       return null
     }
   },

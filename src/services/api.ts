@@ -33,13 +33,12 @@ function apiErrorMessage(payload: any, status: number): string {
 }
 
 async function req<T = unknown>(path: string, options: RequestInit = {}): Promise<T> {
-  useAuthStore.getState().refreshIfNeeded()   // silent background refresh, no await
-  const token = useAuthStore.getState().token
+  void useAuthStore.getState().refreshIfNeeded()
   const res = await fetch(`${BASE}${path}`, {
     ...options,
+    credentials: 'include',
     headers: {
       'Content-Type': 'application/json',
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
       ...(options.headers ?? {}),
     },
   })
@@ -61,6 +60,7 @@ async function req<T = unknown>(path: string, options: RequestInit = {}): Promis
   }
 
   if (!json.success) {
+    if (res.status === 401) useAuthStore.getState().clearSession()
     throw new ApiError(apiErrorMessage(json, res.status), res.status, json)
   }
   return json as T
@@ -131,6 +131,62 @@ export const api = {
   admin: {
     backupStatus: () =>
       req<{ data: { mode: 'turso' | 'local'; supports_restore: boolean; backup_dir: string; export_dir: string; auto_export_hour: number; export_retention_count: number } }>('/admin/backups/status'),
+    auditLogs: (params?: {
+      limit?: number
+      offset?: number
+      entity_type?: string
+      action?: string
+      q?: string
+      from?: string
+      to?: string
+    }) => {
+      const qs = new URLSearchParams()
+      if (params?.limit !== undefined) qs.set('limit', String(params.limit))
+      if (params?.offset !== undefined) qs.set('offset', String(params.offset))
+      if (params?.entity_type) qs.set('entity_type', params.entity_type)
+      if (params?.action) qs.set('action', params.action)
+      if (params?.q) qs.set('q', params.q)
+      if (params?.from) qs.set('from', params.from)
+      if (params?.to) qs.set('to', params.to)
+      const query = qs.toString()
+      return req<{
+        data: { id: number; entity_type: string; entity_id: string; action: string; changed_by: string; changed_at: string }[]
+        meta: { total: number; limit: number; offset: number; has_more: boolean }
+      }>(`/admin/audit-logs${query ? `?${query}` : ''}`)
+    },
+    auditLogStatus: () =>
+      req<{ data: {
+        keep_days: number
+        archive_retention_days: number
+        archive_dir: string
+        maintenance_hour: number
+        maintenance_minute: number
+        batch_size: number
+        active_count: number
+        oldest_active_changed_at: string | null
+        archive_files_count: number
+      } }>('/admin/audit-logs/status'),
+    runAuditMaintenance: () =>
+      req<{ data: {
+        archived_files: string[]
+        archived_rows: number
+        deleted_rows: number
+        policy: {
+          keep_days: number
+          archive_retention_days: number
+          archive_dir: string
+          maintenance_hour: number
+          maintenance_minute: number
+          batch_size: number
+          active_count: number
+          oldest_active_changed_at: string | null
+          archive_files_count: number
+        }
+      } }>('/admin/audit-logs/maintenance', { method: 'POST' }),
+    listAuditArchives: () =>
+      req<{ data: { filename: string; size: number; created_at: string }[] }>('/admin/audit-archives'),
+    downloadAuditArchive: (filename: string) =>
+      `${BASE}/admin/audit-archives/${encodeURIComponent(filename)}`,
     listBackups:    () =>
       req<{ data: { filename: string; size: number; created_at: string }[] }>('/admin/backups'),
     createBackup:   () =>
@@ -193,6 +249,7 @@ export const api = {
 
   claims: {
     list:        () => req<{ data: any[] }>('/claims'),
+    listDeleted: () => req<{ data: any[] }>('/claims/deleted'),
     outstanding: () => req<{ data: any[]; count: number }>('/claims/outstanding'),
     create: (body: { purchase_id: string; customer_id: string; claim_type: string; description: string; fee: number; pickup_date?: string; items?: { product_id: number; qty: number; cost: number }[] }) =>
       req<{ data: any; items: any[] }>('/claims', { method: 'POST', body: JSON.stringify(body) }),
@@ -201,6 +258,7 @@ export const api = {
       req<{ data: any }>(`/claims/${id}`, { method: 'PATCH', body: JSON.stringify(body) }),
     statusLogs: (id: string) =>
       req<{ data: any[] }>(`/claims/${id}/status-logs`),
+    restore: (id: string) => req<{ data: any }>(`/claims/${id}/restore`, { method: 'POST' }),
     remove: (id: string) => req<any>(`/claims/${id}`, { method: 'DELETE' }),
   },
 

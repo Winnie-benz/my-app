@@ -299,7 +299,7 @@ export default function OrdersPage() {
                             </button>
                           )}
                           {p.order_status === 'completed' && (
-                            <button type="button" onClick={() => setConfirmDelete(p.id)} title="ลบรายการ"
+                            <button type="button" onClick={() => setConfirmDelete(p.id)} title="ยกเลิกรายการ"
                               className="flex items-center gap-1 text-xs text-slate-400 hover:text-red-600 hover:bg-red-50 px-2 py-1.5 rounded-lg transition-colors">
                               <Trash2 size={11} />
                             </button>
@@ -373,9 +373,9 @@ export default function OrdersPage() {
       {confirmDelete && (
         <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 space-y-4">
-            <h3 className="font-semibold text-slate-900">ยืนยันการลบ</h3>
+            <h3 className="font-semibold text-slate-900">ยืนยันการยกเลิกรายการ</h3>
             <p className="text-sm text-slate-600">
-              ลบรายการนี้ออกจากระบบ? ไม่สามารถย้อนกลับได้
+              ยกเลิกรายการนี้ใช่หรือไม่? ระบบจะคืน stock และซ่อนรายการนี้จากรายการ orders
             </p>
             <div className="flex gap-3">
               <button type="button" onClick={() => setConfirmDelete(null)}
@@ -389,7 +389,7 @@ export default function OrdersPage() {
                   setConfirmDelete(null)
                 }}
                 className="flex-1 bg-red-500 text-white rounded-xl py-2 text-sm font-medium hover:bg-red-600 transition-colors">
-                ลบ
+                ยืนยันยกเลิก
               </button>
             </div>
           </div>

@@ -60,7 +60,7 @@ function insertStatusLog(kind: string, id: string, fromStatus: string, toStatus:
 
 router.get('/', (_req: Request, res: Response) => {
   const rows = db.prepare(
-    'SELECT * FROM purchases ORDER BY date DESC, created_at DESC'
+    "SELECT * FROM purchases WHERE COALESCE(voided_at, '') = '' ORDER BY date DESC, created_at DESC"
   ).all() as any[]
   res.json({ success: true, data: rows.map(rowToPurchase) })
 })
@@ -68,10 +68,11 @@ router.get('/', (_req: Request, res: Response) => {
 router.get('/outstanding', (_req: Request, res: Response) => {
   const rows = db.prepare(`
     SELECT p.*, c.first_name, c.last_name, c.phone_no,
-           (SELECT MAX(pay.paid_at) FROM payments pay WHERE pay.purchase_id = p.id) as last_payment_date
+           (SELECT MAX(pay.paid_at) FROM payments pay WHERE pay.purchase_id = p.id AND COALESCE(pay.voided_at, '') = '') as last_payment_date
     FROM purchases p
     LEFT JOIN customers c ON c.customer_id = p.customer_id
-    WHERE p.payment_status IN ('pending', 'partial')
+    WHERE COALESCE(p.voided_at, '') = ''
+      AND p.payment_status IN ('pending', 'partial')
     ORDER BY p.date ASC
   `).all() as any[]
   const data = rows.map(row => ({
@@ -87,7 +88,8 @@ router.get('/pending-costs', (_req: Request, res: Response) => {
     SELECT p.*, c.first_name, c.last_name
     FROM purchases p
     LEFT JOIN customers c ON c.customer_id = p.customer_id
-    WHERE p.cost_lens IS NULL OR p.cost_frame IS NULL OR p.cost_other IS NULL
+    WHERE COALESCE(p.voided_at, '') = ''
+      AND (p.cost_lens IS NULL OR p.cost_frame IS NULL OR p.cost_other IS NULL)
     ORDER BY p.date DESC, p.created_at DESC
   `).all() as any[]
   const data = rows.map(row => ({
@@ -110,7 +112,7 @@ router.patch('/:purchaseId/costs', (req: Request, res: Response) => {
   const { purchaseId } = req.params
   const { cost_lens, cost_frame, cost_other } = req.body
 
-  const existing = db.prepare('SELECT * FROM purchases WHERE id = ?').get(purchaseId) as any
+  const existing = db.prepare("SELECT * FROM purchases WHERE id = ? AND COALESCE(voided_at, '') = ''").get(purchaseId) as any
   if (!existing) { res.status(404).json({ success: false, error: 'Purchase not found' }); return }
 
   const updates: Record<string, number | null> = {}
@@ -125,7 +127,7 @@ router.patch('/:purchaseId/costs', (req: Request, res: Response) => {
   const setClauses = Object.keys(updates).map(k => `${k} = @${k}`).join(', ')
   db.prepare(`UPDATE purchases SET ${setClauses} WHERE id = @id`).run({ ...updates, id: purchaseId })
 
-  const updated = db.prepare('SELECT * FROM purchases WHERE id = ?').get(purchaseId) as any
+  const updated = db.prepare("SELECT * FROM purchases WHERE id = ? AND COALESCE(voided_at, '') = ''").get(purchaseId) as any
   res.json({ success: true, data: rowToPurchase(updated) })
 })
 
@@ -138,7 +140,7 @@ router.patch('/:purchaseId/status', (req: Request, res: Response) => {
     res.status(400).json({ success: false, error: 'Invalid order_status' }); return
   }
 
-  const row = db.prepare('SELECT * FROM purchases WHERE id = ?').get(purchaseId) as any
+  const row = db.prepare("SELECT * FROM purchases WHERE id = ? AND COALESCE(voided_at, '') = ''").get(purchaseId) as any
   if (!row) { res.status(404).json({ success: false, error: 'Purchase not found' }); return }
 
   const updateTx = db.transaction(() => {
@@ -147,7 +149,7 @@ router.patch('/:purchaseId/status', (req: Request, res: Response) => {
   })
   updateTx()
 
-  const updated = db.prepare('SELECT * FROM purchases WHERE id = ?').get(purchaseId) as any
+  const updated = db.prepare("SELECT * FROM purchases WHERE id = ? AND COALESCE(voided_at, '') = ''").get(purchaseId) as any
   res.json({ success: true, data: rowToPurchase(updated) })
 })
 

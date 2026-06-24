@@ -14,6 +14,8 @@ function parseExpiry(str: string): number {
 }
 
 const EXPIRES_IN_SEC = parseExpiry(process.env.JWT_EXPIRES_IN ?? '8h')
+export const TOKEN_EXPIRES_IN_SEC = EXPIRES_IN_SEC
+export const TOKEN_EXPIRES_IN_MS = EXPIRES_IN_SEC * 1000
 
 export function signToken(payload: Omit<JWTPayload, 'iat' | 'exp'>): string {
   return jwt.sign(payload, secret as string, { expiresIn: EXPIRES_IN_SEC })

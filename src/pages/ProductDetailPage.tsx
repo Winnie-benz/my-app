@@ -182,6 +182,8 @@ export default function ProductDetailPage() {
               const isIn  = m.qty > 0
               const label = m.type === 'stock_in'  ? 'รับสินค้า'
                           : m.type === 'stock_out' ? 'นำออก (ปรับ)'
+                          : m.type === 'warranty' ? 'ใช้กับเคลม/ประกัน'
+                          : m.type === 'warranty_restore' ? 'คืนจากการซ่อนเคลม'
                           : 'ขาย'
               return (
                 <div key={m.id} className="flex items-center justify-between px-5 py-3">
@@ -219,22 +221,25 @@ export default function ProductDetailPage() {
         <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 text-center">
             <p className="text-4xl mb-4">🗑</p>
-            <h2 className="font-semibold text-slate-900">Delete Product?</h2>
+            <h2 className="font-semibold text-slate-900">ซ่อนสินค้า?</h2>
             <p className="text-sm text-slate-500 mt-1 mb-5">{product.name}</p>
+            <p className="text-xs text-slate-400 mb-5">
+              สินค้าจะหายจากคลังหลัก แต่ยังกู้คืนได้จากหน้า Settings
+            </p>
             <div className="flex gap-3">
               <button
                 type="button"
                 onClick={() => setModal({ mode: 'closed' })}
                 className="flex-1 border border-slate-200 text-slate-600 text-sm py-2.5 rounded-xl hover:bg-slate-50 transition-colors"
               >
-                Cancel
+                ยกเลิก
               </button>
               <button
                 type="button"
                 onClick={() => { deleteProduct(product.id); navigate('/stock') }}
                 className="flex-1 bg-red-500 hover:bg-red-600 text-white text-sm py-2.5 rounded-xl transition-colors"
               >
-                Delete
+                ซ่อนสินค้า
               </button>
             </div>
           </div>

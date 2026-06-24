@@ -2,33 +2,31 @@ import { useEffect, useState, useRef } from 'react'
 import { Clock, LogOut, RefreshCw } from 'lucide-react'
 import { useAuthStore } from '../store/useAuthStore'
 
-function getSecondsLeft(token: string): number {
-  try {
-    const payload = JSON.parse(atob(token.split('.')[1]))
-    return Math.floor((payload.exp * 1000 - Date.now()) / 1000)
-  } catch {
-    return 0
-  }
+function getSecondsLeft(sessionExpiresAt: string | null): number {
+  if (!sessionExpiresAt) return 0
+  return Math.floor((new Date(sessionExpiresAt).getTime() - Date.now()) / 1000)
 }
 
 export default function SessionTimeoutWarning() {
-  const token         = useAuthStore(s => s.token)
+  const isAuthenticated = useAuthStore(s => s.isAuthenticated)
+  const sessionExpiresAt = useAuthStore(s => s.sessionExpiresAt)
   const logout        = useAuthStore(s => s.logout)
+  const setSession    = useAuthStore(s => s.setSession)
   const [show, setShow]           = useState(false)
   const [secondsLeft, setSeconds] = useState(0)
   const [refreshing, setRefreshing] = useState(false)
   const didAutoLogout = useRef(false)
 
   useEffect(() => {
-    if (!token) return
+    if (!isAuthenticated || !sessionExpiresAt) return
 
     const tick = () => {
-      const secs = getSecondsLeft(token)
+      const secs = getSecondsLeft(sessionExpiresAt)
       setSeconds(secs)
 
       if (secs <= 0 && !didAutoLogout.current) {
         didAutoLogout.current = true
-        logout()
+        void logout()
         return
       }
 
@@ -39,19 +37,19 @@ export default function SessionTimeoutWarning() {
     tick()
     const id = setInterval(tick, 10_000)
     return () => clearInterval(id)
-  }, [token, logout])
+  }, [isAuthenticated, sessionExpiresAt, logout])
 
   async function handleRefresh() {
-    if (!token) return
+    if (!isAuthenticated) return
     setRefreshing(true)
     try {
       const res  = await fetch('/api/auth/refresh', {
         method: 'POST',
-        headers: { Authorization: `Bearer ${token}` },
+        credentials: 'include',
       })
       const data = await res.json()
-      if (data.success && data.token) {
-        useAuthStore.setState({ token: data.token })
+      if (data.success && data.user) {
+        setSession(data.user, data.session_expires_at ?? null)
         didAutoLogout.current = false
         setShow(false)
       }

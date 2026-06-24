@@ -123,7 +123,7 @@ export default function PurchaseCard({ record, onEdit, onPayment, onDelete, onPr
               className="flex items-center gap-1 text-xs text-slate-400 hover:text-red-600 hover:bg-red-50 px-2 py-1 rounded-lg transition-colors"
             >
               <Trash2 size={12} />
-	              ลบ
+	              ยกเลิก
 	            </button>
 	          )}
 	          {open ? <ChevronUp size={16} className="text-slate-400" /> : <ChevronDown size={16} className="text-slate-400" />}
@@ -358,17 +358,17 @@ export default function PurchaseCard({ record, onEdit, onPayment, onDelete, onPr
           )}
         </div>
 	      )}
-	      <ConfirmDialog
-	        open={confirmDelete}
-	        title="ยืนยันการลบ"
-	        message="ลบรายการซื้อนี้ออกจากระบบใช่หรือไม่?"
-	        detail={`${formatDate(record.date)} · ฿${record.total.toLocaleString()}`}
-	        onCancel={() => setConfirmDelete(false)}
-	        onConfirm={() => {
-	          onDelete?.(record)
-	          setConfirmDelete(false)
-	        }}
-	      />
+      <ConfirmDialog
+        open={confirmDelete}
+        title="ยืนยันการยกเลิกรายการ"
+        message="ยกเลิกรายการซื้อนี้ใช่หรือไม่? ระบบจะคืน stock และซ่อนรายการนี้จากงานประจำ"
+        detail={`${formatDate(record.date)} · ฿${record.total.toLocaleString()}`}
+        onCancel={() => setConfirmDelete(false)}
+        onConfirm={() => {
+          onDelete?.(record)
+          setConfirmDelete(false)
+        }}
+      />
 	    </div>
 	  )
 	}

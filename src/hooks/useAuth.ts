@@ -15,7 +15,7 @@ export function useAuth() {
   )
 
   const logout = useCallback(() => {
-    store.logout()
+    void store.logout()
     navigate('/login', { replace: true })
   }, [store, navigate])
 

@@ -26,6 +26,13 @@ const UserUpdateSchema = z.object({
   password:   z.string().min(6).optional(),
 })
 
+function activeAdminCount(): number {
+  const row = db.prepare(
+    `SELECT COUNT(*) AS count FROM users WHERE role = 'admin' AND status = 'active'`
+  ).get() as { count: number }
+  return row.count
+}
+
 // GET /api/users
 router.get('/', requireAuth, requireAdmin, (_req, res) => {
   const users = db.prepare(
@@ -60,12 +67,29 @@ router.post('/', requireAuth, requireAdmin, async (req, res) => {
 // PATCH /api/users/:id
 router.patch('/:id', requireAuth, requireAdmin, async (req, res) => {
   const id = Number(req.params.id)
+  const target = db.prepare('SELECT id, role, status FROM users WHERE id = ?').get(id) as
+    | { id: number; role: 'admin' | 'staff'; status: 'active' | 'inactive' }
+    | undefined
+  if (!target) {
+    return res.status(404).json({ success: false, error: 'User not found' })
+  }
+
   const parsed = UserUpdateSchema.safeParse(req.body)
   if (!parsed.success) {
     return res.status(400).json({ success: false, error: parsed.error.errors[0].message })
   }
 
   const { password, ...fields } = parsed.data
+  const isSelf = String(id) === req.user?.staff_id
+  const willDemoteAdmin = target.role === 'admin' && fields.role === 'staff'
+  const willDeactivateAdmin = target.role === 'admin' && target.status === 'active' && fields.status === 'inactive'
+  if (isSelf && (willDemoteAdmin || willDeactivateAdmin)) {
+    return res.status(400).json({ success: false, error: 'Cannot remove admin access from your own account' })
+  }
+  if ((willDemoteAdmin || willDeactivateAdmin) && activeAdminCount() <= 1) {
+    return res.status(400).json({ success: false, error: 'Cannot remove the last active admin account' })
+  }
+
   const updates: string[] = []
   const values: any[] = []
 
@@ -90,6 +114,20 @@ router.patch('/:id', requireAuth, requireAdmin, async (req, res) => {
 // DELETE /api/users/:id
 router.delete('/:id', requireAuth, requireAdmin, (req, res) => {
   const id = Number(req.params.id)
+  if (String(id) === req.user?.staff_id) {
+    return res.status(400).json({ success: false, error: 'Cannot delete your own account' })
+  }
+
+  const target = db.prepare('SELECT id, role, status FROM users WHERE id = ?').get(id) as
+    | { id: number; role: 'admin' | 'staff'; status: 'active' | 'inactive' }
+    | undefined
+  if (!target) {
+    return res.status(404).json({ success: false, error: 'User not found' })
+  }
+  if (target.role === 'admin' && target.status === 'active' && activeAdminCount() <= 1) {
+    return res.status(400).json({ success: false, error: 'Cannot delete the last active admin account' })
+  }
+
   db.prepare('DELETE FROM users WHERE id = ?').run(id)
   return res.json({ success: true })
 })

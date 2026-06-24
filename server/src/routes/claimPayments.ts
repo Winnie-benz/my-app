@@ -19,7 +19,7 @@ const paymentBodySchema = z.object({
 })
 
 function syncStatus(claimId: string) {
-  const claim = db.prepare('SELECT fee FROM claims WHERE id = ?').get(claimId) as any
+  const claim = db.prepare("SELECT fee FROM claims WHERE id = ? AND COALESCE(deleted_at, '') = ''").get(claimId) as any
   if (!claim) return
   const { total } = db.prepare(
     'SELECT COALESCE(SUM(amount),0) as total FROM claim_payments WHERE claim_id = ?'
@@ -33,6 +33,8 @@ function syncStatus(claimId: string) {
 
 // GET /claims/:claimId/payments
 router.get('/', (req: Request, res: Response) => {
+  const claim = db.prepare("SELECT id FROM claims WHERE id = ? AND COALESCE(deleted_at, '') = ''").get(req.params.claimId)
+  if (!claim) { res.status(404).json({ success: false, error: 'Claim not found' }); return }
   const rows = db.prepare(
     'SELECT * FROM claim_payments WHERE claim_id = ? ORDER BY paid_at ASC, created_at ASC'
   ).all(req.params.claimId)
@@ -42,7 +44,7 @@ router.get('/', (req: Request, res: Response) => {
 // POST /claims/:claimId/payments
 router.post('/', (req: Request, res: Response) => {
   const { claimId } = req.params
-  const claim = db.prepare('SELECT * FROM claims WHERE id = ?').get(claimId) as any
+  const claim = db.prepare("SELECT * FROM claims WHERE id = ? AND COALESCE(deleted_at, '') = ''").get(claimId) as any
   if (!claim) { res.status(404).json({ success: false, error: 'Claim not found' }); return }
 
   const parsed = paymentBodySchema.safeParse(req.body)
@@ -71,6 +73,8 @@ router.post('/', (req: Request, res: Response) => {
 // DELETE /claims/:claimId/payments/:paymentId
 router.delete('/:paymentId', (req: Request, res: Response) => {
   const { claimId, paymentId } = req.params
+  const claim = db.prepare("SELECT id FROM claims WHERE id = ? AND COALESCE(deleted_at, '') = ''").get(claimId)
+  if (!claim) { res.status(404).json({ success: false, error: 'Claim not found' }); return }
   const existing = db.prepare('SELECT id FROM claim_payments WHERE id = ? AND claim_id = ?').get(paymentId, claimId)
   if (!existing) { res.status(404).json({ success: false, error: 'Payment not found' }); return }
   try {

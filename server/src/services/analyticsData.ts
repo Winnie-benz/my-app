@@ -61,12 +61,12 @@ export function getBusinessSnapshot(): BusinessSnapshot {
   // ── Overview ─────────────────────────────────────────────────────────────
   const overview = db.prepare(`
     SELECT
-      (SELECT COUNT(*) FROM customers) AS totalCustomers,
-      (SELECT COUNT(*) FROM purchases) AS totalOrders,
-      (SELECT COALESCE(SUM(total), 0) FROM purchases) AS totalRevenue,
-      (SELECT COALESCE(AVG(total), 0) FROM purchases) AS avgTicketSize,
-      (SELECT MIN(date) FROM purchases) AS firstOrderDate,
-      (SELECT MAX(date) FROM purchases) AS lastOrderDate
+      (SELECT COUNT(*) FROM customers WHERE COALESCE(deleted_at, '') = '') AS totalCustomers,
+      (SELECT COUNT(*) FROM purchases WHERE COALESCE(voided_at, '') = '') AS totalOrders,
+      (SELECT COALESCE(SUM(total), 0) FROM purchases WHERE COALESCE(voided_at, '') = '') AS totalRevenue,
+      (SELECT COALESCE(AVG(total), 0) FROM purchases WHERE COALESCE(voided_at, '') = '') AS avgTicketSize,
+      (SELECT MIN(date) FROM purchases WHERE COALESCE(voided_at, '') = '') AS firstOrderDate,
+      (SELECT MAX(date) FROM purchases WHERE COALESCE(voided_at, '') = '') AS lastOrderDate
   `).get() as any
 
   const dataPeriodDays = overview.firstOrderDate
@@ -78,11 +78,19 @@ export function getBusinessSnapshot(): BusinessSnapshot {
 
   // ── Customer Demographics ─────────────────────────────────────────────────
   const byGender = db.prepare(`
-    SELECT gender, COUNT(*) AS count FROM customers GROUP BY gender ORDER BY count DESC
+    SELECT gender, COUNT(*) AS count
+    FROM customers
+    WHERE COALESCE(deleted_at, '') = ''
+    GROUP BY gender
+    ORDER BY count DESC
   `).all() as any[]
 
   const bySource = db.prepare(`
-    SELECT source, COUNT(*) AS count FROM customers GROUP BY source ORDER BY count DESC
+    SELECT source, COUNT(*) AS count
+    FROM customers
+    WHERE COALESCE(deleted_at, '') = ''
+    GROUP BY source
+    ORDER BY count DESC
   `).all() as any[]
 
   const byAgeGroup = db.prepare(`
@@ -97,11 +105,14 @@ export function getBusinessSnapshot(): BusinessSnapshot {
         ELSE '60+'
       END AS age_group,
       COUNT(*) AS count
-    FROM customers GROUP BY age_group ORDER BY count DESC
+    FROM customers
+    WHERE COALESCE(deleted_at, '') = ''
+    GROUP BY age_group
+    ORDER BY count DESC
   `).all() as any[]
 
   const missingBirthday = db.prepare(
-    `SELECT COUNT(*) AS n FROM customers WHERE birthday = ''`
+    `SELECT COUNT(*) AS n FROM customers WHERE COALESCE(deleted_at, '') = '' AND birthday = ''`
   ).get() as any
 
   if (missingBirthday.n > 0)
@@ -110,11 +121,14 @@ export function getBusinessSnapshot(): BusinessSnapshot {
   const byOccupation = db.prepare(`
     SELECT CASE WHEN occupation = '' THEN 'ไม่ระบุ' ELSE occupation END AS occupation,
            COUNT(*) AS count
-    FROM customers GROUP BY occupation ORDER BY count DESC
+    FROM customers
+    WHERE COALESCE(deleted_at, '') = ''
+    GROUP BY occupation
+    ORDER BY count DESC
   `).all() as any[]
 
   const missingOccupation = db.prepare(
-    `SELECT COUNT(*) AS n FROM customers WHERE occupation = ''`
+    `SELECT COUNT(*) AS n FROM customers WHERE COALESCE(deleted_at, '') = '' AND occupation = ''`
   ).get() as any
 
   if (missingOccupation.n > 0)
@@ -128,26 +142,36 @@ export function getBusinessSnapshot(): BusinessSnapshot {
       ROUND(SUM(total), 2) AS revenue,
       ROUND(AVG(total), 2) AS avgTicket
     FROM purchases
-    WHERE date >= date('now', '-6 months')
+    WHERE COALESCE(voided_at, '') = ''
+      AND date >= date('now', '-6 months')
     GROUP BY month ORDER BY month
   `).all() as any[]
 
   // ── Order Status ──────────────────────────────────────────────────────────
   const orderStatus = db.prepare(`
     SELECT order_status AS status, COUNT(*) AS count
-    FROM purchases GROUP BY order_status ORDER BY count DESC
+    FROM purchases
+    WHERE COALESCE(voided_at, '') = ''
+    GROUP BY order_status
+    ORDER BY count DESC
   `).all() as any[]
 
   // ── Payment Status ────────────────────────────────────────────────────────
   const paymentStatus = db.prepare(`
     SELECT payment_status AS status, COUNT(*) AS count, ROUND(SUM(total), 2) AS totalAmount
-    FROM purchases GROUP BY payment_status ORDER BY count DESC
+    FROM purchases
+    WHERE COALESCE(voided_at, '') = ''
+    GROUP BY payment_status
+    ORDER BY count DESC
   `).all() as any[]
 
   // ── Payment Methods ───────────────────────────────────────────────────────
   const paymentMethods = db.prepare(`
     SELECT method, COUNT(*) AS count, ROUND(SUM(amount), 2) AS totalAmount
-    FROM payments GROUP BY method ORDER BY totalAmount DESC
+    FROM payments
+    WHERE COALESCE(voided_at, '') = ''
+    GROUP BY method
+    ORDER BY totalAmount DESC
   `).all() as any[]
 
   // ── Sales by Staff (staff performance) ────────────────────────────────────
@@ -155,11 +179,14 @@ export function getBusinessSnapshot(): BusinessSnapshot {
     SELECT CASE WHEN sold_by_name = '' THEN 'ไม่ระบุผู้ขาย' ELSE sold_by_name END AS staff,
            COUNT(*) AS orderCount,
            ROUND(SUM(total), 2) AS revenue
-    FROM purchases GROUP BY sold_by_name ORDER BY revenue DESC
+    FROM purchases
+    WHERE COALESCE(voided_at, '') = ''
+    GROUP BY sold_by_name
+    ORDER BY revenue DESC
   `).all() as any[]
 
   const missingSeller = db.prepare(
-    `SELECT COUNT(*) AS n FROM purchases WHERE sold_by_name = ''`
+    `SELECT COUNT(*) AS n FROM purchases WHERE COALESCE(voided_at, '') = '' AND sold_by_name = ''`
   ).get() as any
 
   if (missingSeller.n > 0)
@@ -171,7 +198,8 @@ export function getBusinessSnapshot(): BusinessSnapshot {
       COALESCE(json_extract(lens_data, '$.lens_type'), 'unknown') AS lensType,
       COUNT(*) AS count
     FROM purchases
-    WHERE json_extract(lens_data, '$.enabled') = 1
+    WHERE COALESCE(voided_at, '') = ''
+      AND json_extract(lens_data, '$.enabled') = 1
     GROUP BY lensType ORDER BY count DESC
   `).all() as any[]
 
@@ -187,9 +215,9 @@ export function getBusinessSnapshot(): BusinessSnapshot {
   // ── Top Products ──────────────────────────────────────────────────────────
   const topProducts = db.prepare(`
     SELECT p.name, p.sku,
-      COALESCE(SUM(CASE WHEN sm.type = 'out' THEN sm.qty ELSE 0 END), 0) AS unitsSold
+      COALESCE(SUM(CASE WHEN sm.type = 'sale' THEN -sm.qty ELSE 0 END), 0) AS unitsSold
     FROM products p
-    LEFT JOIN stock_movements sm ON sm.product_id = p.id AND sm.type = 'out'
+    LEFT JOIN stock_movements sm ON sm.product_id = p.id AND sm.type = 'sale'
     GROUP BY p.id ORDER BY unitsSold DESC LIMIT 10
   `).all() as any[]
 
@@ -202,6 +230,7 @@ export function getBusinessSnapshot(): BusinessSnapshot {
       COUNT(*) AS totalOrders,
       COUNT(CASE WHEN cost_lens IS NOT NULL AND cost_frame IS NOT NULL AND cost_other IS NOT NULL THEN 1 END) AS ordersWithFullCost
     FROM purchases
+    WHERE COALESCE(voided_at, '') = ''
   `).get() as any
 
   const grossMarginPct = margin.totalRevenue > 0
@@ -216,7 +245,8 @@ export function getBusinessSnapshot(): BusinessSnapshot {
     SELECT COUNT(*) AS count,
       ROUND(SUM(total - paid_amount), 2) AS totalOutstanding
     FROM purchases
-    WHERE payment_status IN ('pending', 'partial')
+    WHERE COALESCE(voided_at, '') = ''
+      AND payment_status IN ('pending', 'partial')
   `).get() as any
 
   return {

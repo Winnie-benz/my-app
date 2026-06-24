@@ -3,6 +3,7 @@ import { z } from 'zod'
 import db from '../db/database'
 import { requireAuth } from '../middleware/requireAuth'
 import { nowTH } from '../utils/time'
+import { recordAuditLog } from '../services/auditLog'
 
 const router = Router({ mergeParams: true })
 router.use(requireAuth)
@@ -253,6 +254,14 @@ function actorDisplayName(req: Request): string {
   return [user.nickname || user.first_name, user.last_name].filter(Boolean).join(' ') || user.user
 }
 
+function purchaseSnapshot(purchaseId: string) {
+  const purchase = db.prepare('SELECT * FROM purchases WHERE id = ?').get(purchaseId)
+  const payments = db.prepare(
+    'SELECT * FROM payments WHERE purchase_id = ? ORDER BY paid_at ASC, created_at ASC'
+  ).all(purchaseId)
+  return { purchase, payments }
+}
+
 function overrideAudit(req: Request, warnings: StockWarning[]) {
   return {
     data: JSON.stringify(warnings),
@@ -268,7 +277,7 @@ router.get('/', (req: Request, res: Response) => {
   if (!customer) { res.status(404).json({ success: false, error: 'Customer not found' }); return }
 
   const rows = db.prepare(
-    'SELECT * FROM purchases WHERE customer_id = ? ORDER BY date DESC, created_at DESC'
+    "SELECT * FROM purchases WHERE customer_id = ? AND COALESCE(voided_at, '') = '' ORDER BY date DESC, created_at DESC"
   ).all(customerId) as any[]
 
   res.json({ success: true, data: rows.map(rowToPurchase) })
@@ -277,7 +286,7 @@ router.get('/', (req: Request, res: Response) => {
 // ── Create ───────────────────────────────────────────────────────────────────
 router.post('/', (req: Request, res: Response) => {
   const { customerId } = req.params as { customerId: string }
-  const customer = db.prepare('SELECT customer_id FROM customers WHERE customer_id = ?').get(customerId)
+  const customer = db.prepare("SELECT customer_id FROM customers WHERE customer_id = ? AND COALESCE(deleted_at, '') = ''").get(customerId)
   if (!customer) { res.status(404).json({ success: false, error: 'Customer not found' }); return }
 
   const parsed = createPurchaseSchema.safeParse(req.body)
@@ -407,6 +416,7 @@ router.post('/', (req: Request, res: Response) => {
   }
 
   const row = db.prepare('SELECT * FROM purchases WHERE id = ?').get(id) as any
+  recordAuditLog(req, 'purchase', id, 'create', null, purchaseSnapshot(id))
   res.status(201).json({ success: true, data: rowToPurchase(row) })
 })
 
@@ -452,8 +462,9 @@ function applyStockDeductions(lens: any, frame: any, other: any, purchaseId: str
 // ── Update ───────────────────────────────────────────────────────────────────
 router.put('/:purchaseId', (req: Request, res: Response) => {
   const { purchaseId } = req.params
-  const existing = db.prepare('SELECT * FROM purchases WHERE id = ?').get(purchaseId)
+  const existing = db.prepare("SELECT * FROM purchases WHERE id = ? AND COALESCE(voided_at, '') = ''").get(purchaseId)
   if (!existing) { res.status(404).json({ success: false, error: 'Purchase not found' }); return }
+  const before = purchaseSnapshot(purchaseId)
 
   const parsed = purchaseBodySchema.safeParse(req.body)
   if (!parsed.success) { res.status(400).json({ success: false, error: parsed.error.flatten() }); return }
@@ -549,19 +560,31 @@ router.put('/:purchaseId', (req: Request, res: Response) => {
   }
 
   const row = db.prepare('SELECT * FROM purchases WHERE id = ?').get(purchaseId) as any
+  recordAuditLog(req, 'purchase', purchaseId, 'update', before, purchaseSnapshot(purchaseId))
   res.json({ success: true, data: rowToPurchase(row) })
 })
 
-// ── Delete ───────────────────────────────────────────────────────────────────
+// ── Void ─────────────────────────────────────────────────────────────────────
 router.delete('/:purchaseId', (req: Request, res: Response) => {
   const { purchaseId } = req.params
-  const existing = db.prepare('SELECT * FROM purchases WHERE id = ?').get(purchaseId)
+  const existing = db.prepare("SELECT * FROM purchases WHERE id = ? AND COALESCE(voided_at, '') = ''").get(purchaseId)
   if (!existing) { res.status(404).json({ success: false, error: 'Purchase not found' }); return }
+  const before = purchaseSnapshot(purchaseId)
 
   const deleteTx = db.transaction(() => {
     restoreStockForPurchase(purchaseId)
     restoreLensVariantStock(purchaseId)
-    db.prepare('DELETE FROM purchases WHERE id = ?').run(purchaseId)
+    db.prepare(`
+      UPDATE payments
+      SET voided_at = ?, voided_by = ?, void_reason = ?
+      WHERE purchase_id = ? AND COALESCE(voided_at, '') = ''
+    `).run(nowTH(), actorDisplayName(req), 'void purchase', purchaseId)
+    db.prepare(`
+      UPDATE purchases
+      SET voided_at = ?, voided_by = ?, void_reason = ?
+      WHERE id = ?
+    `).run(nowTH(), actorDisplayName(req), 'void purchase', purchaseId)
+    recordAuditLog(req, 'purchase', purchaseId, 'delete', before, purchaseSnapshot(purchaseId))
   })
 
   deleteTx()

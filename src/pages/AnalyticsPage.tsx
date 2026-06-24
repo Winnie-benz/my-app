@@ -2,12 +2,10 @@ import { useState } from 'react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { BrainCircuit, RefreshCw, AlertCircle } from 'lucide-react'
-import { useAuthStore } from '../store/useAuthStore'
 
 type Status = 'idle' | 'loading' | 'done' | 'error'
 
 export default function AnalyticsPage() {
-  const token = useAuthStore(s => s.token)
   const [status, setStatus] = useState<Status>('idle')
   const [result, setResult] = useState('')
   const [errorMsg, setErrorMsg] = useState('')
@@ -21,10 +19,8 @@ export default function AnalyticsPage() {
     try {
       const res = await fetch('/api/analytics/analyze', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
       })
 
       if (!res.ok) {

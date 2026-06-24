@@ -6,10 +6,10 @@ const router = Router()
 router.use(requireAuth)
 
 router.get('/summary', (_req: Request, res: Response) => {
-  const totalRevenue    = (db.prepare(`SELECT COALESCE(SUM(total),0) as v FROM purchases`).get() as any).v
-  const totalPaid       = (db.prepare(`SELECT COALESCE(SUM(paid_amount),0) as v FROM purchases`).get() as any).v
-  const totalOrders     = (db.prepare(`SELECT COUNT(*) as v FROM purchases`).get() as any).v
-  const completedOrders = (db.prepare(`SELECT COUNT(*) as v FROM purchases WHERE order_status='completed'`).get() as any).v
+  const totalRevenue    = (db.prepare(`SELECT COALESCE(SUM(total),0) as v FROM purchases WHERE COALESCE(voided_at, '') = ''`).get() as any).v
+  const totalPaid       = (db.prepare(`SELECT COALESCE(SUM(paid_amount),0) as v FROM purchases WHERE COALESCE(voided_at, '') = ''`).get() as any).v
+  const totalOrders     = (db.prepare(`SELECT COUNT(*) as v FROM purchases WHERE COALESCE(voided_at, '') = ''`).get() as any).v
+  const completedOrders = (db.prepare(`SELECT COUNT(*) as v FROM purchases WHERE COALESCE(voided_at, '') = '' AND order_status='completed'`).get() as any).v
 
   res.json({
     success: true,
@@ -42,7 +42,8 @@ router.get('/sales', (req: Request, res: Response) => {
            COALESCE(SUM(total),0)     as revenue,
            COALESCE(SUM(paid_amount),0) as paid
     FROM purchases
-    WHERE date >= ${dateExpr}
+    WHERE COALESCE(voided_at, '') = ''
+      AND date >= ${dateExpr}
     GROUP BY period
     ORDER BY period ASC
   `).all()
@@ -85,9 +86,9 @@ router.get('/top-categories', (req: Request, res: Response) => {
     SELECT lp.id as product_id, lp.brand, lp.series, lp.lens_type, lp.lens_index,
            COUNT(*) as sold_count
     FROM (
-      SELECT lens_variant_id_r as vid FROM purchases WHERE lens_variant_id_r IS NOT NULL
+      SELECT lens_variant_id_r as vid FROM purchases WHERE COALESCE(voided_at, '') = '' AND lens_variant_id_r IS NOT NULL
       UNION ALL
-      SELECT lens_variant_id_l as vid FROM purchases WHERE lens_variant_id_l IS NOT NULL
+      SELECT lens_variant_id_l as vid FROM purchases WHERE COALESCE(voided_at, '') = '' AND lens_variant_id_l IS NOT NULL
     ) t
     JOIN lens_variants lv ON lv.id = t.vid
     JOIN lens_products lp ON lp.id = lv.product_id
@@ -114,12 +115,14 @@ router.get('/profit', requireAdmin, (req: Request, res: Response) => {
            COALESCE(SUM(
              (SELECT COALESCE(SUM(ci.cost * ci.qty),0)
               FROM claims cl JOIN claim_items ci ON ci.claim_id = cl.id
-              WHERE cl.purchase_id = p.id)
+              WHERE cl.purchase_id = p.id
+                AND COALESCE(cl.deleted_at, '') = '')
            ), 0)                                                                   as warranty_cost,
            SUM(CASE WHEN p.cost_lens IS NULL OR p.cost_frame IS NULL OR p.cost_other IS NULL
                     THEN 1 ELSE 0 END)                                             as pending_count
     FROM purchases p
-    WHERE p.date >= ${dateExpr}
+    WHERE COALESCE(p.voided_at, '') = ''
+      AND p.date >= ${dateExpr}
     GROUP BY month
     ORDER BY month ASC
   `).all() as any[]
@@ -146,13 +149,17 @@ router.get('/monthly', (req: Request, res: Response) => {
            COALESCE(SUM(total),0)          as revenue,
            COALESCE(AVG(total),0)          as avg_bill,
            COUNT(DISTINCT customer_id)     as customer_count
-    FROM purchases WHERE strftime('%Y-%m', date) = ?
+    FROM purchases
+    WHERE COALESCE(voided_at, '') = ''
+      AND strftime('%Y-%m', date) = ?
   `).get(month) as any
 
   const newCustomers = (db.prepare(`
     SELECT COUNT(*) as cnt FROM (
       SELECT customer_id, MIN(date) as first_date
-      FROM purchases GROUP BY customer_id
+      FROM purchases
+      WHERE COALESCE(voided_at, '') = ''
+      GROUP BY customer_id
     ) WHERE strftime('%Y-%m', first_date) = ?
   `).get(month) as any).cnt
 
@@ -160,7 +167,8 @@ router.get('/monthly', (req: Request, res: Response) => {
     SELECT COALESCE(NULLIF(c.gender,''), 'unspecified') as gender, COUNT(*) as cnt
     FROM purchases p
     JOIN customers c ON c.customer_id = p.customer_id
-    WHERE strftime('%Y-%m', p.date) = ?
+    WHERE COALESCE(p.voided_at, '') = ''
+      AND strftime('%Y-%m', p.date) = ?
     GROUP BY gender
   `).all(month)
 
@@ -173,7 +181,9 @@ router.get('/monthly', (req: Request, res: Response) => {
                  THEN 1 ELSE 0 END AS age
       FROM purchases p
       JOIN customers c ON c.customer_id = p.customer_id
-      WHERE strftime('%Y-%m', p.date) = ? AND c.birthday != ''
+      WHERE COALESCE(p.voided_at, '') = ''
+        AND strftime('%Y-%m', p.date) = ?
+        AND c.birthday != ''
     )
     SELECT
       CASE

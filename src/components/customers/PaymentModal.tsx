@@ -208,15 +208,15 @@ export default function PaymentModal({ record, onClose, onUpdated }: Props) {
           )}
         </div>
 	      </div>
-	      <ConfirmDialog
-	        open={deleteCandidate !== null}
-	        title="ยืนยันการลบ"
-	        message="ลบรายการชำระเงินนี้ใช่หรือไม่?"
-	        detail={deleteCandidate ? `ยอด ฿${deleteCandidate.amount.toLocaleString()} · ${PAYMENT_METHOD_LABEL[deleteCandidate.method]} · ${formatDate(deleteCandidate.paid_at)}` : undefined}
-	        busy={deleting}
-	        onCancel={() => setDeleteCandidate(null)}
-	        onConfirm={() => deleteCandidate && onDeletePayment(deleteCandidate.id)}
-	      />
+        <ConfirmDialog
+          open={deleteCandidate !== null}
+          title="ยืนยันการย้อนรายการ"
+          message="ย้อนรายการชำระเงินนี้ใช่หรือไม่? ยอดชำระจะถูกหักออกจากใบซื้อ"
+          detail={deleteCandidate ? `ยอด ฿${deleteCandidate.amount.toLocaleString()} · ${PAYMENT_METHOD_LABEL[deleteCandidate.method]} · ${formatDate(deleteCandidate.paid_at)}` : undefined}
+          busy={deleting}
+          onCancel={() => setDeleteCandidate(null)}
+          onConfirm={() => deleteCandidate && onDeletePayment(deleteCandidate.id)}
+        />
 	    </div>
 	  )
 	}

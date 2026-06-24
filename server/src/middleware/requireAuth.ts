@@ -1,6 +1,7 @@
 import type { Request, Response, NextFunction } from 'express'
 import { verifyToken } from '../utils/jwt'
 import type { JWTPayload } from '../types'
+import { readAuthToken } from '../utils/authCookie'
 
 declare global {
   namespace Express {
@@ -12,13 +13,16 @@ declare global {
 
 export function requireAuth(req: Request, res: Response, next: NextFunction): void {
   const authHeader = req.headers.authorization
+  const bearerToken = authHeader?.startsWith('Bearer ')
+    ? authHeader.split(' ')[1]
+    : null
+  const cookieToken = readAuthToken(req)
+  const token = bearerToken || cookieToken
 
-  if (!authHeader?.startsWith('Bearer ')) {
+  if (!token) {
     res.status(401).json({ success: false, error: 'Authentication required' })
     return
   }
-
-  const token = authHeader.split(' ')[1]
 
   try {
     req.user = verifyToken(token)

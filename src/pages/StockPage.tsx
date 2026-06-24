@@ -159,21 +159,21 @@ export default function StockPage() {
             <div className="w-14 h-14 bg-red-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
               <AlertTriangle size={24} className="text-red-500" />
             </div>
-            <h2 className="font-semibold text-slate-900">Delete Product?</h2>
+            <h2 className="font-semibold text-slate-900">ซ่อนสินค้า?</h2>
             <p className="text-sm text-slate-500 mt-1">{modal.product.name}</p>
-            <p className="text-xs text-slate-400 mt-0.5 mb-6">This cannot be undone.</p>
+            <p className="text-xs text-slate-400 mt-0.5 mb-6">สินค้าจะหายจากคลังหลัก แต่ยังกู้คืนได้จากหน้า Settings</p>
             <div className="flex gap-3">
               <button
                 onClick={() => setModal({ mode: 'closed' })}
                 className="flex-1 border border-slate-200 text-slate-600 text-sm py-2.5 rounded-xl hover:bg-slate-50 transition-colors"
               >
-                Cancel
+                ยกเลิก
               </button>
               <button
                 onClick={() => deleteProduct(modal.product.id)}
                 className="flex-1 bg-red-500 hover:bg-red-600 text-white text-sm py-2.5 rounded-xl transition-colors"
               >
-                Delete
+                ซ่อนสินค้า
               </button>
             </div>
           </div>

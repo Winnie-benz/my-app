@@ -20,12 +20,18 @@ import claimPaymentsRouter   from './routes/claimPayments'
 import analyticsRouter       from './routes/analytics'
 import usersRouter           from './routes/users'
 import { scheduleAutoBackup } from './services/backup'
+import { scheduleAuditLogMaintenance } from './services/auditRetention'
+import { rateLimit } from './middleware/rateLimit'
+import { validateProductionEnv } from './config/productionEnv'
 import './db/database'
+
+validateProductionEnv()
 
 const app  = express()
 const PORT = Number(process.env.PORT) || 3001
 
 // ── Middleware ────────────────────────────────────────────────
+app.set('trust proxy', 1)
 app.use(helmet())
 app.use(cors({
   origin: process.env.CORS_ORIGIN || 'http://localhost:5173',
@@ -33,6 +39,16 @@ app.use(cors({
 }))
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
+app.use('/api/auth/login', rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  message: 'พยายามเข้าสู่ระบบหลายครั้งเกินไป กรุณารอ 15 นาทีแล้วลองใหม่',
+}))
+app.use('/api', rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 900,
+  message: 'มีการเรียกใช้งานถี่เกินไป กรุณารอสักครู่แล้วลองใหม่',
+}))
 
 // ── Routes ────────────────────────────────────────────────────
 app.use('/api/auth',                            authRouter)
@@ -73,4 +89,5 @@ app.listen(PORT, () => {
   console.log(`✅  Server  →  http://localhost:${PORT}`)
   console.log(`   Env     →  ${process.env.NODE_ENV ?? 'development'}`)
   scheduleAutoBackup()
+  scheduleAuditLogMaintenance()
 })

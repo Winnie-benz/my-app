@@ -1,4 +1,3 @@
-import { useMemo, useEffect } from 'react'
 import { Navigate } from 'react-router-dom'
 import { useAuthStore } from '../store/useAuthStore'
 import type { Role } from '../types/auth'
@@ -8,29 +7,18 @@ interface Props {
   requiredRole?: Role
 }
 
-function isExpired(token: string): boolean {
-  try {
-    const payload = JSON.parse(atob(token.split('.')[1]))
-    return typeof payload.exp === 'number' && payload.exp * 1000 < Date.now()
-  } catch {
-    return true
-  }
-}
-
 export default function ProtectedRoute({ children, requiredRole }: Props) {
-  const { isAuthenticated, token, user, logout } = useAuthStore()
+  const { initialized, isAuthenticated, user } = useAuthStore()
 
-  const expired = useMemo(
-    () => Boolean(token && isExpired(token)),
-    [token],
-  )
+  if (!initialized) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center text-sm text-slate-500">
+        กำลังตรวจสอบ session...
+      </div>
+    )
+  }
 
-  // Clear stale auth state after render
-  useEffect(() => {
-    if (expired) logout()
-  }, [expired, logout])
-
-  if (!isAuthenticated || expired) {
+  if (!isAuthenticated) {
     return <Navigate to="/login" replace />
   }
 

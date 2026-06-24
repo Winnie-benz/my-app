@@ -110,6 +110,9 @@ db.exec(`
     total            REAL NOT NULL DEFAULT 0,
     pickup_date      TEXT NOT NULL DEFAULT '',
     pickup_time      TEXT NOT NULL DEFAULT '',
+    voided_at        TEXT NOT NULL DEFAULT '',
+    voided_by        TEXT NOT NULL DEFAULT '',
+    void_reason      TEXT NOT NULL DEFAULT '',
     created_at       TEXT NOT NULL DEFAULT (datetime('now','+7 hours'))
   );
 `)
@@ -147,6 +150,9 @@ try { db.exec(`ALTER TABLE purchases ADD COLUMN order_rx_data TEXT DEFAULT NULL`
 // preserved on edit (the editor is not necessarily the original seller)
 try { db.exec(`ALTER TABLE purchases ADD COLUMN sold_by_staff_id TEXT NOT NULL DEFAULT ''`) } catch {}
 try { db.exec(`ALTER TABLE purchases ADD COLUMN sold_by_name     TEXT NOT NULL DEFAULT ''`) } catch {}
+try { db.exec(`ALTER TABLE purchases ADD COLUMN voided_at TEXT NOT NULL DEFAULT ''`) } catch {}
+try { db.exec(`ALTER TABLE purchases ADD COLUMN voided_by TEXT NOT NULL DEFAULT ''`) } catch {}
+try { db.exec(`ALTER TABLE purchases ADD COLUMN void_reason TEXT NOT NULL DEFAULT ''`) } catch {}
 
 // Migration: per-product reorder point
 try { db.exec(`ALTER TABLE products ADD COLUMN reorder_point INTEGER NOT NULL DEFAULT 1`) } catch {}
@@ -225,9 +231,15 @@ db.exec(`
     method      TEXT NOT NULL DEFAULT 'cash',
     note        TEXT NOT NULL DEFAULT '',
     paid_at     TEXT NOT NULL,
+    voided_at   TEXT NOT NULL DEFAULT '',
+    voided_by   TEXT NOT NULL DEFAULT '',
+    void_reason TEXT NOT NULL DEFAULT '',
     created_at  TEXT NOT NULL DEFAULT (datetime('now','+7 hours'))
   );
 `)
+try { db.exec(`ALTER TABLE payments ADD COLUMN voided_at TEXT NOT NULL DEFAULT ''`) } catch {}
+try { db.exec(`ALTER TABLE payments ADD COLUMN voided_by TEXT NOT NULL DEFAULT ''`) } catch {}
+try { db.exec(`ALTER TABLE payments ADD COLUMN void_reason TEXT NOT NULL DEFAULT ''`) } catch {}
 
 // Migrations: SPH/CYL range config on lens_products
 try { db.exec(`ALTER TABLE lens_products ADD COLUMN sph_min  REAL NOT NULL DEFAULT -6.0`) } catch {}
@@ -276,6 +288,8 @@ try { db.exec(`ALTER TABLE claims ADD COLUMN pickup_date     TEXT NOT NULL DEFAU
 try { db.exec(`ALTER TABLE claims ADD COLUMN payment_status TEXT NOT NULL DEFAULT 'pending'`) } catch {}
 try { db.exec(`ALTER TABLE claims ADD COLUMN paid_amount    REAL NOT NULL DEFAULT 0`) } catch {}
 try { db.exec(`ALTER TABLE claims ADD COLUMN order_status   TEXT NOT NULL DEFAULT 'waiting'`) } catch {}
+try { db.exec(`ALTER TABLE claims ADD COLUMN deleted_at     TEXT NOT NULL DEFAULT ''`) } catch {}
+try { db.exec(`ALTER TABLE claims ADD COLUMN deleted_by     TEXT NOT NULL DEFAULT ''`) } catch {}
 try {
   db.exec(`
     UPDATE claims
@@ -303,7 +317,9 @@ db.exec(`
     pickup_date    TEXT NOT NULL DEFAULT '',
     resolved_at    TEXT NOT NULL DEFAULT '',
     created_at     TEXT NOT NULL DEFAULT (datetime('now','+7 hours')),
-    updated_at     TEXT NOT NULL DEFAULT (datetime('now','+7 hours'))
+    updated_at     TEXT NOT NULL DEFAULT (datetime('now','+7 hours')),
+    deleted_at     TEXT NOT NULL DEFAULT '',
+    deleted_by     TEXT NOT NULL DEFAULT ''
   );
 
   CREATE TABLE IF NOT EXISTS claim_payments (

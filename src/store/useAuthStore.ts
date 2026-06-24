@@ -1,86 +1,169 @@
 import { create } from 'zustand'
-import { persist, createJSONStorage } from 'zustand/middleware'
 import type { AuthUser } from '../types/auth'
 
+interface SessionPayload {
+  user: AuthUser
+  session_expires_at: string | null
+}
+
 interface AuthStore {
-  token: string | null
   user: AuthUser | null
   isAuthenticated: boolean
   isLoading: boolean
+  initialized: boolean
   error: string | null
+  sessionExpiresAt: string | null
+  initialize: () => Promise<void>
   login: (username: string, password: string) => Promise<boolean>
-  logout: () => void
+  logout: () => Promise<void>
   clearError: () => void
+  clearSession: () => void
+  setSession: (user: AuthUser, sessionExpiresAt: string | null) => void
   refreshIfNeeded: () => Promise<void>
 }
 
-export const useAuthStore = create<AuthStore>()(
-  persist(
-    set => ({
-      token: null,
-      user: null,
-      isAuthenticated: false,
+let refreshPromise: Promise<void> | null = null
+
+function sessionRemainingMs(sessionExpiresAt: string | null): number {
+  if (!sessionExpiresAt) return 0
+  const diff = new Date(sessionExpiresAt).getTime() - Date.now()
+  return Number.isFinite(diff) ? diff : 0
+}
+
+async function authRequest(path: string, options: RequestInit = {}) {
+  return fetch(path, {
+    ...options,
+    credentials: 'include',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(options.headers ?? {}),
+    },
+  })
+}
+
+export const useAuthStore = create<AuthStore>()((set, get) => ({
+  user: null,
+  isAuthenticated: false,
+  isLoading: false,
+  initialized: false,
+  error: null,
+  sessionExpiresAt: null,
+
+  setSession(user, sessionExpiresAt) {
+    set({
+      user,
+      isAuthenticated: true,
+      sessionExpiresAt,
+      initialized: true,
       isLoading: false,
       error: null,
+    })
+  },
 
-      async login(username, password) {
-        set({ isLoading: true, error: null })
-        try {
-          const res  = await fetch('/api/auth/login', {
-            method:  'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body:    JSON.stringify({ username, password }),
-          })
-          const data = await res.json()
+  clearSession() {
+    set({
+      user: null,
+      isAuthenticated: false,
+      sessionExpiresAt: null,
+      initialized: true,
+      isLoading: false,
+    })
+  },
 
-          if (!data.success) {
-            set({ isLoading: false, error: data.error ?? 'Login failed' })
-            return false
-          }
+  async initialize() {
+    if (get().initialized || get().isLoading) return
 
-          set({
-            token:           data.token,
-            user:            data.user,
-            isAuthenticated: true,
-            isLoading:       false,
-            error:           null,
-          })
-          return true
-        } catch {
-          set({ isLoading: false, error: 'Cannot connect to server. Please try again.' })
-          return false
+    set({ isLoading: true, error: null })
+    try {
+      const res = await authRequest('/api/auth/me')
+      const data = await res.json().catch(() => ({})) as { success?: boolean } & Partial<SessionPayload>
+
+      if (res.ok && data.success && data.user) {
+        get().setSession(data.user, data.session_expires_at ?? null)
+        return
+      }
+    } catch {
+      // treat as signed out
+    }
+
+    set({
+      user: null,
+      isAuthenticated: false,
+      sessionExpiresAt: null,
+      initialized: true,
+      isLoading: false,
+    })
+  },
+
+  async login(username, password) {
+    set({ isLoading: true, error: null })
+    try {
+      const res = await authRequest('/api/auth/login', {
+        method: 'POST',
+        body: JSON.stringify({ username, password }),
+      })
+      const data = await res.json()
+
+      if (!data.success || !data.user) {
+        set({
+          isLoading: false,
+          initialized: true,
+          error: data.error ?? 'Login failed',
+        })
+        return false
+      }
+
+      get().setSession(data.user, data.session_expires_at ?? null)
+      return true
+    } catch {
+      set({
+        isLoading: false,
+        initialized: true,
+        error: 'Cannot connect to server. Please try again.',
+      })
+      return false
+    }
+  },
+
+  async logout() {
+    try {
+      await authRequest('/api/auth/logout', { method: 'POST' })
+    } catch {
+      // ignore network errors and clear local session anyway
+    }
+    get().clearSession()
+    set({ error: null })
+  },
+
+  clearError() {
+    set({ error: null })
+  },
+
+  async refreshIfNeeded() {
+    if (!get().isAuthenticated) return
+    if (sessionRemainingMs(get().sessionExpiresAt) > 30 * 60 * 1000) return
+    if (refreshPromise) return refreshPromise
+
+    refreshPromise = (async () => {
+      try {
+        const res = await authRequest('/api/auth/refresh', { method: 'POST' })
+        const data = await res.json().catch(() => ({})) as { success?: boolean } & Partial<SessionPayload>
+
+        if (res.ok && data.success && data.user) {
+          get().setSession(data.user, data.session_expires_at ?? null)
+          return
         }
-      },
 
-      logout() {
-        set({ token: null, user: null, isAuthenticated: false, error: null })
-      },
+        if (res.status === 401 && sessionRemainingMs(get().sessionExpiresAt) <= 0) {
+          get().clearSession()
+        }
+      } catch {
+        // keep current session until server proves it invalid
+      } finally {
+        refreshPromise = null
+      }
+    })()
 
-      clearError() {
-        set({ error: null })
-      },
-
-      async refreshIfNeeded() {
-        const { token } = useAuthStore.getState()
-        if (!token) return
-        try {
-          const payload = JSON.parse(atob(token.split('.')[1]))
-          const expiresIn = payload.exp * 1000 - Date.now()
-          if (expiresIn > 30 * 60 * 1000) return  // more than 30 min left → skip
-          const res  = await fetch('/api/auth/refresh', {
-            method:  'POST',
-            headers: { Authorization: `Bearer ${token}` },
-          })
-          const data = await res.json()
-          if (data.success && data.token) set({ token: data.token })
-        } catch { /* silent — token still valid for now */ }
-      },
-    }),
-    {
-      name:       'auth',
-      storage:    createJSONStorage(() => localStorage),
-      // Only persist auth state — not loading/error
-      partialize: s => ({ token: s.token, user: s.user, isAuthenticated: s.isAuthenticated }),
-    },
-  ),
-)
+    return refreshPromise
+  },
+}))
