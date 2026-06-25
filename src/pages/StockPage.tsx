@@ -20,7 +20,7 @@ export default function StockPage() {
   const filtered = useStockFilter()
 
   const totalItems  = products.length
-  const lowStock    = products.filter(p => p.stock_current <= (p.reorder_point ?? 1)).length
+  const lowStock    = products.filter(p => p.stock_current <= (p.reorder_point ?? 1) && !p.low_stock_ignored).length
   const outOfStock  = products.filter(p => p.stock_current === 0).length
   const totalValue  = products.reduce((s, p) => s + p.avg_cost * p.stock_current, 0)
 

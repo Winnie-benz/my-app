@@ -155,7 +155,7 @@ export default function DashboardPage() {
 
   const lowStock = useMemo(() =>
     products
-      .filter(p => p.stock_current <= (p.reorder_point ?? 1))
+      .filter(p => p.stock_current <= (p.reorder_point ?? 1) && !p.low_stock_ignored)
       .sort((a, b) => a.stock_current - b.stock_current)
       .slice(0, 8),
   [products])

@@ -82,7 +82,7 @@ export default function MainLayout() {
 
   const badgeMap = useMemo<Record<string, number>>(() => ({
     '/dashboard':     purchases.filter(p => isPickupToday(p.pickup_date) && p.order_status !== 'completed').length,
-    '/low-stock':     products.filter(p => p.stock_current <= (p.reorder_point ?? 1)).length,
+    '/low-stock':     products.filter(p => p.stock_current <= (p.reorder_point ?? 1) && !p.low_stock_ignored).length,
     '/pending-costs': purchases.filter(p => p.cost_lens === null || p.cost_frame === null || p.cost_other === null).length,
     '/outstanding':   purchases.filter(p => p.payment_status === 'pending' || p.payment_status === 'partial').length,
     '/orders':        purchases.filter(p => isPickupAlert(p.pickup_date) && p.order_status !== 'completed').length
