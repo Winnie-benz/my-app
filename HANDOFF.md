@@ -15,7 +15,33 @@
 
 ---
 
-## 🚨 อัปเดตล่าสุด: 2026-06-24 (รอบดึก) — Codex / local workspace
+## 🚨 อัปเดตล่าสุด: 2026-06-25 — Pagination + Version system (deploy ✅)
+
+### ✅ งานที่เสร็จในรอบนี้
+
+1. **Pagination 20/หน้า ทุกหน้า list ที่ยาว** (commit `9192294`, live)
+   - สร้าง `src/hooks/usePagedList.ts` + `src/components/Pagination.tsx` (shared)
+   - ใช้ใน: สินค้า, ลูกค้า, Orders, เคลม, ค้างชำระ, ต้นทุนรอกรอก, สินค้าเลนส์ (sidebar), ประวัติตรวจนับ
+   - `OutstandingPage` มี 2 pager อิสระ: purchases + claims
+   - Pagination ซ่อนอัตโนมัติเมื่อข้อมูล ≤ 20 รายการ (totalPages ≤ 1 → return null)
+   - search/filter ยังทำงานปกติ — page reset เองเมื่อ filter ทำให้ total น้อยลง
+
+2. **Auto version ในหน้า Settings** (commit `3495d9f`, live)
+   - แสดง `v1.0.0 · <git-hash 7 ตัว> · YYYY-MM-DD` (inject ตอน build ผ่าน Vite `define`)
+   - Render ใช้ `RENDER_GIT_COMMIT` env var; local ใช้ `git rev-parse --short HEAD`
+   - version bump `0.1.0` → `1.0.0` ใน package.json
+
+3. **Codex — normalize alias + ReportsPage**: Codex เสร็จและ push แยกแล้ว
+
+### ✅ Deploy ยืนยัน
+- bundle hash: `index-CK9mOFoR.js` live บน `https://my-app-gjmf.onrender.com`
+- tsc root + server ผ่าน, npm run build ผ่าน
+
+### 📌 ไม่มีงานค้าง — พร้อมเริ่ม feature ใหม่
+
+---
+
+## อัปเดตก่อนหน้า: 2026-06-24 (รอบดึก) — Codex / local workspace
 
 ### ✅ Phase ถัดไปทำเสร็จแล้วในเครื่องนี้ — **push แล้วโดย Claude (รวมกับ 2 ฟีเจอร์ใหม่ ดูด้านล่าง)**
 
