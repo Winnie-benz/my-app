@@ -2,8 +2,10 @@ import { useNavigate } from 'react-router-dom'
 import { Plus, ScanLine, AlertTriangle, Search, X, ArrowUp } from 'lucide-react'
 import { useProductStore } from '../store/useProductStore'
 import { useStockFilter } from '../hooks/useStockFilter'
+import { usePagedList } from '../hooks/usePagedList'
 import { CATEGORIES } from '../types/product'
 import StockTable from '../components/StockTable'
+import Pagination from '../components/Pagination'
 import ProductForm from '../components/ProductForm'
 import StockMovementModal from '../components/StockMovementModal'
 
@@ -18,6 +20,7 @@ export default function StockPage() {
   } = useProductStore()
 
   const filtered = useStockFilter()
+  const { page, setPage, totalPages, total, pageItems } = usePagedList(filtered, 20)
 
   const totalItems  = products.length
   const lowStock    = products.filter(p => p.stock_current <= (p.reorder_point ?? 1) && !p.low_stock_ignored).length
@@ -137,7 +140,8 @@ export default function StockPage() {
       </div>
 
       {/* Product table */}
-      <StockTable products={filtered} />
+      <StockTable products={pageItems} />
+      <Pagination page={page} totalPages={totalPages} total={total} onChange={setPage} />
 
       {/* ── Modals ─────────────────────────────────────────────── */}
 

@@ -6,6 +6,8 @@ import type { Claim, PurchaseRecord } from '../types/customer'
 import ClaimPaymentModal from '../components/customers/ClaimPaymentModal'
 import PaymentModal from '../components/customers/PaymentModal'
 import { useEscapeKey } from '../hooks/useEscapeKey'
+import { usePagedList } from '../hooks/usePagedList'
+import Pagination from '../components/Pagination'
 
 interface OutstandingItem {
   purchase: PurchaseRecord
@@ -52,6 +54,9 @@ export default function OutstandingPage() {
   const purchaseOutstanding = items.reduce((s, i) => s + (i.purchase.total - i.purchase.paid_amount), 0)
   const claimOutstanding    = claimItems.reduce((s, c) => s + (c.fee - c.paid_amount), 0)
   const totalOutstanding    = purchaseOutstanding + claimOutstanding
+
+  const purchasePager = usePagedList(items, 20)
+  const claimPager    = usePagedList(claimItems, 20)
 
   return (
     <div className="p-8 max-w-5xl mx-auto space-y-8">
@@ -101,7 +106,7 @@ export default function OutstandingPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {items.map(item => {
+                    {purchasePager.pageItems.map(item => {
                       const outstanding = item.purchase.total - item.purchase.paid_amount
                       return (
                         <tr
@@ -154,6 +159,12 @@ export default function OutstandingPage() {
                   </tbody>
                 </table>
               </div>
+              <Pagination
+                page={purchasePager.page}
+                totalPages={purchasePager.totalPages}
+                total={purchasePager.total}
+                onChange={purchasePager.setPage}
+              />
             </div>
           )}
 
@@ -178,7 +189,7 @@ export default function OutstandingPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {claimItems.map(c => {
+                    {claimPager.pageItems.map(c => {
                       const claimRemaining = c.fee - c.paid_amount
                       return (
                         <tr
@@ -235,6 +246,12 @@ export default function OutstandingPage() {
                   </tbody>
                 </table>
               </div>
+              <Pagination
+                page={claimPager.page}
+                totalPages={claimPager.totalPages}
+                total={claimPager.total}
+                onChange={claimPager.setPage}
+              />
             </div>
           )}
         </>

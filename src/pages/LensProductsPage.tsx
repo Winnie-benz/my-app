@@ -4,6 +4,8 @@ import { api } from '../services/api'
 import type { LensProduct, LensVariant, CheckStatus } from '../types/product'
 import { useAuthStore } from '../store/useAuthStore'
 import { useEscapeKey } from '../hooks/useEscapeKey'
+import { usePagedList } from '../hooks/usePagedList'
+import Pagination from '../components/Pagination'
 import { lensBrandOptions, lensIndexOptions, lensProductTypeOptions, normalizeLensBrand } from '../constants/lensBrands'
 
 // ── Range helpers ─────────────────────────────────────────────────────────────
@@ -690,6 +692,8 @@ export default function LensProductsPage() {
   const totalStock = selected ? variants.reduce((s, v) => s + v.stock_qty, 0) : 0
   const stockInVariant = stockInCell ? variantMap[variantKey(stockInCell.sph, stockInCell.cyl)] : undefined
 
+  const { page, setPage, totalPages, total, pageItems } = usePagedList(products, 20)
+
   return (
     <div className="p-8 max-w-6xl mx-auto">
 
@@ -720,7 +724,7 @@ export default function LensProductsPage() {
 
           {/* Product list sidebar */}
           <div className="w-56 shrink-0 space-y-1.5">
-            {products.map(p => {
+            {pageItems.map(p => {
               const active = p.id === selectedId
               const total = p.total_stock
               return (
@@ -746,6 +750,7 @@ export default function LensProductsPage() {
                 </button>
               )
             })}
+            <Pagination page={page} totalPages={totalPages} total={total} onChange={setPage} />
           </div>
 
           {/* Matrix panel */}

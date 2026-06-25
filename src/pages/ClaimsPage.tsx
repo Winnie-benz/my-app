@@ -6,6 +6,8 @@ import type { Claim, ClaimStatus } from '../types/customer'
 import ClaimFormModal from '../components/customers/ClaimFormModal'
 import ClaimPaymentModal from '../components/customers/ClaimPaymentModal'
 import { useEscapeKey } from '../hooks/useEscapeKey'
+import { usePagedList } from '../hooks/usePagedList'
+import Pagination from '../components/Pagination'
 
 function pickupBadge(d: string): { label: string; cls: string } | null {
   if (!d) return null
@@ -99,6 +101,8 @@ export default function ClaimsPage() {
     })
   }, [claims, tab, search])
 
+  const { page, setPage, totalPages, total, pageItems } = usePagedList(filtered, 20)
+
   const countByTab = useMemo(() => {
     const m: Record<string, number> = { all: claims.length }
     for (const c of claims) m[c.status] = (m[c.status] ?? 0) + 1
@@ -177,7 +181,7 @@ export default function ClaimsPage() {
               </tr>
             </thead>
             <tbody>
-              {filtered.map(c => (
+              {pageItems.map(c => (
                 <tr key={c.id} className="border-b border-slate-100 last:border-0 hover:bg-slate-50 transition-colors">
                   <td className="px-5 py-3.5">
                     <button type="button" onClick={() => navigate(`/customers/${c.customer_id}`)}
@@ -277,6 +281,8 @@ export default function ClaimsPage() {
           </table>
         </div>
       )}
+
+      <Pagination page={page} totalPages={totalPages} total={total} onChange={setPage} />
 
       {formOpen && (
         <ClaimFormModal

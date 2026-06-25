@@ -5,6 +5,8 @@ import { useCustomerStore } from '../store/useCustomerStore'
 import { api } from '../services/api'
 import type { OrderStatus, Claim, PurchaseRecord, OrderStatusLog } from '../types/customer'
 import { useEscapeKey } from '../hooks/useEscapeKey'
+import { usePagedList } from '../hooks/usePagedList'
+import Pagination from '../components/Pagination'
 
 const STATUS_TABS: { key: OrderStatus | 'all'; label: string }[] = [
   { key: 'all',       label: 'ทั้งหมด'    },
@@ -152,6 +154,8 @@ export default function OrdersPage() {
     })
   }, [purchases, claims, statusTab, search, customerMap])
 
+  const { page, setPage, totalPages, total, pageItems } = usePagedList(filtered, 20)
+
   const countByStatus = useMemo(() => {
     const map: Record<string, number> = { all: purchases.length + claims.length }
     for (const p of purchases) {
@@ -253,7 +257,7 @@ export default function OrdersPage() {
               </tr>
             </thead>
             <tbody>
-              {filtered.map(row => {
+              {pageItems.map(row => {
                 if (row.kind === 'purchase') {
                   const p    = row.data
                   const cust = customerMap[p.customer_id]
@@ -368,6 +372,8 @@ export default function OrdersPage() {
           </table>
         </div>
       )}
+
+      <Pagination page={page} totalPages={totalPages} total={total} onChange={setPage} />
 
       {/* Delete confirmation popup */}
       {confirmDelete && (

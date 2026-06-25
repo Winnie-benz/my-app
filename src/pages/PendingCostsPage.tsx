@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react'
 import { api } from '../services/api'
 import { useCustomerStore } from '../store/useCustomerStore'
 import { ClipboardList, Check, ChevronDown, ChevronUp } from 'lucide-react'
+import { usePagedList } from '../hooks/usePagedList'
+import Pagination from '../components/Pagination'
 
 interface PendingItem {
   purchase: {
@@ -68,6 +70,7 @@ export default function PendingCostsPage() {
   const [saving, setSaving]   = useState<Record<string, boolean>>({})
   const [expanded, setExpanded] = useState<Record<string, boolean>>({})
   const updatePurchaseCosts = useCustomerStore(s => s.updatePurchaseCosts)
+  const { page, setPage, totalPages, total, pageItems } = usePagedList(items, 20)
 
   async function load() {
     setLoading(true)
@@ -144,7 +147,7 @@ export default function PendingCostsPage() {
         </div>
       ) : (
         <div className="space-y-3">
-          {items.map(item => {
+          {pageItems.map(item => {
             const pid   = item.purchase.id
             const needs = needsCost(item)
             const draft = drafts[pid] ?? {}
@@ -204,6 +207,8 @@ export default function PendingCostsPage() {
           })}
         </div>
       )}
+
+      <Pagination page={page} totalPages={totalPages} total={total} onChange={setPage} />
     </div>
   )
 }

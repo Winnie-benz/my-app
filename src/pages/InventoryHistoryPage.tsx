@@ -4,6 +4,8 @@ import { History, Search, Printer, ChevronRight, Trash2 } from 'lucide-react'
 import { api } from '../services/api'
 import type { InventorySession } from '../types/product'
 import { useEscapeKey } from '../hooks/useEscapeKey'
+import { usePagedList } from '../hooks/usePagedList'
+import Pagination from '../components/Pagination'
 
 export default function InventoryHistoryPage() {
   const navigate = useNavigate()
@@ -16,6 +18,8 @@ export default function InventoryHistoryPage() {
   const [deleting, setDeleting]       = useState(false)
 
   useEscapeKey(useCallback(() => setConfirmDelete(null), []), confirmDelete !== null)
+
+  const { page, setPage, totalPages, total, pageItems } = usePagedList(sessions, 20)
 
   useEffect(() => {
     fetchSessions()
@@ -116,7 +120,7 @@ export default function InventoryHistoryPage() {
               </tr>
             </thead>
             <tbody>
-              {sessions.map(s => (
+              {pageItems.map(s => (
                 <tr
                   key={s.id}
                   onClick={() => navigate(`/inventory-history/${s.id}`)}
@@ -164,6 +168,7 @@ export default function InventoryHistoryPage() {
           </table>
         </div>
       )}
+      <Pagination page={page} totalPages={totalPages} total={total} onChange={setPage} />
       {confirmDelete !== null && (
         <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 space-y-4">

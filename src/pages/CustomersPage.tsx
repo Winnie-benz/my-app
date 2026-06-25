@@ -2,8 +2,10 @@ import { useState } from 'react'
 import { Search, UserPlus } from 'lucide-react'
 import { useCustomerStore } from '../store/useCustomerStore'
 import { useCustomerFilter } from '../hooks/useCustomerFilter'
+import { usePagedList } from '../hooks/usePagedList'
 import CustomerTable from '../components/customers/CustomerTable'
 import CustomerForm from '../components/customers/CustomerForm'
+import Pagination from '../components/Pagination'
 import type { CustomerFormData } from '../types/customer'
 
 export default function CustomersPage() {
@@ -11,6 +13,7 @@ export default function CustomersPage() {
   const setSearch = useCustomerStore(s => s.setSearch)
   const addCustomer = useCustomerStore(s => s.addCustomer)
   const customers  = useCustomerFilter()
+  const { page, setPage, totalPages, total, pageItems } = usePagedList(customers, 20)
 
   const [showForm, setShowForm] = useState(false)
 
@@ -48,7 +51,8 @@ export default function CustomersPage() {
       </div>
 
       {/* Table */}
-      <CustomerTable customers={customers} />
+      <CustomerTable customers={pageItems} />
+      <Pagination page={page} totalPages={totalPages} total={total} onChange={setPage} />
 
       {/* Registration modal */}
       {showForm && (
