@@ -964,7 +964,7 @@ export default function SettingsPage() {
           </div>
           <div className="flex justify-between">
             <dt className="text-slate-500">เวอร์ชัน</dt>
-            <dd className="text-slate-900 font-medium">1.0.0</dd>
+            <dd className="text-slate-900 font-medium font-mono text-xs">{`v${__APP_VERSION__} · ${__GIT_COMMIT__} · ${__BUILD_DATE__}`}</dd>
           </div>
         </dl>
       </section>
