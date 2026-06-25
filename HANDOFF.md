@@ -15,7 +15,46 @@
 
 ---
 
-## 🚨 อัปเดตล่าสุด: 2026-06-25 — Pagination + Version system (deploy ✅)
+## 🚨 อัปเดตล่าสุด: 2026-06-25 — Fix กราฟปีผิด + ย้ายเครื่อง Air → Pro
+
+### ✅ งานที่เสร็จในรอบนี้
+
+1. **fix(reports): แก้สูตรคำนวณปีในกราฟ** (commit `4fc060a`, live)
+   - เดิม: `parseInt(y) - 2500 + 43` → ได้ `-431` (ผิด)
+   - แก้เป็น: `String(parseInt(y)).slice(-2)` → ได้ `26` (ถูก)
+   - แก้ใน `fmtPeriod()` ใน [src/pages/ReportsPage.tsx](src/pages/ReportsPage.tsx)
+   - โค้ดนี้ Codex แก้ไว้ใน working tree แต่ไม่ได้ commit → Claude commit + push ให้
+
+### 📌 ไม่มีงานค้าง — พร้อมเริ่ม feature ใหม่
+
+### 🖥️ ย้ายเครื่อง Air → Pro (ทำบน Pro ก่อนเริ่มงาน)
+```bash
+# 1. clone repo
+cd ~ && git clone https://github.com/Winnie-benz/my-app.git my-app
+cd my-app && npm install
+cd server && npm install && cd ..
+
+# 2. สร้าง server/.env (ดูค่าจาก Air: cat ~/my-app/server/.env)
+nano ~/my-app/server/.env
+
+# 3. ติดตั้ง Claude Code
+npm install -g @anthropic-ai/claude-code
+
+# 4. ติดตั้ง Skills
+git clone --depth 1 https://github.com/obra/superpowers.git ~/.claude/superpowers
+mkdir -p ~/.claude/skills
+cp -R ~/.claude/superpowers/skills/* ~/.claude/skills/
+
+# 5. ติดตั้ง Codex
+npm install -g @openai/codex
+
+# 6. รัน
+npm run dev:all
+```
+
+---
+
+## อัปเดตก่อนหน้า: 2026-06-25 — Pagination + Version system (deploy ✅)
 
 ### ✅ งานที่เสร็จในรอบนี้
 
