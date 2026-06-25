@@ -24,6 +24,7 @@
 1. **Lens brand dropdown ในฟอร์มบันทึกการซื้อ**
    - เพิ่ม field `lens.brand` ใน purchase data
    - ใช้รายชื่อยี่ห้อเป็น dropdown ตามรายการล่าสุด: Essilor, Hoya, Nikon, Rodenstock, TOG, HITOP, Zeiss
+   - normalize alias เก่า `Essi` → `Essilor` เพื่อให้ stock เก่ากับ dropdown ใหม่แมทกัน
    - ถ้าเลือกเลนส์แบบ `stock_store` จาก lens picker ระบบจะเติมยี่ห้อให้อัตโนมัติ
    - dropdown สีม่วงของ `สต็อกเลนส์ (ตัดอัตโนมัติ)` filter ตามยี่ห้อที่เลือก เช่นเลือก Hoya จะแสดงเฉพาะ stock lens ของ Hoya
    - ถ้าเปลี่ยนยี่ห้อหลังเลือก stock lens ไว้ ระบบจะเคลียร์สินค้า/ค่าสายตาที่ไม่ตรงยี่ห้อให้
@@ -55,7 +56,15 @@
    - หลังเพิ่ม dropdown หน้า `สินค้าเลนส์` รัน `npx tsc --noEmit` + `npm run build` ที่ root ผ่านอีกครั้ง
    - หลังเพิ่ม dropdown `ประเภทเลนส์` + `Index` หน้า `สินค้าเลนส์` รัน `npx tsc --noEmit` + `npm run build` ที่ root ผ่านอีกครั้ง
    - หลัง filter dropdown stock lens ตามยี่ห้อในฟอร์มขาย รัน `npx tsc --noEmit` + `npm run build` ที่ root ผ่านอีกครั้ง
+   - หลังเพิ่ม alias `Essi` → `Essilor` รัน `npx tsc --noEmit` + `npm run build` ที่ root ผ่านอีกครั้ง
    - dev server มีอยู่แล้ว 1 ชุด: `http://localhost:5173` ได้ 200 และ `http://localhost:3001/api/health` ได้ 200
+   - browser click-through ผ่าน local app จริงแล้วด้วย session ของผู้ใช้:
+     เปิด `/customers` → ลูกค้าคนแรก → `บันทึกการซื้อ` → เปิดส่วนเลนส์ → เลือก `Stock (หน้าร้าน)` → เลือก brand
+   - ผลที่ยืนยันจาก UI จริง:
+     `ยี่ห้อเลนส์` dropdown ไม่มี `Essi`, มี `Essilor`
+   - เลือก `Hoya` แล้ว dropdown สีม่วงแสดงเฉพาะ `Hoya Hilux (1.50)` และ `Hoya Nulux`
+   - เลือก `Essilor` แล้ว dropdown สีม่วงแสดงเฉพาะ `Essilor Varilux (1.60)`
+   - เปลี่ยน brand หลังจากเลือก stock lens แล้ว picker ถูกล้างตามคาด
    - รัน SQL breakdown ใหม่ผ่าน `server/dist` + `server/.env` กับ Turso จริงแล้ว ได้ผลลัพธ์เดือน `2026-06` ออกมาเป็น sample brand เช่น `Essi`, `Hoya`
 
 ### ✅ ปิดงานโดย Claude (รอบถัดมา) — push 5 commits ทีเดียว
@@ -67,8 +76,15 @@
 - verify: `tsc` root+server ผ่าน, `npm run build` ผ่าน, SQL logic ของ low-stock ทดสอบบน **throwaway DB (libsql local) 11/11 ผ่าน** — ไม่แตะ Turso live
 - ⚠️ migration `low_stock_ignored` จะ ALTER บน Turso live ตอน deploy boot (additive + idempotent + try/catch ปลอดภัย)
 
+### ✅ รอบล่าสุด (Claude) — follow-ups + runtime verify
+- **ปุ่มลบสินค้าจากแจ้งเตือน Low Stock** (soft-delete + confirm, เฉพาะสินค้าทั่วไป) + **fix badge count ทุกจุด** (sidebar/stock/dashboard) ให้ข้าม `low_stock_ignored` — พบ bug นี้จาก code-review (สกิล)
+- **ย่อ audit log** แสดง 8 (จาก 30) + โหลดเพิ่มได้
+- **(Codex) normalize alias `Essi` → `Essilor`** ทุกจุด read/write/compare — Codex spot-check บน UI จริงแล้ว
+- **runtime verify (สกิล verify)**: รัน backend local + ยิง API socket จริงบน **throwaway DB** (safety-gated, ไม่แตะ Turso live) — products + lens: hide/un-hide/delete ผ่านครบ
+- push + deploy ขึ้น live ครบ (ยืนยัน bundle hash เปลี่ยน + GH Action success)
+
 ### 📌 ยังเหลือ (ทำต่อได้)
-- ยังไม่ได้ spot-check ผ่าน browser UI จริง (ทั้งยี่ห้อเลนส์ + 2 ฟีเจอร์ใหม่) — เลี่ยงเพราะ **local/live ใช้ Turso เดียวกัน** (กดปุ่มซ่อน/ลบ/ขายทดสอบ = เขียนร้านจริง); ตรวจระดับ logic/SQL + build แล้ว
+- ปุ่มซ่อน/ลบ Low Stock ยังไม่ได้กดบน browser จริง (verify ผ่าน API socket แทน — local/live ใช้ Turso เดียวกัน เลี่ยงเขียน junk); dropdown ยี่ห้อ Codex ยืนยัน UI แล้ว
 
 ---
 
