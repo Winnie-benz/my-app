@@ -9,7 +9,7 @@ import { useProductStore } from '../../store/useProductStore'
 import { ApiError, api } from '../../services/api'
 import type { Product, LensProduct, LensVariant } from '../../types/product'
 import { notify } from '../../utils/notify'
-import { LENS_INDEXES, lensBrandOptions } from '../../constants/lensBrands'
+import { LENS_INDEXES, lensBrandOptions, normalizeLensBrand } from '../../constants/lensBrands'
 
 // ── Schema ────────────────────────────────────────────────────────────────────
 
@@ -112,7 +112,7 @@ function safeNumber(value: number | undefined | null): number {
 }
 
 function sameBrand(a?: string, b?: string): boolean {
-  return (a ?? '').trim().toLowerCase() === (b ?? '').trim().toLowerCase()
+  return normalizeLensBrand(a).toLowerCase() === normalizeLensBrand(b).toLowerCase()
 }
 
 // ── Sub-components (defined OUTSIDE to preserve identity across re-renders) ───
@@ -505,7 +505,7 @@ function recordToDefaults(r: PurchaseRecord): FormValues {
     order_rx_left:    r.order_rx?.left  ?? { ...BLANK_EYE },
     lens_variant_id_r: r.lens_variant_id_r ?? null,
     lens_variant_id_l: r.lens_variant_id_l ?? null,
-    lens:     { ...r.lens, product_id: r.lens.product_id ?? null, product_name: r.lens.product_name ?? '', sku: r.lens.sku ?? '', brand: r.lens.brand ?? '' },
+    lens:     { ...r.lens, product_id: r.lens.product_id ?? null, product_name: r.lens.product_name ?? '', sku: r.lens.sku ?? '', brand: normalizeLensBrand(r.lens.brand) },
     frame:    { ...r.frame, product_id: r.frame.product_id ?? null, product_name: r.frame.product_name ?? '', sku: r.frame.sku ?? '', model: r.frame.model ?? '' },
     other:    { ...r.other, product_id: r.other.product_id ?? null, product_name: r.other.product_name ?? '', sku: r.other.sku ?? '', source: r.other.source ?? 'store' },
     price_lens:  { full: r.price_lens.full,  discounted: r.price_lens.discounted  },
@@ -703,7 +703,7 @@ export default function PurchaseForm({ customerId, initial, onSubmit, onClose }:
 
   useEffect(() => {
     if (lensKind === 'stock_store' && pickerProduct?.brand && !lensBrand) {
-      setValue('lens.brand', pickerProduct.brand)
+      setValue('lens.brand', normalizeLensBrand(pickerProduct.brand))
     }
   }, [lensKind, lensBrand, pickerProduct, setValue])
 
@@ -1133,7 +1133,7 @@ export default function PurchaseForm({ customerId, initial, onSubmit, onClose }:
                             setValue('price_lens.full' as any, lp.sell_price, { shouldDirty: true, shouldValidate: true })
                             setValue('price_lens.discounted' as any, lp.sell_price, { shouldDirty: true, shouldValidate: true })
                           }
-                          if (lp?.brand) setValue('lens.brand', lp.brand, { shouldDirty: true })
+                          if (lp?.brand) setValue('lens.brand', normalizeLensBrand(lp.brand), { shouldDirty: true })
                         }
                       }}
                       className="w-full border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-violet-400 bg-white"

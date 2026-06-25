@@ -4,7 +4,7 @@ import { api } from '../services/api'
 import type { LensProduct, LensVariant, CheckStatus } from '../types/product'
 import { useAuthStore } from '../store/useAuthStore'
 import { useEscapeKey } from '../hooks/useEscapeKey'
-import { lensBrandOptions, lensIndexOptions, lensProductTypeOptions } from '../constants/lensBrands'
+import { lensBrandOptions, lensIndexOptions, lensProductTypeOptions, normalizeLensBrand } from '../constants/lensBrands'
 
 // ── Range helpers ─────────────────────────────────────────────────────────────
 
@@ -101,7 +101,7 @@ const EMPTY_PRODUCT = {
 
 function ProductFormModal({ initial, onSaved, onClose }: ProductFormModalProps) {
   const [form, setForm]     = useState(initial ? {
-    brand: initial.brand, series: initial.series, lens_type: initial.lens_type,
+    brand: normalizeLensBrand(initial.brand), series: initial.series, lens_type: initial.lens_type,
     lens_index: initial.lens_index, coating: initial.coating, note: initial.note,
     default_cost: initial.default_cost ?? 0, sell_price: initial.sell_price ?? 0,
     sph_min: initial.sph_min, sph_max: initial.sph_max,
@@ -117,11 +117,12 @@ function ProductFormModal({ initial, onSaved, onClose }: ProductFormModalProps) 
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    if (!form.brand.trim()) { setError('กรุณากรอกยี่ห้อ'); return }
+    if (!normalizeLensBrand(form.brand)) { setError('กรุณากรอกยี่ห้อ'); return }
     setSaving(true); setError('')
     try {
       const body = {
         ...form,
+        brand: normalizeLensBrand(form.brand),
         default_cost: Number(form.default_cost),
         sell_price:   Number(form.sell_price),
         sph_min: Number(form.sph_min), sph_max: Number(form.sph_max),
