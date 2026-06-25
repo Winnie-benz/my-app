@@ -15,7 +15,20 @@
 
 ---
 
-## 🚨 อัปเดตล่าสุด: 2026-06-25 — Fix กราฟปีผิด + ย้ายเครื่อง Air → Pro
+## 🚨 อัปเดตล่าสุด: 2026-06-25 (รอบดึก) — แก้ server/.env token พัง
+
+### ✅ งานที่เสร็จในรอบนี้
+- **แก้ `server/.env`:** `TURSO_AUTH_TOKEN` ถูกวางซ้ำ 33 รอบติดกันในบรรทัดเดียว (9,207 ตัว / 66 จุด) → backend crash ตอน start (`JWT error: Base64 error: Invalid symbol 46`) และ `/api/auth/login` ขึ้น ECONNREFUSED
+- แก้ให้เหลือ token เดียวที่ถูกต้อง (279 ตัว, 2 จุด) — ทดสอบต่อ Turso ผ่านแล้ว (`select 1` = OK)
+- สำรองไฟล์เดิมไว้ที่ `server/.env.bak.*` (ไม่อยู่ใน git)
+- ⚠️ token/secret ใน `.env` (TURSO_AUTH_TOKEN, JWT_SECRET, APPS_SCRIPT_TOKEN) เคยถูกถ่าย screenshot ออกไป — ควรพิจารณา rotate
+- 📝 เตือน: แก้ token ใน nano ให้ลบค่าเดิมหลัง `=` ให้หมดก่อน (Ctrl+K) แล้วค่อยวางครั้งเดียว กัน token ซ้อน
+
+> หมายเหตุ: เครื่องนี้ตอนเริ่ม session ตามหลัง remote 44 commits — pull (ff) มาเป็นล่าสุดแล้ว + `npm install` ทั้ง root/server ใหม่ (package.json เปลี่ยน)
+
+---
+
+## อัปเดต: 2026-06-25 — Fix กราฟปีผิด + ย้ายเครื่อง Air → Pro
 
 ### ✅ งานที่เสร็จในรอบนี้
 
