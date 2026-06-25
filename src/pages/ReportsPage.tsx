@@ -34,7 +34,7 @@ function fmtPeriod(p: string, group: string) {
   }
   const [y, m] = p.split('-')
   const months = ['','ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.']
-  return `${months[parseInt(m)]} ${parseInt(y) - 2500 + 43}`
+  return `${months[parseInt(m)]} ${String(parseInt(y)).slice(-2)}`
 }
 
 const THAI_MONTHS = ['','ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.']
