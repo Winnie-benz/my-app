@@ -454,7 +454,18 @@ db.exec(`
 //      positional array, preserving parameter order (and repeats).
 //   2. libsql adds a `_metadata` field to .get() rows that better-sqlite3 never
 //      had; we strip it.
-const _prepare = db.prepare.bind(db)
+//   3. Turso closes idle WebSocket streams after inactivity. We catch "stream not
+//      found" errors and transparently reconnect + retry once so callers never see
+//      the error.
+let _rawPrepare = db.prepare.bind(db)
+
+function reconnectTurso() {
+  console.log('↻  Turso: stream expired — reconnecting...')
+  try { (db as any).close?.() } catch {}
+  const fresh = new Database(TURSO_URL as string, { authToken: TURSO_TOKEN as string } as any)
+  _rawPrepare = fresh.prepare.bind(fresh)
+}
+
 ;(db as any).prepare = (sql: string) => {
   const names: string[] = []
   // Turso servers run in UTC, so SQLite's 'localtime' modifier yields UTC, not
@@ -465,7 +476,18 @@ const _prepare = db.prepare.bind(db)
     names.push(n)
     return '?'
   })
-  const stmt = _prepare(positionalSql)
+
+  let stmt: any
+  try {
+    stmt = _rawPrepare(positionalSql)
+  } catch (err) {
+    if (USE_REMOTE && err instanceof Error && err.message.includes('stream not found')) {
+      reconnectTurso()
+      stmt = _rawPrepare(positionalSql)
+    } else {
+      throw err
+    }
+  }
 
   const toArgs = (args: any[]) => {
     if (
